@@ -220,7 +220,10 @@ GUID: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
 
 ## 7. Versions-Historie
 
-- 1.11 @ 15.02.2021 14:10 (beta)
+- 1.12 @ 22.04.2021 08:08 (beta)
+  - erneute Änderung der API, Command "navigation" funktioniert nicht mehr, daher kein "soc", "socMax"
+
+- 1.11 @ 15.02.2021 14:10
   - die API hat sich geändert
   - Variablen für Zeitpunkt der letzten Statusmeldung und Status der letzten Fahrzeugsuche
   - SetValue() abgesichert

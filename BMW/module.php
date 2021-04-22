@@ -597,7 +597,7 @@ class BMWConnectedDrive extends IPSModule
             if ($mode == 2) {
                 $url = 'https://b2vapi.bmwgroup.com';
             } else {
-                $url = 'https://www.bmw-connecteddrive.de';
+                $url = 'https://www.bmw-connecteddrive.com';
             }
             break;
         case BMW_AREA_SWITZERLAND:
@@ -730,13 +730,13 @@ class BMWConnectedDrive extends IPSModule
             'username'   => $user,
             'password'   => $password,
             'grant_type' => 'password',
-            'scope'      => 'authenticate_user vehicle_data remote_services',
+            'scope'      => 'authenticate_user vehicle_data remote_services fupo',
         ];
         $this->SendDebug(__FUNCTION__, 'postfields=' . print_r($postfields, true), 0);
 
         $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $auth_api);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, false);
+        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         curl_setopt($ch, CURLOPT_HEADER, true);
