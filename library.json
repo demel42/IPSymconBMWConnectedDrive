@@ -4,7 +4,7 @@
 	"name": "BMWConnectedDrive",
 	"url": "https://www.bmw-connecteddrive.de/app/de/index.html#/portal",
 	"compatibility": {
-		"version": "4.2",
+		"version": "4.2"
 	},
 	"version": "1.13",
 	"build": 0,
