@@ -220,7 +220,10 @@ GUID: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
 
 ## 7. Versions-Historie
 
-- 1.12 @ 22.04.2021 08:08 (beta)
+- 1.13 @ 18.08.2021 17:12 (beta)
+  - komplette Umstellung der API
+
+- 1.12 @ 22.04.2021 08:08
   - erneute Änderung der API, Command "navigation" funktioniert nicht mehr, daher kein "soc", "socMax"
 
 - 1.11 @ 15.02.2021 14:10

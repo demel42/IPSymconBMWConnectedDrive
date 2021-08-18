@@ -5,9 +5,8 @@
 	"url": "https://www.bmw-connecteddrive.de/app/de/index.html#/portal",
 	"compatibility": {
 		"version": "4.2",
-		"date": 1491343200
 	},
-	"version": "1.12",
-	"build": 2,
-	"date": 1619071735
+	"version": "1.13",
+	"build": 0,
+	"date": 1629299538
 }

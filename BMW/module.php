@@ -2,240 +2,87 @@
 
 declare(strict_types=1);
 
-if (@constant('IPS_BASE') == null) { //Nur wenn Konstanten noch nicht bekannt sind.
-// --- BASE MESSAGE
-    define('IPS_BASE', 10000);                             //Base Message
-    define('IPS_KERNELSHUTDOWN', IPS_BASE + 1);            //Pre Shutdown Message, Runlevel UNINIT Follows
-    define('IPS_KERNELSTARTED', IPS_BASE + 2);             //Post Ready Message
-// --- KERNEL
-    define('IPS_KERNELMESSAGE', IPS_BASE + 100);           //Kernel Message
-    define('KR_CREATE', IPS_KERNELMESSAGE + 1);            //Kernel is beeing created
-    define('KR_INIT', IPS_KERNELMESSAGE + 2);              //Kernel Components are beeing initialised, Modules loaded, Settings read
-    define('KR_READY', IPS_KERNELMESSAGE + 3);             //Kernel is ready and running
-    define('KR_UNINIT', IPS_KERNELMESSAGE + 4);            //Got Shutdown Message, unloading all stuff
-    define('KR_SHUTDOWN', IPS_KERNELMESSAGE + 5);          //Uninit Complete, Destroying Kernel Inteface
-// --- KERNEL LOGMESSAGE
-    define('IPS_LOGMESSAGE', IPS_BASE + 200);              //Logmessage Message
-    define('KL_MESSAGE', IPS_LOGMESSAGE + 1);              //Normal Message                      | FG: Black | BG: White  | STLYE : NONE
-    define('KL_SUCCESS', IPS_LOGMESSAGE + 2);              //Success Message                     | FG: Black | BG: Green  | STYLE : NONE
-    define('KL_NOTIFY', IPS_LOGMESSAGE + 3);               //Notiy about Changes                 | FG: Black | BG: Blue   | STLYE : NONE
-    define('KL_WARNING', IPS_LOGMESSAGE + 4);              //Warnings                            | FG: Black | BG: Yellow | STLYE : NONE
-    define('KL_ERROR', IPS_LOGMESSAGE + 5);                //Error Message                       | FG: Black | BG: Red    | STLYE : BOLD
-    define('KL_DEBUG', IPS_LOGMESSAGE + 6);                //Debug Informations + Script Results | FG: Grey  | BG: White  | STLYE : NONE
-    define('KL_CUSTOM', IPS_LOGMESSAGE + 7);               //User Message                        | FG: Black | BG: White  | STLYE : NONE
-// --- MODULE LOADER
-    define('IPS_MODULEMESSAGE', IPS_BASE + 300);           //ModuleLoader Message
-    define('ML_LOAD', IPS_MODULEMESSAGE + 1);              //Module loaded
-    define('ML_UNLOAD', IPS_MODULEMESSAGE + 2);            //Module unloaded
-// --- OBJECT MANAGER
-    define('IPS_OBJECTMESSAGE', IPS_BASE + 400);
-    define('OM_REGISTER', IPS_OBJECTMESSAGE + 1);          //Object was registered
-    define('OM_UNREGISTER', IPS_OBJECTMESSAGE + 2);        //Object was unregistered
-    define('OM_CHANGEPARENT', IPS_OBJECTMESSAGE + 3);      //Parent was Changed
-    define('OM_CHANGENAME', IPS_OBJECTMESSAGE + 4);        //Name was Changed
-    define('OM_CHANGEINFO', IPS_OBJECTMESSAGE + 5);        //Info was Changed
-    define('OM_CHANGETYPE', IPS_OBJECTMESSAGE + 6);        //Type was Changed
-    define('OM_CHANGESUMMARY', IPS_OBJECTMESSAGE + 7);     //Summary was Changed
-    define('OM_CHANGEPOSITION', IPS_OBJECTMESSAGE + 8);    //Position was Changed
-    define('OM_CHANGEREADONLY', IPS_OBJECTMESSAGE + 9);    //ReadOnly was Changed
-    define('OM_CHANGEHIDDEN', IPS_OBJECTMESSAGE + 10);     //Hidden was Changed
-    define('OM_CHANGEICON', IPS_OBJECTMESSAGE + 11);       //Icon was Changed
-    define('OM_CHILDADDED', IPS_OBJECTMESSAGE + 12);       //Child for Object was added
-    define('OM_CHILDREMOVED', IPS_OBJECTMESSAGE + 13);     //Child for Object was removed
-    define('OM_CHANGEIDENT', IPS_OBJECTMESSAGE + 14);      //Ident was Changed
-    define('OM_CHANGEDISABLED', IPS_OBJECTMESSAGE + 15);   //Operability has changed
-// --- INSTANCE MANAGER
-    define('IPS_INSTANCEMESSAGE', IPS_BASE + 500);         //Instance Manager Message
-    define('IM_CREATE', IPS_INSTANCEMESSAGE + 1);          //Instance created
-    define('IM_DELETE', IPS_INSTANCEMESSAGE + 2);          //Instance deleted
-    define('IM_CONNECT', IPS_INSTANCEMESSAGE + 3);         //Instance connectged
-    define('IM_DISCONNECT', IPS_INSTANCEMESSAGE + 4);      //Instance disconncted
-    define('IM_CHANGESTATUS', IPS_INSTANCEMESSAGE + 5);    //Status was Changed
-    define('IM_CHANGESETTINGS', IPS_INSTANCEMESSAGE + 6);  //Settings were Changed
-    define('IM_CHANGESEARCH', IPS_INSTANCEMESSAGE + 7);    //Searching was started/stopped
-    define('IM_SEARCHUPDATE', IPS_INSTANCEMESSAGE + 8);    //Searching found new results
-    define('IM_SEARCHPROGRESS', IPS_INSTANCEMESSAGE + 9);  //Searching progress in %
-    define('IM_SEARCHCOMPLETE', IPS_INSTANCEMESSAGE + 10); //Searching is complete
-// --- VARIABLE MANAGER
-    define('IPS_VARIABLEMESSAGE', IPS_BASE + 600);              //Variable Manager Message
-    define('VM_CREATE', IPS_VARIABLEMESSAGE + 1);               //Variable Created
-    define('VM_DELETE', IPS_VARIABLEMESSAGE + 2);               //Variable Deleted
-    define('VM_UPDATE', IPS_VARIABLEMESSAGE + 3);               //On Variable Update
-    define('VM_CHANGEPROFILENAME', IPS_VARIABLEMESSAGE + 4);    //On Profile Name Change
-    define('VM_CHANGEPROFILEACTION', IPS_VARIABLEMESSAGE + 5);  //On Profile Action Change
-// --- SCRIPT MANAGER
-    define('IPS_SCRIPTMESSAGE', IPS_BASE + 700);           //Script Manager Message
-    define('SM_CREATE', IPS_SCRIPTMESSAGE + 1);            //On Script Create
-    define('SM_DELETE', IPS_SCRIPTMESSAGE + 2);            //On Script Delete
-    define('SM_CHANGEFILE', IPS_SCRIPTMESSAGE + 3);        //On Script File changed
-    define('SM_BROKEN', IPS_SCRIPTMESSAGE + 4);            //Script Broken Status changed
-// --- EVENT MANAGER
-    define('IPS_EVENTMESSAGE', IPS_BASE + 800);             //Event Scripter Message
-    define('EM_CREATE', IPS_EVENTMESSAGE + 1);             //On Event Create
-    define('EM_DELETE', IPS_EVENTMESSAGE + 2);             //On Event Delete
-    define('EM_UPDATE', IPS_EVENTMESSAGE + 3);
-    define('EM_CHANGEACTIVE', IPS_EVENTMESSAGE + 4);
-    define('EM_CHANGELIMIT', IPS_EVENTMESSAGE + 5);
-    define('EM_CHANGESCRIPT', IPS_EVENTMESSAGE + 6);
-    define('EM_CHANGETRIGGER', IPS_EVENTMESSAGE + 7);
-    define('EM_CHANGETRIGGERVALUE', IPS_EVENTMESSAGE + 8);
-    define('EM_CHANGETRIGGEREXECUTION', IPS_EVENTMESSAGE + 9);
-    define('EM_CHANGECYCLIC', IPS_EVENTMESSAGE + 10);
-    define('EM_CHANGECYCLICDATEFROM', IPS_EVENTMESSAGE + 11);
-    define('EM_CHANGECYCLICDATETO', IPS_EVENTMESSAGE + 12);
-    define('EM_CHANGECYCLICTIMEFROM', IPS_EVENTMESSAGE + 13);
-    define('EM_CHANGECYCLICTIMETO', IPS_EVENTMESSAGE + 14);
-    // --- MEDIA MANAGER
-    define('IPS_MEDIAMESSAGE', IPS_BASE + 900);           //Media Manager Message
-    define('MM_CREATE', IPS_MEDIAMESSAGE + 1);             //On Media Create
-    define('MM_DELETE', IPS_MEDIAMESSAGE + 2);             //On Media Delete
-    define('MM_CHANGEFILE', IPS_MEDIAMESSAGE + 3);         //On Media File changed
-    define('MM_AVAILABLE', IPS_MEDIAMESSAGE + 4);          //Media Available Status changed
-    define('MM_UPDATE', IPS_MEDIAMESSAGE + 5);
-    // --- LINK MANAGER
-    define('IPS_LINKMESSAGE', IPS_BASE + 1000);           //Link Manager Message
-    define('LM_CREATE', IPS_LINKMESSAGE + 1);             //On Link Create
-    define('LM_DELETE', IPS_LINKMESSAGE + 2);             //On Link Delete
-    define('LM_CHANGETARGET', IPS_LINKMESSAGE + 3);       //On Link TargetID change
-// --- DATA HANDLER
-    define('IPS_DATAMESSAGE', IPS_BASE + 1100);             //Data Handler Message
-    define('FM_CONNECT', IPS_DATAMESSAGE + 1);             //On Instance Connect
-    define('FM_DISCONNECT', IPS_DATAMESSAGE + 2);          //On Instance Disconnect
-// --- SCRIPT ENGINE
-    define('IPS_ENGINEMESSAGE', IPS_BASE + 1200);           //Script Engine Message
-    define('SE_UPDATE', IPS_ENGINEMESSAGE + 1);             //On Library Refresh
-    define('SE_EXECUTE', IPS_ENGINEMESSAGE + 2);            //On Script Finished execution
-    define('SE_RUNNING', IPS_ENGINEMESSAGE + 3);            //On Script Started execution
-// --- PROFILE POOL
-    define('IPS_PROFILEMESSAGE', IPS_BASE + 1300);
-    define('PM_CREATE', IPS_PROFILEMESSAGE + 1);
-    define('PM_DELETE', IPS_PROFILEMESSAGE + 2);
-    define('PM_CHANGETEXT', IPS_PROFILEMESSAGE + 3);
-    define('PM_CHANGEVALUES', IPS_PROFILEMESSAGE + 4);
-    define('PM_CHANGEDIGITS', IPS_PROFILEMESSAGE + 5);
-    define('PM_CHANGEICON', IPS_PROFILEMESSAGE + 6);
-    define('PM_ASSOCIATIONADDED', IPS_PROFILEMESSAGE + 7);
-    define('PM_ASSOCIATIONREMOVED', IPS_PROFILEMESSAGE + 8);
-    define('PM_ASSOCIATIONCHANGED', IPS_PROFILEMESSAGE + 9);
-    // --- TIMER POOL
-    define('IPS_TIMERMESSAGE', IPS_BASE + 1400);            //Timer Pool Message
-    define('TM_REGISTER', IPS_TIMERMESSAGE + 1);
-    define('TM_UNREGISTER', IPS_TIMERMESSAGE + 2);
-    define('TM_SETINTERVAL', IPS_TIMERMESSAGE + 3);
-    define('TM_UPDATE', IPS_TIMERMESSAGE + 4);
-    define('TM_RUNNING', IPS_TIMERMESSAGE + 5);
-    // --- STATUS CODES
-    define('IS_SBASE', 100);
-    define('IS_CREATING', IS_SBASE + 1); //module is being created
-    define('IS_ACTIVE', IS_SBASE + 2); //module created and running
-    define('IS_DELETING', IS_SBASE + 3); //module us being deleted
-    define('IS_INACTIVE', IS_SBASE + 4); //module is not beeing used
-// --- ERROR CODES
-    define('IS_EBASE', 200);          //default errorcode
-    define('IS_NOTCREATED', IS_EBASE + 1); //instance could not be created
-// --- Search Handling
-    define('FOUND_UNKNOWN', 0);     //Undefined value
-    define('FOUND_NEW', 1);         //Device is new and not configured yet
-    define('FOUND_OLD', 2);         //Device is already configues (InstanceID should be set)
-    define('FOUND_CURRENT', 3);     //Device is already configues (InstanceID is from the current/searching Instance)
-    define('FOUND_UNSUPPORTED', 4); //Device is not supported by Module
-}
-
-if (!defined('VARIABLETYPE_BOOLEAN')) {
-    define('VARIABLETYPE_BOOLEAN', 0);
-    define('VARIABLETYPE_INTEGER', 1);
-    define('VARIABLETYPE_FLOAT', 2);
-    define('VARIABLETYPE_STRING', 3);
-}
-
-// module for BMW
-
-// Model
-if (!defined('BMW_MODEL_ELECTRIC')) {
-    define('BMW_MODEL_ELECTRIC', 1);
-}
-if (!defined('BMW_MODEL_HYBRID')) {
-    define('BMW_MODEL_HYBRID', 2);
-}
-if (!defined('BMW_MODEL_STANDARD')) {
-    define('BMW_MODEL_STANDARD', 3);
-}
-
-// chargingConnector
-if (!defined('BMW_CONNECTOR_UNKNOWN')) {
-    define('BMW_CONNECTOR_UNKNOWN', -1);
-}
-if (!defined('BMW_CONNECTOR_DISCONNECTED')) {
-    define('BMW_CONNECTOR_DISCONNECTED', 0);
-}
-if (!defined('BMW_CONNECTOR_CONNECTED')) {
-    define('BMW_CONNECTOR_CONNECTED', 1);
-}
-
-// chargingStatus
-if (!defined('BMW_CHARGING_UNKNOWN')) {
-    define('BMW_CHARGING_UNKNOWN', -1);
-}
-if (!defined('BMW_CHARGING_NO')) {
-    define('BMW_CHARGING_NO', 0);
-}
-if (!defined('BMW_CHARGING_ACTIVE')) {
-    define('BMW_CHARGING_ACTIVE', 1);
-}
-if (!defined('BMW_CHARGING_ENDED')) {
-    define('BMW_CHARGING_ENDED', 2);
-}
-if (!defined('BMW_CHARGING_PAUSED')) {
-    define('BMW_CHARGING_PAUSED', 3);
-}
-
-// GoogleMap
-if (!defined('BMW_GOOGLEMAP_ROADMAP')) {
-    define('BMW_GOOGLEMAP_ROADMAP', 0);
-}
-if (!defined('BMW_GOOGLEMAP_SATELLITE')) {
-    define('BMW_GOOGLEMAP_SATELLITE', 1);
-}
-if (!defined('BMW_GOOGLEMAP_HYBRID')) {
-    define('BMW_GOOGLEMAP_HYBRID', 2);
-}
-if (!defined('BMW_GOOGLEMAP_TERRAIN')) {
-    define('BMW_GOOGLEMAP_TERRAIN', 3);
-}
-
-// Area
-if (!defined('BMW_AREA_GERMANY')) {
-    define('BMW_AREA_GERMANY', 1);
-}
-if (!defined('BMW_AREA_SWITZERLAND')) {
-    define('BMW_AREA_SWITZERLAND', 2);
-}
-if (!defined('BMW_AREA_EUROPE')) {
-    define('BMW_AREA_EUROPE', 3);
-}
-if (!defined('BMW_AREA_USA')) {
-    define('BMW_AREA_USA', 4);
-}
-if (!defined('BMW_AREA_CHINA')) {
-    define('BMW_AREA_CHINA', 5);
-}
-if (!defined('BMW_AREA_OTHER')) {
-    define('BMW_AREA_OTHER', 6);
-}
-
 class BMWConnectedDrive extends IPSModule
 {
+    // Model
+    public static $BMW_MODEL_ELECTRIC = 1;
+    public static $BMW_MODEL_HYBRID = 2;
+    public static $BMW_MODEL_STANDARD = 3;
+
+    // chargingConnector
+    public static $BMW_CONNECTOR_UNKNOWN = -1;
+    public static $BMW_CONNECTOR_DISCONNECTED = 0;
+    public static $BMW_CONNECTOR_CONNECTED = 1;
+
+    // chargingStatus
+    public static $BMW_CHARGING_UNKNOWN = -1;
+    public static $BMW_CHARGING_NO = 0;
+    public static $BMW_CHARGING_ACTIVE = 1;
+    public static $BMW_CHARGING_ENDED = 2;
+    public static $BMW_CHARGING_PAUSED = 3;
+
+    // GoogleMap
+    public static $BMW_GOOGLEMAP_ROADMAP = 0;
+    public static $BMW_GOOGLEMAP_SATELLITE = 1;
+    public static $BMW_GOOGLEMAP_HYBRID = 2;
+    public static $BMW_GOOGLEMAP_TERRAIN = 3;
+
+    // Area
+    public static $BMW_AREA_GERMANY = 1;
+    public static $BMW_AREA_SWITZERLAND = 2;
+    public static $BMW_AREA_EUROPE = 3;
+    public static $BMW_AREA_USA = 4;
+    public static $BMW_AREA_CHINA = 5;
+    public static $BMW_AREA_OTHER = 6;
+
+    // Konfigurationen
+
+    public static $serverEndpoints = [
+        'NorthAmerica' => 'b2vapi.bmwgroup.us',
+        'RestOfWorld'  => 'b2vapi.bmwgroup.com',
+    ];
+
+    public static $oauthServer = [
+        'NorthAmerica' => 'login.bmwusa.com',
+        'RestOfWorld'  => 'customer.bmwgroup.com',
+    ];
+
+    public static $oauthAuthorization = [
+        'NorthAmerica' => 'NTQzOTRhNGItYjZjMS00NWZlLWI3YjItOGZkM2FhOTI1M2FhOmQ5MmYzMWMwLWY1NzktNDRmNS1hNzdkLTk2NmY4ZjAwZTM1MQ==',
+        'RestOfWorld'  => 'MzFjMzU3YTAtN2ExZC00NTkwLWFhOTktMzNiOTcyNDRkMDQ4OmMwZTMzOTNkLTcwYTItNGY2Zi05ZDNjLTg1MzBhZjY0ZDU1Mg==',
+    ];
+
+    public static $oauthCodeVerifier = [
+        'NorthAmerica' => 'KDarcVUpgymBDCgHDH0PwwMfzycDxu1joeklioOhwXA',
+        'RestOfWorld'  => '7PsmfPS5MpaNt0jEcPpi-B7M7u0gs1Nzw6ex0Y9pa-0',
+    ];
+
+    public static $oauthClientId = [
+        'NorthAmerica' => '54394a4b-b6c1-45fe-b7b2-8fd3aa9253aa',
+        'RestOfWorld'  => '31c357a0-7a1d-4590-aa99-33b97244d048',
+    ];
+
+    public static $oauthState = [
+        'NorthAmerica' => 'rgastJbZsMtup49-Lp0FMQ',
+        'RestOfWorld'  => 'cEG9eLAIi6Nv-aaCAniziE_B6FPoobva3qr5gukilYw',
+    ];
+
+    public static $oauth_login_endpoint = '/gcdm/oauth/authenticate';
+    public static $oauth_token_endpoint = '/gcdm/oauth/token';
+
+    public static $user_agent = __CLASS__;
+
+    public static $oauth_redirect_uri = 'com.bmw.connected://oauth';
+    public static $oauth_scope = 'openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi remote_services fupo authenticate_user';
+
+    public static $legacy_app_id = 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35';
+
     public function Create()
     {
-        //Never delete this line!
         parent::Create();
-
-        //These lines are parsed on Symcon Startup or Instance creation
-        //You cannot use variables here. Just static values.
 
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
-        $this->RegisterPropertyString('app_id', 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35');
         $this->RegisterPropertyString('vin', '');
         $this->RegisterPropertyInteger('bmw_server', 1);
         $this->RegisterPropertyInteger('model', 1);
@@ -270,6 +117,8 @@ class BMWConnectedDrive extends IPSModule
         $this->SetMultiBuffer('bmw_dynamic_interface', '');
         $this->SetMultiBuffer('bmw_image_interface', '');
         $this->SetMultiBuffer('bmw_image_interface', '');
+
+        $this->RegisterAttributeString('ApiRefreshToken', '');
     }
 
     public function ApplyChanges()
@@ -283,23 +132,23 @@ class BMWConnectedDrive extends IPSModule
 
         $associations = [];
         $associations[] = [0, $this->Translate('roadmap'), '', 0x3ADF00];
-        $associations[] = [BMW_GOOGLEMAP_SATELLITE, $this->Translate('satellite'), '', 0x3ADF00];
-        $associations[] = [BMW_GOOGLEMAP_HYBRID, $this->Translate('hybrid'), '', 0x3ADF00];
-        $associations[] = [BMW_GOOGLEMAP_TERRAIN, $this->Translate('terrain'), '', 0x3ADF00];
+        $associations[] = [self::$BMW_GOOGLEMAP_SATELLITE, $this->Translate('satellite'), '', 0x3ADF00];
+        $associations[] = [self::$BMW_GOOGLEMAP_HYBRID, $this->Translate('hybrid'), '', 0x3ADF00];
+        $associations[] = [self::$BMW_GOOGLEMAP_TERRAIN, $this->Translate('terrain'), '', 0x3ADF00];
         $this->RegisterProfileAssociation('BMW.Googlemap', 'Car', '', '', 0, 3, 0, 0, VARIABLETYPE_INTEGER, $associations);
 
         $associations = [];
-        $associations[] = [BMW_CONNECTOR_UNKNOWN, $this->Translate('unknown'), '', 0xEE0000];
-        $associations[] = [BMW_CONNECTOR_DISCONNECTED, $this->Translate('disconnected'), '', -1];
-        $associations[] = [BMW_CONNECTOR_CONNECTED, $this->Translate('connected'), '', 0x228B22];
+        $associations[] = [self::$BMW_CONNECTOR_UNKNOWN, $this->Translate('unknown'), '', 0xEE0000];
+        $associations[] = [self::$BMW_CONNECTOR_DISCONNECTED, $this->Translate('disconnected'), '', -1];
+        $associations[] = [self::$BMW_CONNECTOR_CONNECTED, $this->Translate('connected'), '', 0x228B22];
         $this->RegisterProfileAssociation('BMW.ConnectorStatus', '', '', '', 0, 0, 0, 0, VARIABLETYPE_INTEGER, $associations);
 
         $associations = [];
-        $associations[] = [BMW_CHARGING_UNKNOWN, $this->Translate('unknown'), '', 0xEE0000];
-        $associations[] = [BMW_CHARGING_NO, $this->Translate('no charging'), '', -1];
-        $associations[] = [BMW_CHARGING_ACTIVE, $this->Translate('charging active'), '', 0x228B22];
-        $associations[] = [BMW_CHARGING_ENDED, $this->Translate('charging ended'), '', 0x0000FF];
-        $associations[] = [BMW_CHARGING_PAUSED, $this->Translate('charging paused'), '', -1];
+        $associations[] = [self::$BMW_CHARGING_UNKNOWN, $this->Translate('unknown'), '', 0xEE0000];
+        $associations[] = [self::$BMW_CHARGING_NO, $this->Translate('no charging'), '', -1];
+        $associations[] = [self::$BMW_CHARGING_ACTIVE, $this->Translate('charging active'), '', 0x228B22];
+        $associations[] = [self::$BMW_CHARGING_ENDED, $this->Translate('charging ended'), '', 0x0000FF];
+        $associations[] = [self::$BMW_CHARGING_PAUSED, $this->Translate('charging paused'), '', -1];
         $this->RegisterProfileAssociation('BMW.ChargingStatus', '', '', '', 0, 0, 0, 0, VARIABLETYPE_INTEGER, $associations);
 
         $this->RegisterProfile('BMW.Mileage', 'Distance', '', ' ' . $this->GetMileageUnit(), 0, 0, 0, 0, VARIABLETYPE_INTEGER);
@@ -310,7 +159,7 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterVariableFloat('bmw_remaining_range', $this->Translate('remaining range'), 'BMW.RemainingRange', 6);
 
         $model = $this->ReadPropertyInteger('model');
-        if ($model != BMW_MODEL_STANDARD) { // standard, no electric
+        if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
             $this->RegisterVariableFloat('bmw_remaining_electric_range', $this->Translate('remaining electric range'), 'BMW.RemainingRange', 6);
             $this->RegisterProfile('BMW.ChargingLevel', '', '', ' %', 0, 0, 0, 0, VARIABLETYPE_FLOAT);
             $this->RegisterVariableFloat('bmw_charging_level', $this->Translate('charging level'), 'BMW.ChargingLevel', 6);
@@ -389,33 +238,28 @@ class BMWConnectedDrive extends IPSModule
         $this->ValidateConfiguration();
     }
 
-    /**
-     * Die folgenden Funktionen stehen automatisch zur Verfügung, wenn das Modul über die "Module Control" eingefügt wurden.
-     * Die Funktionen werden, mit dem selbst eingerichteten Prefix, in PHP und JSON-RPC wiefolgt zur Verfügung gestellt:.
-     */
     private function ValidateConfiguration()
     {
         $user = $this->ReadPropertyString('user');
         $password = $this->ReadPropertyString('password');
-        $app_id = $this->ReadPropertyString('app_id');
         $vin = $this->ReadPropertyString('vin');
 
         $this->SetUpdateIntervall();
 
         //check user and password
-        if ($user == '' || $password == '' || $app_id == '' || $vin == '') {
+        if ($user == '' || $password == '' || $vin == '') {
             $this->SetStatus(205);
             return;
         }
 
         $model = $this->ReadPropertyInteger('model');
-        if ($model == BMW_MODEL_ELECTRIC) {
+        if ($model == self::$BMW_MODEL_ELECTRIC) {
             $this->SendDebug(__FUNCTION__, 'electric selected', 0);
         }
-        if ($model == BMW_MODEL_HYBRID) {
+        if ($model == self::$BMW_MODEL_HYBRID) {
             $this->SendDebug(__FUNCTION__, 'hybrid selected', 0);
         }
-        if ($model == BMW_MODEL_STANDARD) {
+        if ($model == self::$BMW_MODEL_STANDARD) {
             $this->SendDebug(__FUNCTION__, 'standard, no electric selected', 0);
         }
         $active_climate = $this->ReadPropertyBoolean('active_climate');
@@ -562,8 +406,10 @@ class BMWConnectedDrive extends IPSModule
 
         $this->GetVehicleStatus();
         $this->GetDynamicData();
-        $this->GetNavigationData();
-        $this->GetEfficiency();
+        if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
+            $this->GetNavigationData();
+            $this->GetEfficiency();
+        }
         $this->GetMapUpdate();
 
         if ($active_picture) {
@@ -573,11 +419,10 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $this->GetStore();
-        $this->GetSpecs();
         $this->GetService();
         $this->GetServicePartner();
 
-        if ($model != BMW_MODEL_STANDARD) { // standard, no electric
+        if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
             $this->GetChargingProfile();
         }
 
@@ -589,58 +434,58 @@ class BMWConnectedDrive extends IPSModule
         return 'km';
     }
 
-    protected function GetBMWServerURL($area, $mode)
+    private function GetBMWServerURL($mode)
     {
-        switch ($area) {
-        case BMW_AREA_GERMANY:
-            $server = 'Germany';
-            if ($mode == 2) {
-                $url = 'https://b2vapi.bmwgroup.com';
-            } else {
-                $url = 'https://www.bmw-connecteddrive.com';
-            }
-            break;
-        case BMW_AREA_SWITZERLAND:
-            $server = 'Switzerland';
-            if ($mode == 2) {
-                $url = 'https://b2vapi.bmwgroup.com';
-            } else {
-                $url = 'https://www.bmw-connecteddrive.ch';
-            }
-            break;
-        case BMW_AREA_EUROPE:;
-            $server = 'Europe';
-            $url = 'https://b2vapi.bmwgroup.com';
-            break;
-        case BMW_AREA_USA:
-            $server = 'USA';
-            $url = 'https://b2vapi.bmwgroup.us';
-            break;
-        case BMW_AREA_CHINA:
-            $server = 'China';
-            $url = 'https://b2vapi.bmwgroup.cn:8592';
-            break;
-        default:
-            $server = 'Europe';
-            $url = 'https://b2vapi.bmwgroup.com';
-            break;
-        }
+        $region = $this->GetRegion();
+        $url = 'https://' . self::$serverEndpoints[$region];
+        return $url;
 
-        $this->SendDebug(__FUNCTION__, 'use server location ' . $server . ', url=' . $url, 0);
+        if ($mode == 1) {
+            $area = $this->ReadPropertyInteger('bmw_server');
+            switch ($area) {
+            case self::$BMW_AREA_GERMANY:
+                $url = 'https://www.bmw-connecteddrive.de';
+                break;
+            case self::$BMW_AREA_SWITZERLAND:
+                $url = 'https://www.bmw-connecteddrive.ch';
+                break;
+            case self::$BMW_AREA_USA:
+                $url = 'https://b2vapi.bmwgroup.us';
+                break;
+            default:
+                $url = 'https://b2vapi.bmwgroup.com';
+                break;
+            }
+        } else {
+            $region = $this->GetRegion();
+            $url = 'https://' . self::$serverEndpoints[$region];
+        }
         return $url;
     }
 
     public function GetToken()
     {
+        $this->SetBuffer('Token_1', '');
         $this->GetToken_1();
         $this->GetToken_2();
     }
 
-    public function GetToken_1()
+    private function GetToken_1()
     {
+        $data = $this->GetBuffer('Token_1');
+        if ($data != false) {
+            $jtoken = json_decode($data, true);
+            $access_token = isset($jtoken['access_token']) ? $jtoken['access_token'] : '';
+            $expiration = isset($jtoken['expiration']) ? $jtoken['expiration'] : 0;
+            if ($expiration > time()) {
+                $this->SendDebug(__FUNCTION__, 'old access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+                return $access_token;
+            }
+            $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
+        }
+
         $user = $this->ReadPropertyString('user');
         $password = $this->ReadPropertyString('password');
-        $app_id = $this->ReadPropertyString('app_id');
 
         $auth_api = 'https://customer.bmwgroup.com/gcdm/oauth/authenticate';
         $this->SendDebug(__FUNCTION__, 'url=' . $auth_api, 0);
@@ -653,7 +498,7 @@ class BMWConnectedDrive extends IPSModule
         $postfields = [
             'username'      => $user,
             'password'      => $password,
-            'client_id'     => $app_id,
+            'client_id'     => self::$legacy_app_id,
             'redirect_uri'  => 'https://www.bmw-connecteddrive.com/app/default/static/external-dispatch.html',
             'response_type' => 'token',
             'locale'        => 'DE-de'
@@ -690,129 +535,397 @@ class BMWConnectedDrive extends IPSModule
             return false;
         }
 
-        $token = $matches[1];
-        $token_expiration = time() + $matches[3] - 60;
-        $this->SendDebug(__FUNCTION__, 'set access_token=' . $token . ', expiration=' . $token_expiration, 0);
+        $access_token = $matches[1];
+        $expiration = time() + $matches[3] - 60;
+        $this->SendDebug(__FUNCTION__, 'set access_token=' . $access_token . ', expiration=' . $expiration, 0);
 
         $jtoken = [
-            'token'            => $token,
-            'token_expiration' => $token_expiration
+            'access_token'            => $access_token,
+            'expiration'              => $expiration
         ];
         $this->SetBuffer('Token_1', json_encode($jtoken));
-        return $token;
-    }
-
-    public function GetToken_2()
-    {
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
-        $app_id = $this->ReadPropertyString('app_id');
-
-        $host = 'b2vapi.bmwgroup.com';
-        $auth_api = 'https://' . $host . '/gcdm/oauth/token';
-        $this->SendDebug(__FUNCTION__, 'url=' . $auth_api, 0);
-
-        $authorization = 'Basic ZDc2NmI1MzctYTY1NC00Y2JkLWEzZGMtMGNhNTY3MmQ3ZjhkOjE1ZjY5N2Y2LWE1ZDUtNGNhZC05OWQ5LTNhMTViYzdmMzk3Mw==';
-        $credentials = 'nQv6CqtxJuXWP74xf3CJwUEP:1zDHx6un4cDjybLENN3kyfumX2kEYigWPcQpdvDRpIBk7rOJ';
-
-        $header = [
-            'Content-Type: application/x-www-form-urlencoded',
-            'Connection: Keep-Alive',
-            'Accept-Encoding: gzip',
-            'Authorization: ' . $authorization,
-            'Credentials: ' . $credentials,
-            'User-Agent: okhttp/2.60',
-            'Host: ' . $host,
-        ];
-        $this->SendDebug(__FUNCTION__, 'header=' . print_r($header, true), 0);
-
-        $postfields = [
-            'username'   => $user,
-            'password'   => $password,
-            'grant_type' => 'password',
-            'scope'      => 'authenticate_user vehicle_data remote_services fupo',
-        ];
-        $this->SendDebug(__FUNCTION__, 'postfields=' . print_r($postfields, true), 0);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $auth_api);
-        curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLOPT_NOBODY, true);
-        curl_setopt($ch, CURLOPT_COOKIESESSION, true);
-        curl_setopt($ch, CURLOPT_POST, true);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
-        $response = curl_exec($ch);
-        $curl_error = curl_error($ch);
-        $header_size = curl_getinfo($ch, CURLINFO_HEADER_SIZE);
-        curl_close($ch);
-
-        if (empty($response) || $response === false || !empty($curl_error)) {
-            $this->SendDebug(__FUNCTION__, 'Empty answer from Bearerinterface: ' . $curl_error, 0);
-            return false;
-        }
-
-        $header = substr($response, 0, $header_size);
-        $this->SendDebug(__FUNCTION__, 'header=' . print_r($header, true), 0);
-
-        $body = substr($response, $header_size);
-        $this->SendDebug(__FUNCTION__, 'body=' . print_r($body, true), 0);
-        $jbody = json_decode($body, true);
-        $this->SendDebug(__FUNCTION__, 'jbody=' . print_r($jbody, true), 0);
-
-        if (!(isset($jbody['access_token']) && isset($jbody['expires_in']))) {
-            $this->SendDebug(__FUNCTION__, 'malformed answer from Bearerinterface: ' . $curl_error, 0);
-            return false;
-        }
-        $access_token = $jbody['access_token'];
-        $expires_in = $jbody['expires_in'];
-
-        $token_expiration = time() + $expires_in - 60;
-        $this->SendDebug(__FUNCTION__, 'set access_token=' . $access_token . ', expiration=' . date('d.m. H:i:s', $token_expiration), 0);
-
-        $jtoken = [
-            'token'            => $access_token,
-            'token_expiration' => $token_expiration
-        ];
-        $this->SetBuffer('Token_2', json_encode($jtoken));
         return $access_token;
     }
 
-    private function CheckToken($mode)
+    // Token_2 -> ApiAccessToken
+    // $this->SetStatus(self::$IS_NOLOGIN);
+
+    private function GetRegion()
     {
-        switch ($mode) {
-            case '1':
-                $dtoken = $this->GetBuffer('Token_1');
-                break;
-            case '2':
-                $dtoken = $this->GetBuffer('Token_2');
-                break;
-            default:
-                $this->SendDebug(__FUNCTION__, 'unknow mode ' . $mode, 0);
-                return false;
+        $area = $this->ReadPropertyInteger('bmw_server');
+        switch ($area) {
+        case self::$BMW_AREA_USA:
+            $region = 'NorthAmerica';
+            break;
+        default:
+            $region = 'RestOfWorld';
+            break;
+        }
+        return $region;
+    }
+
+    private function Login()
+    {
+        $this->WriteAttributeString('ApiRefreshToken', '');
+        $this->SetBuffer('Token_2', '');
+
+        $user = $this->ReadPropertyString('user');
+        $password = $this->ReadPropertyString('password');
+        $region = $this->GetRegion();
+
+        $oauth_client_id = self::$oauthClientId[$region];
+        $oauth_state = self::$oauthState[$region];
+        $oauth_host = self::$oauthServer[$region];
+        $oauth_authorization = self::$oauthAuthorization[$region];
+        $oauth_code_verifier = self::$oauthCodeVerifier[$region];
+
+        $auth_url = 'https://' . $oauth_host . self::$oauth_login_endpoint;
+        $token_url = 'https://' . $oauth_host . self::$oauth_token_endpoint;
+
+        $postfields = [
+            'client_id'       => $oauth_client_id,
+            'response_type'   => 'code',
+            'redirect_uri'    => self::$oauth_redirect_uri,
+            'state'           => $oauth_state,
+            'nonce'           => 'login_nonce',
+            'scope'           => self::$oauth_scope,
+            'grant_type'      => 'authorization_code',
+            'username'        => $user,
+            'password'        => $password,
+        ];
+
+        $header = [
+            'User-Agent: ' . self::$user_agent,
+            'Content-Type: application/x-www-form-urlencoded;charset=UTF-8',
+        ];
+
+        $this->SendDebug(__FUNCTION__, 'url=' . $auth_url, 0);
+        $this->SendDebug(__FUNCTION__, '....header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, '....postfields=' . print_r($postfields, true), 0);
+
+        $time_start = microtime(true);
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $auth_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+        curl_setopt($ch, CURLOPT_HTTP09_ALLOWED, true);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
+        curl_setopt($ch, CURLOPT_COOKIEFILE, '');
+        curl_setopt($ch, CURLOPT_HEADER, true);
+
+        $response = curl_exec($ch);
+        $cerrno = curl_errno($ch);
+        $cerror = $cerrno ? curl_error($ch) : '';
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        // CHECK HTTP-CODE
+
+        if ($response != false) {
+            $curl_info = curl_getinfo($ch);
+            $header_size = $curl_info['header_size'];
+            $header = substr($response, 0, $header_size);
+            $body = substr($response, $header_size);
+            preg_match_all('|Set-Cookie: (.*);|U', $header, $results);
+            $cookies = explode(';', implode(';', $results[1]));
+        } else {
+            $header = '';
+            $body = '';
+            $cookies = [];
         }
 
-        $jtoken = json_decode($dtoken, true);
-        $token = isset($jtoken['token']) ? $jtoken['token'] : '';
-        $token_expiration = isset($jtoken['token_expiration']) ? $jtoken['token_expiration'] : 0;
-        if ($token == '' || time() > $token_expiration) {
-            $this->SendDebug(__FUNCTION__, 'no token or token expired, get new token', 0);
-            switch ($mode) {
-                case '1':
-                    $token = $this->GetToken_1();
-                    break;
-                case '2':
-                    $token = $this->GetToken_2();
-                    break;
+        $duration = round(microtime(true) - $time_start, 2);
+
+        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => header=' . $header, 0);
+        $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+        $this->SendDebug(__FUNCTION__, ' => cookies=' . print_r($cookies, true), 0);
+
+        $jdata = json_decode($body, true);
+        if ($jdata == false || isset($jdata['redirect_to']) == false) {
+            $this->SendDebug(__FUNCTION__, 'missing element "redirect_to" in "' . $body . '"', 0);
+            return false;
+        }
+
+        $redirect_uri = substr($jdata['redirect_to'], strlen('redirect_uri='));
+        $redirect_parts = parse_url($redirect_uri);
+        if ($redirect_parts == false || isset($redirect_parts['query']) == false) {
+            $this->SendDebug(__FUNCTION__, 'missing element "query" in "' . $redirect_uri . '"', 0);
+            return false;
+        }
+
+        parse_str($redirect_parts['query'], $redirect_opts);
+        foreach (['client_id', 'response_type', 'state', 'scope', 'authorization'] as $key) {
+            if (isset($redirect_opts[$key]) == false) {
+                $this->SendDebug(__FUNCTION__, 'missing element "' . $key . '" in "' . $redirect_parts['query'] . '"', 0);
+                return false;
+            }
+        }
+        $this->SendDebug(__FUNCTION__, 'login#1 succedded, authorization="' . $redirect_opts['authorization'] . '"', 0);
+
+        $header = [
+            'User-Agent: ' . self::$user_agent,
+            'Content-Type: application/x-www-form-urlencoded;charset=UTF-8',
+        ];
+        foreach ($cookies as $cookie) {
+            $header[] = 'Cookie: ' . $cookie;
+        }
+
+        $postfields = [
+            'client_id'     => $redirect_opts['client_id'],
+            'response_type' => $redirect_opts['response_type'],
+            'redirect_uri'  => self::$oauth_redirect_uri,
+            'state'         => $redirect_opts['state'],
+            'nonce'         => 'login_nonce',
+            'scope'         => $redirect_opts['scope'],
+            'authorization' => $redirect_opts['authorization'],
+        ];
+
+        $this->SendDebug(__FUNCTION__, 'url=' . $auth_url, 0);
+        $this->SendDebug(__FUNCTION__, '....header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, '....postfields=' . print_r($postfields, true), 0);
+
+        $time_start = microtime(true);
+
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
+
+        $response = curl_exec($ch);
+        $cerrno = curl_errno($ch);
+        $cerror = $cerrno ? curl_error($ch) : '';
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($response != false) {
+            $curl_info = curl_getinfo($ch);
+            $header_size = $curl_info['header_size'];
+            $header = substr($response, 0, $header_size);
+            $body = substr($response, $header_size);
+            preg_match_all('|Set-Cookie: (.*);|U', $header, $results);
+            $cookies = explode(';', implode(';', $results[1]));
+        } else {
+            $header = '';
+            $body = '';
+            $cookies = [];
+        }
+
+        $duration = round(microtime(true) - $time_start, 2);
+
+        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => header=' . $header, 0);
+        $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+        $this->SendDebug(__FUNCTION__, ' => cookies=' . print_r($cookies, true), 0);
+
+        $code = false;
+        foreach (explode(PHP_EOL, $header) as $line) {
+            if (preg_match('/^location: (.*)$/', $line, $r)) {
+                $p = parse_url($r[1]);
+                if (isset($p['query'])) {
+                    parse_str($p['query'], $o);
+                    if (isset($o['code'])) {
+                        $code = $o['code'];
+                    }
+                }
             }
         }
 
-        $this->SendDebug(__FUNCTION__, 'token=' . $token, 0);
-        return $token;
+        if ($code == false) {
+            $this->SendDebug(__FUNCTION__, 'missing element "code" in "' . $header . '"', 0);
+            return false;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'login#2 succedded, code=' . $code, 0);
+
+        $header = [
+            'User-Agent: ' . self::$user_agent,
+            'Content-Type: application/x-www-form-urlencoded',
+            'Authorization: Basic ' . $oauth_authorization,
+        ];
+        foreach ($cookies as $cookie) {
+            $header[] = 'Cookie: ' . $cookie;
+        }
+
+        $postfields = [
+            'redirect_uri'  => self::$oauth_redirect_uri,
+            'grant_type'    => 'authorization_code',
+            'code'          => $code,
+            'code_verifier' => $oauth_code_verifier,
+        ];
+
+        $this->SendDebug(__FUNCTION__, 'url=' . $token_url, 0);
+        $this->SendDebug(__FUNCTION__, '....header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, '....postfields=' . print_r($postfields, true), 0);
+
+        $time_start = microtime(true);
+
+        curl_setopt($ch, CURLOPT_URL, $token_url);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
+
+        $response = curl_exec($ch);
+        $cerrno = curl_errno($ch);
+        $cerror = $cerrno ? curl_error($ch) : '';
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($response != false) {
+            $curl_info = curl_getinfo($ch);
+            $header_size = $curl_info['header_size'];
+            $header = substr($response, 0, $header_size);
+            $body = substr($response, $header_size);
+        } else {
+            $header = '';
+            $body = '';
+        }
+
+        $duration = round(microtime(true) - $time_start, 2);
+
+        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => header=' . $header, 0);
+        $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+
+        curl_close($ch);
+
+        echo 'errno=' . $cerrno . '(' . $cerror . '), httpcode=' . $httpcode . ', header=' . $header . ', body=' . $body . PHP_EOL;
+
+        $jdata = json_decode($body, true);
+
+        if ($jdata == false) {
+            $this->SendDebug(__FUNCTION__, 'missing element "redirect_to" in "' . $body . '"', 0);
+            return false;
+        }
+        foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
+            if (isset($jdata[$key]) == false) {
+                $this->SendDebug(__FUNCTION__, 'missing element "' . $key . '" in "' . $body . '"', 0);
+                return false;
+            }
+        }
+
+        $access_token = $jdata['access_token'];
+        $refresh_token = $jdata['refresh_token'];
+        $expiration = time() + $jdata['expires_in'];
+        $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', refresh_token=' . $refresh_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+        $jtoken = [
+            'access_token' => $access_token,
+            'expiration'   => $expiration,
+        ];
+        $this->SetBuffer('Token_2', json_encode($jtoken));
+        $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
+        return $access_token;
+    }
+
+    private function RefreshToken()
+    {
+        $region = $this->GetRegion();
+        $oauth_authorization = self::$oauthAuthorization[$region];
+        $oauth_host = self::$oauthServer[$region];
+
+        $token_url = 'https://' . $oauth_host . self::$oauth_token_endpoint;
+
+        $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
+        if ($refresh_token == false) {
+            $access_token = $this->Login();
+            if ($access_token == false) {
+                $this->SendDebug(__FUNCTION__, 'login failed', 0);
+            }
+            return $access_token;
+        }
+
+        $header = [
+            'User-Agent: ' . self::$user_agent,
+            'Content-Type: application/x-www-form-urlencoded',
+            'Authorization: Basic ' . $oauth_authorization,
+        ];
+
+        $postfields = [
+            'grant_type'    => 'refresh_token',
+            'refresh_token' => $refresh_token,
+        ];
+
+        $this->SendDebug(__FUNCTION__, 'url=' . $token_url, 0);
+        $this->SendDebug(__FUNCTION__, '....header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, '....postfields=' . print_r($postfields, true), 0);
+
+        $time_start = microtime(true);
+
+        $ch = curl_init();
+
+        curl_setopt($ch, CURLOPT_URL, $token_url);
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
+        curl_setopt($ch, CURLOPT_HEADER, true);
+
+        $response = curl_exec($ch);
+        $cerrno = curl_errno($ch);
+        $cerror = $cerrno ? curl_error($ch) : '';
+        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+
+        if ($response != false) {
+            $curl_info = curl_getinfo($ch);
+            $header_size = $curl_info['header_size'];
+            $header = substr($response, 0, $header_size);
+            $body = substr($response, $header_size);
+        } else {
+            $header = '';
+            $body = '';
+        }
+
+        $duration = round(microtime(true) - $time_start, 2);
+
+        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => header=' . $header, 0);
+        $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+
+        curl_close($ch);
+
+        $jdata = json_decode($body, true);
+        $access_token = $jdata['access_token'];
+        $refresh_token = $jdata['refresh_token'];
+        $expires_in = $jdata['expires_in'];
+
+        foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
+            if (isset($jdata[$key]) == false) {
+                $this->SendDebug(__FUNCTION__, 'missing element "' . $key . '" in "' . $body . '"', 0);
+                return false;
+            }
+        }
+
+        $access_token = $jdata['access_token'];
+        $refresh_token = $jdata['refresh_token'];
+        $expiration = time() + $jdata['expires_in'];
+        $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', refresh_token=' . $refresh_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+        $jtoken = [
+            'access_token' => $access_token,
+            'expiration'   => $expiration,
+        ];
+        $this->SetBuffer('Token_2', json_encode($jtoken));
+        $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
+        return $access_token;
+    }
+
+    private function GetToken_2()
+    {
+        $data = $this->GetBuffer('Token_2');
+        if ($data != false) {
+            $jtoken = json_decode($data, true);
+            $access_token = isset($jtoken['access_token']) ? $jtoken['access_token'] : '';
+            $expiration = isset($jtoken['expiration']) ? $jtoken['expiration'] : 0;
+            if ($expiration > time()) {
+                $this->SendDebug(__FUNCTION__, 'old access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
+                return $access_token;
+            }
+            $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
+        }
+        $access_token = $this->RefreshToken();
+        return $access_token;
     }
 
     /**
@@ -853,6 +966,12 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetNavigationData()
     {
+        $model = $this->ReadPropertyInteger('model');
+        if ($model == self::$BMW_MODEL_STANDARD) { // standard, no electric
+            $this->SetMultiBuffer('bmw_navigation_interface', '');
+            return false;
+        }
+
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/vehicle/navigation/v1/' . $vin;
 
@@ -863,7 +982,7 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
 
         $model = $this->ReadPropertyInteger('model');
-        if ($model != BMW_MODEL_STANDARD) { // standard, no electric
+        if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
             if (isset($data->soc)) {
                 $soc = floatval($data->soc);
                 $this->SetValue('bmw_soc', $soc);
@@ -964,13 +1083,13 @@ class BMWConnectedDrive extends IPSModule
     protected function GetGoogleMapType($value)
     {
         $maptype = 'roadmap';
-        if ($value == BMW_GOOGLEMAP_ROADMAP) {
+        if ($value == self::$BMW_GOOGLEMAP_ROADMAP) {
             $maptype = 'roadmap';
-        } elseif ($value == BMW_GOOGLEMAP_SATELLITE) {
+        } elseif ($value == self::$BMW_GOOGLEMAP_SATELLITE) {
             $maptype = 'satellite';
-        } elseif ($value == BMW_GOOGLEMAP_HYBRID) {
+        } elseif ($value == self::$BMW_GOOGLEMAP_HYBRID) {
             $maptype = 'hybrid';
-        } elseif ($value == BMW_GOOGLEMAP_TERRAIN) {
+        } elseif ($value == self::$BMW_GOOGLEMAP_TERRAIN) {
             $maptype = 'terrain';
         }
         $this->SendDebug(__FUNCTION__, 'map type=' . $maptype, 0);
@@ -1004,13 +1123,19 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetEfficiency()
     {
+        $model = $this->ReadPropertyInteger('model');
+        if ($model == self::$BMW_MODEL_STANDARD) { // standard, no electric
+            $this->SetMultiBuffer('bmw_efficiency_interface', '');
+            return false;
+        }
+
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/vehicle/efficiency/v1/' . $vin;
         $response = $this->SendBMWAPI($command, '', 1);
         $this->SetMultiBuffer('bmw_efficiency_interface', $response);
 
         $model = $this->ReadPropertyInteger('model');
-        if ($model != BMW_MODEL_STANDARD) { // standard, no electric
+        if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
             $data = json_decode((string) $response);
             $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
 
@@ -1138,22 +1263,6 @@ class BMWConnectedDrive extends IPSModule
     }
 
     /**
-     * Get specs.
-     *
-     * @return mixed
-     */
-    public function GetSpecs()
-    {
-        $vin = $this->ReadPropertyString('vin');
-        $command = '/api/vehicle/specs/v1/' . $vin;
-        $response = $this->SendBMWAPI($command, '', 1);
-        $data = json_decode((string) $response, true);
-        $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
-        $this->SetMultiBuffer('bmw_specs_interface', $response);
-        return $response;
-    }
-
-    /**
      * Get service.
      *
      * @return mixed
@@ -1213,13 +1322,13 @@ class BMWConnectedDrive extends IPSModule
             'CHARGE_PREFERENCE' => 'charge preferences',
         ];
         $status = [
-            'SUCCESS'   => 'success',
-            'PENDING'   => 'pending',
-            'INITIATED' => 'initiated',
-            'FAILED'    => 'failed',
-            'ERROR'     => 'error',
-            'CANCELLED' => 'cancelled',
-            'EXECUTED'  => 'executed',
+            'SUCCESS'       => 'success',
+            'PENDING'       => 'pending',
+            'INITIATED'     => 'initiated',
+            'FAILED'        => 'failed',
+            'ERROR'         => 'error',
+            'CANCELLED'     => 'cancelled',
+            'EXECUTED'      => 'executed',
             'NOT_EXECUTED'  => 'not_executed',
         ];
         $client = [
@@ -1395,7 +1504,7 @@ class BMWConnectedDrive extends IPSModule
             }
 
             $model = $this->ReadPropertyInteger('model');
-            if ($model != BMW_MODEL_STANDARD) { // standard, no electric
+            if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
                 if (isset($carinfo->beRemainingRangeElectricKm)) {
                     $electric_range = floatval($carinfo->beRemainingRangeElectricKm);
                     $this->SetValue('bmw_remaining_electric_range', $electric_range);
@@ -1405,14 +1514,14 @@ class BMWConnectedDrive extends IPSModule
                     $this->SetValue('bmw_charging_level', $charging_level);
                 }
 
-                $connector_status = BMW_CONNECTOR_UNKNOWN;
+                $connector_status = self::$BMW_CONNECTOR_UNKNOWN;
                 if (isset($carinfo->connectorStatus)) {
                     switch ($carinfo->connectorStatus) {
                         case 'DISCONNECTED':
-                            $connector_status = BMW_CONNECTOR_DISCONNECTED;
+                            $connector_status = self::$BMW_CONNECTOR_DISCONNECTED;
                             break;
                         case 'CONNECTED':
-                            $connector_status = BMW_CONNECTOR_CONNECTED;
+                            $connector_status = self::$BMW_CONNECTOR_CONNECTED;
                             break;
                         default:
                             $this->SendDebug(__FUNCTION__, 'unknown connectorStatus "' . $carinfo->connectorStatus . '"', 0);
@@ -1420,20 +1529,20 @@ class BMWConnectedDrive extends IPSModule
                     }
                 }
 
-                $charging_status = BMW_CHARGING_UNKNOWN;
+                $charging_status = self::$BMW_CHARGING_UNKNOWN;
                 if (isset($carinfo->charging_status)) {
                     switch ($carinfo->charging_status) {
                         case 'NOCHARGING':
-                            $charging_status = BMW_CHARGING_NO;
+                            $charging_status = self::$BMW_CHARGING_NO;
                             break;
                         case 'CHARGINGACTIVE':
-                            $charging_status = BMW_CHARGING_ACTIVE;
+                            $charging_status = self::$BMW_CHARGING_ACTIVE;
                             break;
                         case 'CHARGINGENDED':
-                            $charging_status = BMW_CHARGING_ENDED;
+                            $charging_status = self::$BMW_CHARGING_ENDED;
                             break;
                         case 'CHARGINGPAUSED':
-                            $charging_status = BMW_CHARGING_PAUSED;
+                            $charging_status = self::$BMW_CHARGING_PAUSED;
                             break;
                         default:
                             $this->SendDebug(__FUNCTION__, 'unknown charging_status "' . $carinfo->charging_status . '"', 0);
@@ -1442,7 +1551,7 @@ class BMWConnectedDrive extends IPSModule
                 }
 
                 $charging_end = 0;
-                if ($connector_status == BMW_CONNECTOR_CONNECTED && $charging_status == BMW_CHARGING_ACTIVE) {
+                if ($connector_status == self::$BMW_CONNECTOR_CONNECTED && $charging_status == self::$BMW_CHARGING_ACTIVE) {
                     if (isset($carinfo->chargingTimeRemaining)) {
                         $chargingTimeRemaining = floatval($carinfo->chargingTimeRemaining);
                         if ($chargingTimeRemaining > 0) {
@@ -1854,6 +1963,21 @@ class BMWConnectedDrive extends IPSModule
     {
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/executeService';
+
+        $instID = IPS_GetInstanceListByModuleID('{45E97A63-F870-408A-B259-2933F7EABF74}')[0];
+        if (IPS_GetKernelVersion() >= 5) {
+            $loc = json_decode(IPS_GetProperty($instID, 'Location'), true);
+            $home_lon = $loc['longitude'];
+            $home_lat = $loc['latitude'];
+        } else {
+            $home_lon = IPS_GetProperty($instID, 'Longitude');
+            $home_lat = IPS_GetProperty($instID, 'Latitude');
+        }
+
+        $command .= '?deviceTime=' . date('Y-m-d\TH:i:s', time());
+        $command .= '&dlat=' . number_format($home_lat, 6, '.', '');
+        $command .= '&dlon=' . number_format($home_lon, 6, '.', '');
+
         $postfields = [
             'serviceType'   => $action
         ];
@@ -1961,19 +2085,31 @@ class BMWConnectedDrive extends IPSModule
 
     protected function SendBMWAPI($command, $postfields, $mode)
     {
-        $token = $this->CheckToken($mode);
+        $api = $this->GetBMWServerURL($mode);
 
-        $area = $this->ReadPropertyInteger('bmw_server');
-        $api = $this->GetBMWServerURL($area, $mode);
+        $this->SendDebug(__FUNCTION__, 'url=' . $api . $command, 0);
+
+        switch ($mode) {
+            case '1':
+                $access_token = $this->GetToken_1();
+                break;
+            case '2':
+                $access_token = $this->GetToken_2();
+                break;
+        }
+
+        if ($access_token == false) {
+            $this->SendDebug(__FUNCTION__, 'no token', 0);
+            return false;
+        }
 
         $ch = curl_init();
-        $this->SendDebug(__FUNCTION__, 'url=' . $api . $command, 0);
         curl_setopt($ch, CURLOPT_URL, $api . $command);
 
         $header = [
             'Accept: application/json',
-            'Authorization: Bearer ' . $token,
-            'referer: https://b2vapi.bmwgroup.com/app/index.html',
+            'Authorization: Bearer ' . $access_token,
+    //        'referer: https://b2vapi.bmwgroup.com/app/index.html',
         ];
         $this->SendDebug(__FUNCTION__, 'header=' . print_r($header, true), 0);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
@@ -1987,7 +2123,7 @@ class BMWConnectedDrive extends IPSModule
         curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
         curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
         curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, false);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
 
         $response = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
@@ -2138,15 +2274,15 @@ class BMWConnectedDrive extends IPSModule
                 'options' => [
                     [
                         'label' => $this->Translate('electric'),
-                        'value' => BMW_MODEL_ELECTRIC
+                        'value' => self::$BMW_MODEL_ELECTRIC
                     ],
                     [
                         'label' => $this->Translate('hybrid'),
-                        'value' => BMW_MODEL_HYBRID
+                        'value' => self::$BMW_MODEL_HYBRID
                     ],
                     [
                         'label' => $this->Translate('standard'),
-                        'value' => BMW_MODEL_STANDARD
+                        'value' => self::$BMW_MODEL_STANDARD
                     ]
                 ]
 
@@ -2158,27 +2294,27 @@ class BMWConnectedDrive extends IPSModule
                 'options' => [
                     [
                         'label' => $this->Translate('Germany'),
-                        'value' => BMW_AREA_GERMANY
+                        'value' => self::$BMW_AREA_GERMANY
                     ],
                     [
                         'label' => $this->Translate('Switzerland'),
-                        'value' => BMW_AREA_SWITZERLAND
+                        'value' => self::$BMW_AREA_SWITZERLAND
                     ],
                     [
                         'label' => $this->Translate('Europe'),
-                        'value' => BMW_AREA_EUROPE
+                        'value' => self::$BMW_AREA_EUROPE
                     ],
                     [
                         'label' => $this->Translate('USA'),
-                        'value' => BMW_AREA_USA
+                        'value' => self::$BMW_AREA_USA
                     ],
                     [
                         'label' => $this->Translate('China'),
-                        'value' => BMW_AREA_CHINA
+                        'value' => self::$BMW_AREA_CHINA
                     ],
                     [
                         'label' => $this->Translate('Rest of the World'),
-                        'value' => BMW_AREA_OTHER
+                        'value' => self::$BMW_AREA_OTHER
                     ]
                 ]
 
@@ -2462,4 +2598,3 @@ class BMWConnectedDrive extends IPSModule
         return $value;
     }
 }
-
