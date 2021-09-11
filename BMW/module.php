@@ -37,14 +37,19 @@ class BMWConnectedDrive extends IPSModule
 
     // Konfigurationen
 
-    public static $serverEndpoints = [
+    public static $apiHost = [
         'NorthAmerica' => 'b2vapi.bmwgroup.us',
         'RestOfWorld'  => 'b2vapi.bmwgroup.com',
     ];
 
-    public static $oauthServer = [
+    public static $oauthHost = [
         'NorthAmerica' => 'login.bmwusa.com',
         'RestOfWorld'  => 'customer.bmwgroup.com',
+    ];
+
+    public static $remoteServiceHost = [
+        'NorthAmerica' => 'cocoapi.bmwgroup.us',
+        'RestOfWorld'  => 'cocoapi.bmwgroup.com',
     ];
 
     public static $oauthAuthorization = [
@@ -74,6 +79,8 @@ class BMWConnectedDrive extends IPSModule
 
     public static $oauth_redirect_uri = 'com.bmw.connected://oauth';
     public static $oauth_scope = 'openid profile email offline_access smacc vehicle_data perseus dlm svds cesim vsapi remote_services fupo authenticate_user';
+
+    public static $remoteService_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands';
 
     public static $legacy_app_id = 'dbf0a542-ebd1-4ff0-a9a7-55172fbfce35';
 
@@ -162,13 +169,14 @@ class BMWConnectedDrive extends IPSModule
         if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
             $this->RegisterVariableFloat('bmw_remaining_electric_range', $this->Translate('remaining electric range'), 'BMW.RemainingRange', 6);
             $this->RegisterProfile('BMW.ChargingLevel', '', '', ' %', 0, 0, 0, 0, VARIABLETYPE_FLOAT);
-            $this->RegisterVariableFloat('bmw_charging_level', $this->Translate('charging level'), 'BMW.ChargingLevel', 6);
+            $this->RegisterVariableFloat('bmw_charging_level', $this->Translate('current battery charge level (SoC)'), 'BMW.ChargingLevel', 6);
             $this->RegisterVariableInteger('bmw_connector_status', $this->Translate('connector status'), 'BMW.ConnectorStatus', 6);
             $this->RegisterVariableInteger('bmw_charging_status', $this->Translate('charging status'), 'BMW.ChargingStatus', 6);
             $this->RegisterVariableInteger('bmw_charging_end', $this->Translate('charging end'), '~UnixTimestampTime', 6);
             $this->RegisterProfile('BMW.StateofCharge', '', '', ' kWh', 0, 0, 0, 1, VARIABLETYPE_FLOAT);
-            $this->RegisterVariableFloat('bmw_soc', $this->Translate('current state of charge'), 'BMW.StateofCharge', 7);
-            $this->RegisterVariableFloat('bmw_socMax', $this->Translate('maximum state of charge'), 'BMW.StateofCharge', 8);
+            $this->RegisterVariableFloat('bmw_socMax', $this->Translate('maximum net load capacity (SoH)'), 'BMW.StateofCharge', 8);
+            $this->RegisterProfile('BMW.BatteryCapacity', '', '', ' %', 0, 0, 0, 0, VARIABLETYPE_FLOAT);
+            $this->RegisterVariableFloat('bmw_battery_size', $this->Translate('gross batteryіcapacity'), 'BMW.ChargingLevel', 6);
 
             $this->RegisterProfile('BMW.Distance', '', '', ' ' . $this->GetMileageUnit(), 0, 0, 0, 0, VARIABLETYPE_FLOAT);
             $this->RegisterVariableFloat('lasttrip_distance', $this->Translate('Last trip: distance'), 'BMW.Distance', 209);
@@ -204,7 +212,6 @@ class BMWConnectedDrive extends IPSModule
             $this->UnregisterVariable('bmw_connector_status');
             $this->UnregisterVariable('bmw_charging_status');
             $this->UnregisterVariable('bmw_charging_end');
-            $this->UnregisterVariable('bmw_soc');
             $this->UnregisterVariable('bmw_socMax');
 
             $this->UnregisterVariable('lasttrip_km');
@@ -437,7 +444,7 @@ class BMWConnectedDrive extends IPSModule
     private function GetBMWServerURL($mode)
     {
         $region = $this->GetRegion();
-        $url = 'https://' . self::$serverEndpoints[$region];
+        $url = 'https://' . self::$apiHost[$region];
         return $url;
 
         if ($mode == 1) {
@@ -458,7 +465,7 @@ class BMWConnectedDrive extends IPSModule
             }
         } else {
             $region = $this->GetRegion();
-            $url = 'https://' . self::$serverEndpoints[$region];
+            $url = 'https://' . self::$apiHost[$region];
         }
         return $url;
     }
@@ -575,7 +582,7 @@ class BMWConnectedDrive extends IPSModule
 
         $oauth_client_id = self::$oauthClientId[$region];
         $oauth_state = self::$oauthState[$region];
-        $oauth_host = self::$oauthServer[$region];
+        $oauth_host = self::$oauthHost[$region];
         $oauth_authorization = self::$oauthAuthorization[$region];
         $oauth_code_verifier = self::$oauthCodeVerifier[$region];
 
@@ -732,7 +739,6 @@ class BMWConnectedDrive extends IPSModule
                 }
             }
         }
-
         if ($code == false) {
             $this->SendDebug(__FUNCTION__, 'missing element "code" in "' . $header . '"', 0);
             return false;
@@ -792,9 +798,8 @@ class BMWConnectedDrive extends IPSModule
         echo 'errno=' . $cerrno . '(' . $cerror . '), httpcode=' . $httpcode . ', header=' . $header . ', body=' . $body . PHP_EOL;
 
         $jdata = json_decode($body, true);
-
         if ($jdata == false) {
-            $this->SendDebug(__FUNCTION__, 'missing element "redirect_to" in "' . $body . '"', 0);
+            $this->SendDebug(__FUNCTION__, 'malformed body "' . $body . '"', 0);
             return false;
         }
         foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
@@ -821,7 +826,7 @@ class BMWConnectedDrive extends IPSModule
     {
         $region = $this->GetRegion();
         $oauth_authorization = self::$oauthAuthorization[$region];
-        $oauth_host = self::$oauthServer[$region];
+        $oauth_host = self::$oauthHost[$region];
 
         $token_url = 'https://' . $oauth_host . self::$oauth_token_endpoint;
 
@@ -887,10 +892,10 @@ class BMWConnectedDrive extends IPSModule
         curl_close($ch);
 
         $jdata = json_decode($body, true);
-        $access_token = $jdata['access_token'];
-        $refresh_token = $jdata['refresh_token'];
-        $expires_in = $jdata['expires_in'];
-
+        if ($jdata == false) {
+            $this->SendDebug(__FUNCTION__, 'malformed body "' . $body . '"', 0);
+            return false;
+        }
         foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
             if (isset($jdata[$key]) == false) {
                 $this->SendDebug(__FUNCTION__, 'missing element "' . $key . '" in "' . $body . '"', 0);
@@ -983,16 +988,16 @@ class BMWConnectedDrive extends IPSModule
 
         $model = $this->ReadPropertyInteger('model');
         if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
-            if (isset($data->soc)) {
-                $soc = floatval($data->soc);
-                $this->SetValue('bmw_soc', $soc);
-            }
             if (isset($data->socmax)) {
                 $socmax = floatval($data->socmax);
                 $this->SetValue('bmw_socMax', $socmax);
             } elseif (isset($data->socMax)) {
                 $socMax = floatval($data->socMax);
                 $this->SetValue('bmw_socMax', $socMax);
+            }
+            if (isset($data->battery_size_max)) {
+                $battery_size_max = floatval($data->battery_size_max);
+                $this->SetValue('bmw_battery_size', $battery_size_max);
             }
         }
 
@@ -1961,8 +1966,10 @@ class BMWConnectedDrive extends IPSModule
      */
     protected function ExecuteService($service, $action)
     {
+        $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action, 0);
         $vin = $this->ReadPropertyString('vin');
-        $command = '/webapi/v1/user/vehicles/' . $vin . '/executeService';
+        $region = $this->GetRegion();
+        $url = 'https://' . self::$remoteServiceHost[$region] . self::$remoteService_endpoint . '/' . $vin . '/' . strtolower(preg_replace('/_/', '-', $action));
 
         $instID = IPS_GetInstanceListByModuleID('{45E97A63-F870-408A-B259-2933F7EABF74}')[0];
         if (IPS_GetKernelVersion() >= 5) {
@@ -1974,14 +1981,14 @@ class BMWConnectedDrive extends IPSModule
             $home_lat = IPS_GetProperty($instID, 'Latitude');
         }
 
-        $command .= '?deviceTime=' . date('Y-m-d\TH:i:s', time());
-        $command .= '&dlat=' . number_format($home_lat, 6, '.', '');
-        $command .= '&dlon=' . number_format($home_lon, 6, '.', '');
+        $url .= '?deviceTime=' . date('Y-m-d\TH:i:s', time());
+        $url .= '&dlat=' . number_format($home_lat, 6, '.', '');
+        $url .= '&dlon=' . number_format($home_lon, 6, '.', '');
 
         $postfields = [
             'serviceType'   => $action
         ];
-        $response = $this->SendBMWAPI($command, $postfields, 2);
+        $response = $this->SendBMWAPI($url, $postfields, 2);
         return $response;
     }
 
@@ -2083,11 +2090,13 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    protected function SendBMWAPI($command, $postfields, $mode)
+    protected function SendBMWAPI($url, $postfields, $mode)
     {
-        $api = $this->GetBMWServerURL($mode);
+        if (!preg_match('/^https:/', $url)) {
+            $url = $this->GetBMWServerURL($mode) . $url;
+        }
 
-        $this->SendDebug(__FUNCTION__, 'url=' . $api . $command, 0);
+        $this->SendDebug(__FUNCTION__, 'url=' . $url, 0);
 
         switch ($mode) {
             case '1':
@@ -2104,12 +2113,11 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $api . $command);
+        curl_setopt($ch, CURLOPT_URL, $url);
 
         $header = [
             'Accept: application/json',
             'Authorization: Bearer ' . $access_token,
-    //        'referer: https://b2vapi.bmwgroup.com/app/index.html',
         ];
         $this->SendDebug(__FUNCTION__, 'header=' . print_r($header, true), 0);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);

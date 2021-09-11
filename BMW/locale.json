@@ -11,6 +11,7 @@
 			"car zoom": "Zoomstufe Auto",
 			"charging end": "Ladezyklus-Ende",
 			"charging level": "Batterie-Kapazität",
+			"current battery charge level (SoC)": "aktueller Batterie-Ladestand (SoC)",
 			"charging status": "Ladezyklus-Status",
 			"connection to BMW lost.": "Verbindung zum BMW verloren.",
 			"connector status": "Ladekabel-Status",
@@ -80,7 +81,8 @@
 			"window passenger front": "Fenster Beifahrer vorne",
 			"window passenger rear": "Fenster Beifahrer hinten",
 			"current state of charge": "aktuelle Ladekapazität",
-			"maximum state of charge": "maximale Ladekapazität",
+			"maximum net load capacity (SoH)": "maximale Netto-Ladekapazität (SoH)",
+			"gross batteryіcapacity": "Brutto-Batterіekapazität",
 
 			"Last trip: distance": "Letzte Fahrt: Distanz",
 			"Last trip: duration": "Letzte Fahrt: Dauer",
@@ -127,6 +129,7 @@
 			"find vehicle": "Fahrzeug lokalisieren",
             "charge now": "Ladevorgang starten",
 			"charge preferences": "Ladepreferenzen",
+			"charging control": "Ladesteuerung",
 			"unknown service": "unbekannter Dienst",
 
 			"success": "erfolgreich gesendet",
