@@ -489,6 +489,8 @@ class BMWConnectedDrive extends IPSModule
                 return $access_token;
             }
             $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
+        } else {
+            $this->SendDebug(__FUNCTION__, 'no/empty buffer "Token_1"', 0);
         }
 
         $user = $this->ReadPropertyString('user');
@@ -529,7 +531,7 @@ class BMWConnectedDrive extends IPSModule
         curl_close($ch);
 
         if (empty($response) || $response === false || !empty($curl_error)) {
-            $this->SendDebug(__FUNCTION__, 'Empty answer from Bearerinterface: ' . $curl_error, 0);
+            $this->SendDebug(__FUNCTION__, 'empty answer from Bearerinterface: ' . $curl_error, 0);
             return false;
         }
 
@@ -538,13 +540,13 @@ class BMWConnectedDrive extends IPSModule
 
         // check token type
         if (empty($matches[2]) || $matches[2] !== 'Bearer') {
-            $this->SendDebug(__FUNCTION__, 'No remote token received - username or password might be wrong: ' . $response, 0);
+            $this->SendDebug(__FUNCTION__, 'no remote token received - username or password might be wrong: ' . $response, 0);
             return false;
         }
 
         $access_token = $matches[1];
         $expiration = time() + $matches[3] - 60;
-        $this->SendDebug(__FUNCTION__, 'set access_token=' . $access_token . ', expiration=' . $expiration, 0);
+        $this->SendDebug(__FUNCTION__, 'set access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
 
         $jtoken = [
             'access_token'            => $access_token,
@@ -837,6 +839,8 @@ class BMWConnectedDrive extends IPSModule
                 $this->SendDebug(__FUNCTION__, 'login failed', 0);
             }
             return $access_token;
+        } else {
+            $this->SendDebug(__FUNCTION__, 'refresh_token=' . $refresh_token, 0);
         }
 
         $header = [
@@ -896,6 +900,11 @@ class BMWConnectedDrive extends IPSModule
             $this->SendDebug(__FUNCTION__, 'malformed body "' . $body . '"', 0);
             return false;
         }
+        if (isset($jdata['error'])) {
+            $this->SendDebug(__FUNCTION__, 'error=' . $jdata['error'], 0);
+            return false;
+        }
+
         foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
             if (isset($jdata[$key]) == false) {
                 $this->SendDebug(__FUNCTION__, 'missing element "' . $key . '" in "' . $body . '"', 0);
@@ -928,6 +937,8 @@ class BMWConnectedDrive extends IPSModule
                 return $access_token;
             }
             $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
+        } else {
+            $this->SendDebug(__FUNCTION__, 'no/empty buffer "Token_2"', 0);
         }
         $access_token = $this->RefreshToken();
         return $access_token;
@@ -1698,6 +1709,7 @@ class BMWConnectedDrive extends IPSModule
                 if ($active_current_position) {
                     if (isset($carinfo->position)) {
                         $position = $carinfo->position;
+                        $this->SendDebug(__FUNCTION__, 'position=' . print_r($position, true), 0);
                         if (isset($position->status)) {
                             if ($active_vehicle_finder) {
                                 $this->SetValue('bmw_position_request_status', $this->Translate($position->status));
