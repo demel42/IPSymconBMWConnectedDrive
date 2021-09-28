@@ -530,6 +530,8 @@ class BMWConnectedDrive extends IPSModule
         $curl_error = curl_error($ch);
         curl_close($ch);
 
+        $this->SetBuffer('Token_1', '');
+
         if (empty($response) || $response === false || !empty($curl_error)) {
             $this->SendDebug(__FUNCTION__, 'empty answer from Bearerinterface: ' . $curl_error, 0);
             return false;
@@ -555,9 +557,6 @@ class BMWConnectedDrive extends IPSModule
         $this->SetBuffer('Token_1', json_encode($jtoken));
         return $access_token;
     }
-
-    // Token_2 -> ApiAccessToken
-    // $this->SetStatus(self::$IS_NOLOGIN);
 
     private function GetRegion()
     {
@@ -819,8 +818,8 @@ class BMWConnectedDrive extends IPSModule
             'access_token' => $access_token,
             'expiration'   => $expiration,
         ];
-        $this->SetBuffer('Token_2', json_encode($jtoken));
         $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
+        $this->SetBuffer('Token_2', json_encode($jtoken));
         return $access_token;
     }
 
@@ -895,6 +894,9 @@ class BMWConnectedDrive extends IPSModule
 
         curl_close($ch);
 
+        $this->WriteAttributeString('ApiRefreshToken', '');
+        $this->SetBuffer('Token_2', '');
+
         $jdata = json_decode($body, true);
         if ($jdata == false) {
             $this->SendDebug(__FUNCTION__, 'malformed body "' . $body . '"', 0);
@@ -920,8 +922,8 @@ class BMWConnectedDrive extends IPSModule
             'access_token' => $access_token,
             'expiration'   => $expiration,
         ];
-        $this->SetBuffer('Token_2', json_encode($jtoken));
         $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
+        $this->SetBuffer('Token_2', json_encode($jtoken));
         return $access_token;
     }
 
