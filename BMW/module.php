@@ -474,6 +474,8 @@ class BMWConnectedDrive extends IPSModule
     {
         $this->SetBuffer('Token_1', '');
         $this->GetToken_1();
+        $this->WriteAttributeString('ApiRefreshToken', '');
+        $this->SetBuffer('Token_2', '');
         $this->GetToken_2();
     }
 
@@ -795,8 +797,6 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
 
         curl_close($ch);
-
-        echo 'errno=' . $cerrno . '(' . $cerror . '), httpcode=' . $httpcode . ', header=' . $header . ', body=' . $body . PHP_EOL;
 
         $jdata = json_decode($body, true);
         if ($jdata == false) {
