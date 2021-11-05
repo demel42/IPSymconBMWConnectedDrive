@@ -408,6 +408,10 @@ class BMWConnectedDrive extends IPSModule
 
     public function DataUpdate()
     {
+        $this->SendDebug(__FUNCTION__, 'start ...', 0);
+
+        $time_start = microtime(true);
+
         $active_picture = $this->ReadPropertyBoolean('active_picture');
         $model = $this->ReadPropertyInteger('model');
 
@@ -440,6 +444,9 @@ class BMWConnectedDrive extends IPSModule
         $this->GetVehicleDestinations();
 
         $this->GetRangeMap();
+
+        $duration = round(microtime(true) - $time_start, 2);
+        $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
     }
 
     protected function GetMileageUnit()
