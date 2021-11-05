@@ -411,12 +411,18 @@ class BMWConnectedDrive extends IPSModule
         $active_picture = $this->ReadPropertyBoolean('active_picture');
         $model = $this->ReadPropertyInteger('model');
 
+        $this->GetVehicleData();
         $this->GetVehicleStatus();
         $this->GetDynamicData();
         if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
             $this->GetNavigationData();
             $this->GetEfficiency();
+            $this->GetChargingProfile();
+            $this->GetChargingTimes();
         }
+
+        $this->GetRemoteServices();
+
         $this->GetMapUpdate();
 
         if ($active_picture) {
@@ -429,11 +435,11 @@ class BMWConnectedDrive extends IPSModule
         $this->GetService();
         $this->GetServicePartner();
 
-        if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
-            $this->GetChargingProfile();
-        }
+        $this->GetLastTrip();
+        $this->GetAllTripDetails();
+        $this->GetVehicleDestinations();
 
-        $this->GetRemoteServices();
+        $this->GetRangeMap();
     }
 
     protected function GetMileageUnit()
@@ -953,27 +959,12 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetVehicleData()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $command = '/webapi/v1/user/vehicles/';
-        $response = $this->SendBMWAPI($command, '', 2);
-        $data = json_decode((string) $response);
-        $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
-
-        return $data;
-    }
-
-    /**
-     * Get Vehicle Info.
-     *
-     * @return mixed
-     */
-    public function GetVehicleInfo()
-    {
-        $command = '/api/me/vehicles/v2';
         $response = $this->SendBMWAPI($command, '', 2);
         $this->SetMultiBuffer('bmw_car_interface', $response);
         $data = json_decode((string) $response);
         $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
-
         return $data;
     }
 
@@ -984,6 +975,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetNavigationData()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $model = $this->ReadPropertyInteger('model');
         if ($model == self::$BMW_MODEL_STANDARD) { // standard, no electric
             $this->SetMultiBuffer('bmw_navigation_interface', '');
@@ -1081,7 +1073,6 @@ class BMWConnectedDrive extends IPSModule
     protected function SetGoogleMapType($value)
     {
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
-
         if (!$active_googlemap) {
             return;
         }
@@ -1141,6 +1132,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetEfficiency()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $model = $this->ReadPropertyInteger('model');
         if ($model == self::$BMW_MODEL_STANDARD) { // standard, no electric
             $this->SetMultiBuffer('bmw_efficiency_interface', '');
@@ -1149,6 +1141,7 @@ class BMWConnectedDrive extends IPSModule
 
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/vehicle/efficiency/v1/' . $vin;
+        $command = '/webapi/v1/user/vehicles' . $vin . '/efficiency';
         $response = $this->SendBMWAPI($command, '', 1);
         $this->SetMultiBuffer('bmw_efficiency_interface', $response);
 
@@ -1243,8 +1236,9 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetChargingProfile()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
-        $command = '/api/vehicle/remoteservices/chargingprofile/v1/' . $vin;
+        $command = '/webapi/v1/user/vehicles' . $vin . '/chargingprofile';
         $response = $this->SendBMWAPI($command, '', 2);
         $this->SetMultiBuffer('bmw_chargingprofile_interface', $response);
         return $response;
@@ -1257,6 +1251,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetMapUpdate()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/me/service/mapupdate/download/v1/' . $vin;
         $response = $this->SendBMWAPI($command, '', 1);
@@ -1271,6 +1266,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetStore()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/store/v2/' . $vin . '/offersAndPortfolios';
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1287,6 +1283,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetService()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/vehicle/service/v1/' . $vin;
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1303,6 +1300,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetServicePartner()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/api/vehicle/servicepartner/v1/' . $vin;
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1319,6 +1317,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetRemoteServices()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/serviceExecutionHistory';
 
@@ -1432,6 +1431,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetDynamicData()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $active_lock = $this->ReadPropertyBoolean('active_lock');
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
@@ -1667,6 +1667,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetVehicleStatus()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
         $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
         $active_lock = $this->ReadPropertyBoolean('active_lock');
@@ -1804,6 +1805,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetCarPicture()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $active_picture = $this->ReadPropertyBoolean('active_picture');
         if (!$active_picture) {
             return '';
@@ -1826,6 +1828,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetCarPictureForAngle(int $angle, int $zoom)
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $active_picture = $this->ReadPropertyBoolean('active_picture');
 
         $vin = $this->ReadPropertyString('vin');
@@ -1879,6 +1882,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetLastTrip()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/statistics/lastTrip';
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1895,6 +1899,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetChargingTimes()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/chargingprofile';
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1911,6 +1916,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetVehicleDestinations()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/destinations';
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1927,6 +1933,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetAllTripDetails()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/statistics/allTrips';
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1943,6 +1950,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetRangeMap()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/rangemap';
         $response = $this->SendBMWAPI($command, '', 2);
@@ -1961,6 +1969,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function GetRequestStatus(string $service)
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/serviceExecutionStatus?serviceType=' . $service;
         $response = $this->SendBMWAPI($command, '', 2);
@@ -2013,10 +2022,12 @@ class BMWConnectedDrive extends IPSModule
      */
     public function InitiateCharging()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'serviceType=CHARGE_NOW';
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/serviceType=CHARGE_NOW';
         $result = $this->SendBMWAPI($command, '', 2);
+        $this->SendDebug(__FUNCTION__, 'service=' . $service . ', result=' . $result, 0);
         return $result;
     }
 
@@ -2027,6 +2038,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function StartClimateControl()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'RCN';
         $action = 'CLIMATE_NOW';
         $result = $this->ExecuteService($service, $action);
@@ -2041,6 +2053,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function LockTheDoors()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'RDL';
         $action = 'DOOR_LOCK';
         $result = $this->ExecuteService($service, $action);
@@ -2055,6 +2068,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function UnlockTheDoors()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'RDU';
         $action = 'DOOR_UNLOCK';
         $result = $this->ExecuteService($service, $action);
@@ -2069,6 +2083,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function FlashHeadlights()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'RLF';
         $action = 'LIGHT_FLASH';
         $result = $this->ExecuteService($service, $action);
@@ -2083,6 +2098,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function Honk()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'RHB';
         $action = 'HORN_BLOW';
         $result = $this->ExecuteService($service, $action);
@@ -2097,6 +2113,7 @@ class BMWConnectedDrive extends IPSModule
      */
     public function FindVehicle()
     {
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $service = 'RVF';
         $action = 'VEHICLE_FINDER';
         $result = $this->ExecuteService($service, $action);
@@ -2150,7 +2167,7 @@ class BMWConnectedDrive extends IPSModule
         $response = curl_exec($ch);
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
         if ($httpcode != 200) {
-            $this->SendDebug(__FUNCTION__, "got http-code $httpcode", 0);
+            $this->SendDebug(__FUNCTION__, 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')', 0);
         }
         if ($response === false) {
             $curl_error = curl_error($ch);
@@ -2618,5 +2635,88 @@ class BMWConnectedDrive extends IPSModule
             $value = $this->GetBuffer($name);
         }
         return $value;
+    }
+
+    private function HttpCode2Text($code)
+    {
+        $code2text = [
+            // 1xx – Information
+            100 => 'Continue',
+            101 => 'Switching Protocols',
+            102 => 'Processing',
+            103 => 'Early Hints',
+            // 2xx – Success
+            200 => 'OK',
+            201 => 'Created',
+            202 => 'Accepted',
+            203 => 'Non-Authoritative Information',
+            204 => 'No Content',
+            205 => 'Reset Content',
+            206 => 'Partial Content',
+            207 => 'Multi-Status',
+            208 => 'Already Reported',
+            226 => 'IM Used',
+            // 3xx – Redirection
+            300 => 'Multiple Choices',
+            301 => 'Moved Permanently',
+            302 => 'Found (Moved Temporarily)',
+            303 => 'See Other',
+            304 => 'Not Modified',
+            305 => 'Use Proxy',
+            306 => '(reserviert)',
+            307 => 'Temporary Redirect',
+            308 => 'Permanent Redirect',
+            // 4xx - Client error
+            400 => 'Bad Request',
+            401 => 'Unauthorized',
+            402 => 'Payment Required',
+            403 => 'Forbidden',
+            404 => 'Not Found',
+            405 => 'Method Not Allowed',
+            406 => 'Not Acceptable',
+            407 => 'Proxy Authentication Required',
+            408 => 'Request Timeout',
+            409 => 'Conflict',
+            410 => 'Gone',
+            411 => 'Length Required',
+            412 => 'Precondition Failed',
+            413 => 'Payload Too Large',
+            414 => 'URI Too Long',
+            415 => 'Unsupported Media Type',
+            416 => 'Range Not Satisfiable',
+            417 => 'Expectation Failed',
+            418 => 'I’m a teapot',
+            420 => 'Policy Not Fulfilled',
+            421 => 'Misdirected Request',
+            422 => 'Unprocessable Entity',
+            423 => 'Locked',
+            424 => 'Failed Dependency',
+            425 => 'Too Early',
+            426 => 'Upgrade Required',
+            428 => 'Precondition Required',
+            429 => 'Too Many Requests',
+            431 => 'Request Header Fields Too Large',
+            444 => 'No Response',
+            449 => 'The request should be retried after doing the appropriate action',
+            451 => 'Unavailable For Legal Reasons',
+            499 => 'Client Closed Request',
+            // 5xx - Server error
+            500 => 'Internal Server Error',
+            501 => 'Not Implemented',
+            502 => 'Bad Gateway',
+            503 => 'Service Unavailable',
+            504 => 'Gateway Timeout',
+            505 => 'HTTP Version not supported',
+            506 => 'Variant Also Negotiates',
+            507 => 'Insufficient Storage',
+            508 => 'Loop Detected',
+            509 => 'Bandwidth Limit Exceeded',
+            510 => 'Not Extended',
+            511 => 'Network Authentication Required',
+            599 => 'Network Connect Timeout Error',
+        ];
+
+        $result = isset($code2text[$code]) ? $code2text[$code] : ('Unknown http-error ' . $code);
+        return $result;
     }
 }
