@@ -422,7 +422,6 @@ class BMWConnectedDrive extends IPSModule
             $this->GetNavigationData();
             $this->GetEfficiency();
             $this->GetChargingProfile();
-            $this->GetChargingTimes();
         }
 
         $this->GetRemoteServices();
@@ -1147,8 +1146,7 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $vin = $this->ReadPropertyString('vin');
-        $command = '/api/vehicle/efficiency/v1/' . $vin;
-        $command = '/webapi/v1/user/vehicles' . $vin . '/efficiency';
+        $command = '/webapi/v1/user/vehicles/' . $vin . '/efficiency';
         $response = $this->SendBMWAPI($command, '', 1);
         $this->SetMultiBuffer('bmw_efficiency_interface', $response);
 
@@ -1245,7 +1243,7 @@ class BMWConnectedDrive extends IPSModule
     {
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
-        $command = '/webapi/v1/user/vehicles' . $vin . '/chargingprofile';
+        $command = '/webapi/v1/user/vehicles/' . $vin . '/chargingprofile';
         $response = $this->SendBMWAPI($command, '', 2);
         $this->SetMultiBuffer('bmw_chargingprofile_interface', $response);
         return $response;
@@ -1892,23 +1890,6 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $vin = $this->ReadPropertyString('vin');
         $command = '/webapi/v1/user/vehicles/' . $vin . '/statistics/lastTrip';
-        $response = $this->SendBMWAPI($command, '', 2);
-        $data = json_decode((string) $response);
-        $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
-
-        return $data;
-    }
-
-    /**
-     * Get charging times.
-     *
-     * @return mixed
-     */
-    public function GetChargingTimes()
-    {
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-        $vin = $this->ReadPropertyString('vin');
-        $command = '/webapi/v1/user/vehicles/' . $vin . '/chargingprofile';
         $response = $this->SendBMWAPI($command, '', 2);
         $data = json_decode((string) $response);
         $this->SendDebug(__FUNCTION__, 'data=' . print_r($data, true), 0);
