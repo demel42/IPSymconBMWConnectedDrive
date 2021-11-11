@@ -7,8 +7,8 @@ require_once __DIR__ . '/../libs/images.php';  // eingebettete Images
 
 class BMWConnectedDrive extends IPSModule
 {
-	use BMWConnectedDriveCommonLib;
-	use BMWConnectedDriveImagesLib;
+    use BMWConnectedDriveCommonLib;
+    use BMWConnectedDriveImagesLib;
 
     // Model
     public static $BMW_MODEL_ELECTRIC = 1;
@@ -1011,10 +1011,6 @@ class BMWConnectedDrive extends IPSModule
                 $socMax = floatval($data->socMax);
                 $this->SetValue('bmw_socMax', $socMax);
             }
-            if (isset($data->battery_size_max)) {
-                $battery_size_max = floatval($data->battery_size_max);
-                $this->SetValue('bmw_battery_size', $battery_size_max);
-            }
         }
 
         return $data;
@@ -1533,6 +1529,10 @@ class BMWConnectedDrive extends IPSModule
 
             $model = $this->ReadPropertyInteger('model');
             if ($model != self::$BMW_MODEL_STANDARD) { // standard, no electric
+                if (isset($carinfo->battery_size_max)) {
+                    $battery_size_max = floatval($carinfo->battery_size_max);
+                    $this->SetValue('bmw_battery_size', $battery_size_max);
+                }
                 if (isset($carinfo->beRemainingRangeElectricKm)) {
                     $electric_range = floatval($carinfo->beRemainingRangeElectricKm);
                     $this->SetValue('bmw_remaining_electric_range', $electric_range);
@@ -1541,7 +1541,6 @@ class BMWConnectedDrive extends IPSModule
                     $charging_level = floatval($carinfo->chargingLevelHv);
                     $this->SetValue('bmw_charging_level', $charging_level);
                 }
-
                 $connector_status = self::$BMW_CONNECTOR_UNKNOWN;
                 if (isset($carinfo->connectorStatus)) {
                     switch ($carinfo->connectorStatus) {
@@ -2297,7 +2296,7 @@ class BMWConnectedDrive extends IPSModule
         $form = [
             [
                 'type'  => 'Image',
-				'image' => 'data:image/png;base64,' . $this->GetBrandImage()
+                'image' => 'data:image/png;base64,' . $this->GetBrandImage()
             ],
             [
                 'type'    => 'Select',
