@@ -220,8 +220,12 @@ GUID: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
 
 ## 7. Versions-Historie
 
-- 1.13 @ 08.11.2021 21:00 (beta)
+- 1.13 @ 11.11.2021 10:35 (beta)
   - komplette Umstellung der API
+  - + battery_size_max in kWh 
+  - interne Umstellungen
+
+  Achtung: vor Update Variablenprofil _BMW.BatteryCapacity_ und Variable _bmw_battery_size_ löschen
 
 - 1.12 @ 22.04.2021 08:08
   - erneute Änderung der API, Command "navigation" funktioniert nicht mehr, daher kein "soc", "socMax"
