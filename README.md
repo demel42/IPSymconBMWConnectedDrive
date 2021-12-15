@@ -172,7 +172,7 @@ GUID: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
 
 ## 7. Versions-Historie
 
-- 2.0 @ 15.12.2021 18:58 (beta)
+- 2.0.1 @ 15.12.2021 21:26 (beta)
   - komplette Umstellung der API
 
 - 1.13 @ 11.11.2021 10:35

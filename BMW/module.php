@@ -1618,8 +1618,11 @@ class BMWConnectedDrive extends IPSModule
             if ($requiredServices != '') {
                 foreach ($requiredServices as $requiredService) {
                     $title = $requiredService['title'];
-                    if (isset($requiredService['longDescription'])) $desc = $requiredService['longDescription'];
-                    else $desc = "";
+                    if (isset($requiredService['longDescription'])) {
+                        $desc = $requiredService['longDescription'];
+                    } else {
+                        $desc = '';
+                    }
                     $subtitle = $requiredService['subtitle'];
                     $tbl .= '<tr>' . PHP_EOL;
                     $tbl .= '<td>' . $title . '</td>' . PHP_EOL;
@@ -2064,8 +2067,11 @@ class BMWConnectedDrive extends IPSModule
                 $params = [
                     'eventId' => $event['eventId'],
                 ];
-                $data = $this->CallAPI(self::$remoteStatus_endpoint, '', $params, '');
+                $data = $this->CallAPI(self::$remoteStatus_endpoint, [], $params, '');
                 $jdata = json_decode($data, true);
+                if ($jdata == false) {
+                    continue;
+                }
                 $event['eventStatus'] = $jdata['eventStatus'];
                 $event['modstamp'] = time();
             }
