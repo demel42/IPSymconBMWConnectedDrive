@@ -1618,7 +1618,8 @@ class BMWConnectedDrive extends IPSModule
             if ($requiredServices != '') {
                 foreach ($requiredServices as $requiredService) {
                     $title = $requiredService['title'];
-                    $desc = $requiredService['longDescription'];
+                    if (isset($requiredService['longDescription'])) $desc = $requiredService['longDescription'];
+                    else $desc = "";
                     $subtitle = $requiredService['subtitle'];
                     $tbl .= '<tr>' . PHP_EOL;
                     $tbl .= '<td>' . $title . '</td>' . PHP_EOL;
