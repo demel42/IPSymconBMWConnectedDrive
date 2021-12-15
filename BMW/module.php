@@ -423,7 +423,7 @@ class BMWConnectedDrive extends IPSModule
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
             $this->SetTimerInterval('UpdateData', 0);
-            $this->SetTimerInterval('UpdateRemoteserviceHistory', 0);
+            $this->SetTimerInterval('UpdateRemoteServiceStatus', 0);
             $this->SetStatus(IS_INACTIVE);
             return;
         }
