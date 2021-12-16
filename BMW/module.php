@@ -1,32 +1,5 @@
 <?php
 
-/*
-
-DOOR := OPEN / CLOSED
-DOOR-Lock: LOCKED, UNLOCKED, SECURED, SELECTIVELOCKED
-
-TRUNK := OPEN / CLOSED
-Motorhaube
-
-HOOD := OPEN / INTERMEDIATE / CLOSED
-Kofferraum-Deckel
-
-Schiebedach := OPEN / INTERMEDIATE / CLOSED
-Sunroof
-
-WINDOW := OPEN / INTERMEDIATE / CLOSED
-Fenster
-
-
- */
-
-//
-// areDoorsLocked
-// areDoorsClosed
-// areDoorsOpen
-//
-// areWindowsClosed
-
 declare(strict_types=1);
 
 require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
@@ -162,7 +135,7 @@ class BMWConnectedDrive extends IPSModule
 
         $associations = [];
         $associations[] = ['Wert' => 0, 'Name' => $this->Translate('Start'), 'Farbe' => 0x3ADF00];
-        $this->CreateVarProfile('BMW.Start', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 'Execute', $associations, $reInstall);
+        $this->CreateVarProfile('BMW.TriggerRemoteService', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 'Execute', $associations, $reInstall);
 
         $associations = [];
         $associations[] = ['Wert' => self::$BMW_GOOGLEMAP_ROADMAP, 'Name' => $this->Translate('roadmap'), 'Farbe' => 0x3ADF00];
@@ -201,7 +174,7 @@ class BMWConnectedDrive extends IPSModule
         $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_LOCKED, 'Name' => $this->Translate('locked'), 'Farbe' => -1];
         $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_SECURED, 'Name' => $this->Translate('secured'), 'Farbe' => -1];
         $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_SELECTIVLOCKED, 'Name' => $this->Translate('selectiv locked'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.DoorClosure', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
+        $this->CreateVarProfile('BMW.DoorClosureState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
 
         $associations = [];
         $associations[] = ['Wert' => self::$BMW_WINDOW_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
@@ -273,7 +246,7 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterPropertyBoolean('active_flash_headlights', false);
         $this->RegisterPropertyBoolean('active_vehicle_finder', false);
         $this->RegisterPropertyBoolean('active_lock_data', false);
-        $this->RegisterPropertyBoolean('active_honk', false);
+        $this->RegisterPropertyBoolean('active_sound_honk', false);
 
         $this->RegisterPropertyBoolean('active_service', false);
         $this->RegisterPropertyBoolean('active_checkcontrol', false);
@@ -310,7 +283,7 @@ class BMWConnectedDrive extends IPSModule
         $active_climate = $this->ReadPropertyBoolean('active_climate');
         $active_lock = $this->ReadPropertyBoolean('active_lock');
         $active_flash_headlights = $this->ReadPropertyBoolean('active_flash_headlights');
-        $active_honk = $this->ReadPropertyBoolean('active_honk');
+        $active_sound_honk = $this->ReadPropertyBoolean('active_sound_honk');
         $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
@@ -342,36 +315,36 @@ class BMWConnectedDrive extends IPSModule
         $vpos = 20;
         $this->MaintainVariable('bmw_service', $this->Translate('Service messages'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_service);
 
-        $this->MaintainVariable('bmw_checkcontrol', $this->Translate('Check-Control Messages'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_checkcontrol);
+        $this->MaintainVariable('bmw_checkcontrol', $this->Translate('Check-Control messages'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_checkcontrol);
 
         $vpos = 50;
-        $this->MaintainVariable('bmw_start_air_conditioner', $this->Translate('start air conditioner'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_climate);
-        $this->MaintainVariable('bmw_stop_air_conditioner', $this->Translate('stop air conditioner'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_climate);
-        if ($active_climate) {
-            $this->MaintainAction('bmw_start_air_conditioner', true);
-            $this->MaintainAction('bmw_stop_air_conditioner', true);
-        }
-
-        $this->MaintainVariable('bmw_start_lock', $this->Translate('lock door'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_lock);
-        $this->MaintainVariable('bmw_start_unlock', $this->Translate('unlock door'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_lock);
+        $this->MaintainVariable('TriggerLockDoors', $this->Translate('lock door'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_lock);
+        $this->MaintainVariable('TriggerUnlockDoors', $this->Translate('unlock door'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_lock);
         if ($active_lock) {
-            $this->MaintainAction('bmw_start_lock', true);
-            $this->MaintainAction('bmw_start_unlock', true);
+            $this->MaintainAction('TriggerLockDoors', true);
+            $this->MaintainAction('TriggerUnlockDoors', true);
         }
 
-        $this->MaintainVariable('bmw_start_flash_headlights', $this->Translate('flash headlights'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_flash_headlights);
+        $this->MaintainVariable('TriggerStartClimatisation', $this->Translate('start air conditioner'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_climate);
+        $this->MaintainVariable('TriggerStopClimatisation', $this->Translate('stop air conditioner'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_climate);
+        if ($active_climate) {
+            $this->MaintainAction('TriggerStartClimatisation', true);
+            $this->MaintainAction('TriggerStopClimatisation', true);
+        }
+
+        $this->MaintainVariable('TriggerFlashHeadlights', $this->Translate('flash headlights'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_flash_headlights);
         if ($active_flash_headlights) {
-            $this->MaintainAction('bmw_start_flash_headlights', true);
+            $this->MaintainAction('TriggerFlashHeadlights', true);
         }
 
-        $this->MaintainVariable('bmw_start_honk', $this->Translate('honk'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_honk);
-        if ($active_honk) {
-            $this->MaintainAction('bmw_start_honk', true);
+        $this->MaintainVariable('TriggerSoundHonk', $this->Translate('sound honk'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_sound_honk);
+        if ($active_sound_honk) {
+            $this->MaintainAction('TriggerSoundHonk', true);
         }
 
-        $this->MaintainVariable('bmw_start_vehicle_finder', $this->Translate('search vehicle'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_vehicle_finder);
+        $this->MaintainVariable('TriggerLocateVehicle', $this->Translate('search vehicle'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_vehicle_finder);
         if ($active_vehicle_finder) {
-            $this->MaintainAction('bmw_start_vehicle_finder', true);
+            $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
         $this->MaintainVariable('bmw_service_history', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
@@ -389,6 +362,7 @@ class BMWConnectedDrive extends IPSModule
         $this->MaintainVariable('bmw_current_heading', $this->Translate('current heading'), VARIABLETYPE_INTEGER, 'BMW.Heading', $vpos++, $active_current_position);
         $this->MaintainVariable('bmw_inMotion', $this->Translate('in motion'), VARIABLETYPE_BOOLEAN, 'BMW.YesNo', $vpos++, $active_current_position);
 
+        $this->MaintainVariable('DoorClosureState', $this->Translate('door closure state'), VARIABLETYPE_INTEGER, 'BMW.DoorClosureState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStateDriverFront', $this->Translate('door driver front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStateDriverRear', $this->Translate('door driver rear'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStatePassengerFront', $this->Translate('door passenger front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
@@ -411,6 +385,9 @@ class BMWConnectedDrive extends IPSModule
             'bmw_rearWindow',
 
             'bmw_socMax', 'bmw_battery_size',
+
+            'bmw_start_air_conditioner', 'bmw_stop_air_conditioner',
+            'bmw_start_lock', 'bmw_start_unlock', 'bmw_start_flash_headlights', 'bmw_start_honk', 'bmw_start_vehicle_finder',
 
             'bmw_car_picture', 'bmw_car_picture_zoom', 'bmw_perspective',
 
@@ -579,9 +556,9 @@ class BMWConnectedDrive extends IPSModule
                     'caption' => 'flash headlights'
                 ],
                 [
-                    'name'    => 'active_honk',
+                    'name'    => 'active_sound_honk',
                     'type'    => 'CheckBox',
-                    'caption' => 'honk'
+                    'caption' => 'sound honk'
                 ],
                 [
                     'name'    => 'active_vehicle_finder',
@@ -1541,6 +1518,14 @@ class BMWConnectedDrive extends IPSModule
 
             $val = $this->GetArrayElem($properties, 'doorsAndWindows.hood', '');
             $this->SaveValue('HoodState', $this->MapHoodState($val), $isChanged);
+
+            $areDoorsLocked = $this->GetArrayElem($properties, 'areDoorsLocked', false);
+            if (boolval($areDoorsLocked)) {
+                $val = self::$BMW_DOOR_CLOSURE_LOCKED;
+            } else {
+                $val = self::$BMW_DOOR_CLOSURE_UNLOCKED;
+            }
+            $this->SaveValue('DoorClosureState', $val, $isChanged);
         }
 
         $val = $this->GetArrayElem($properties, 'lastUpdatedAt', '');
@@ -2016,7 +2001,7 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function Honk()
+    public function SoundHonk()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -2028,7 +2013,7 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function FindVehicle()
+    public function LocateVehicle()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -2251,26 +2236,26 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, 'ident=' . $Ident . ', value=' . $Value, 0);
         $this->SetValue($Ident, $Value);
         switch ($Ident) {
-            case 'bmw_start_air_conditioner':
+            case 'TriggerStartClimatisation':
                 $this->StartClimateControl();
                 break;
-            case 'bmw_stop_air_conditioner':
+            case 'TriggerStopClimatisation':
                 $this->StopClimateControl();
                 break;
-            case 'bmw_start_lock':
+            case 'TriggerLockDoors':
                 $this->LockDoors();
                 break;
-            case 'bmw_start_unlock':
+            case 'TriggerUnlockDoors':
                 $this->UnlockDoors();
                 break;
-            case 'bmw_start_flash_headlights':
+            case 'TriggerFlashHeadlights':
                 $this->FlashHeadlights();
                 break;
-            case 'bmw_start_honk':
-                $this->Honk();
+            case 'TriggerSoundHonk':
+                $this->SoundHonk();
                 break;
-            case 'bmw_start_vehicle_finder':
-                $this->FindVehicle();
+            case 'TriggerLocateVehicle':
+                $this->LocateVehicle();
                 break;
             case 'bmw_googlemap_maptype':
                 $this->SetGoogleMapType($Value);
