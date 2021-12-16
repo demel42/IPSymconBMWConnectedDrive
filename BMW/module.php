@@ -301,7 +301,26 @@ class BMWConnectedDrive extends IPSModule
     {
         parent::ApplyChanges();
 
+        $status = IS_ACTIVE;
+
         $model = $this->ReadPropertyInteger('model');
+
+        $active_service = $this->ReadPropertyBoolean('active_service');
+        $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
+        $active_climate = $this->ReadPropertyBoolean('active_climate');
+        $active_lock = $this->ReadPropertyBoolean('active_lock');
+        $active_flash_headlights = $this->ReadPropertyBoolean('active_flash_headlights');
+        $active_honk = $this->ReadPropertyBoolean('active_honk');
+        $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
+        $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
+        $active_current_position = $this->ReadPropertyBoolean('active_current_position');
+        $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
+
+        if ($active_googlemap && $active_current_position == false) {
+            $this->SendDebug(__FUNCTION__, '"active_googlemap" needs "active_current_position"', 0);
+            $active_googlemap = false;
+            $status = self::$IS_INVALIDCONFIG;
+        }
 
         $vpos = 0;
 
@@ -321,14 +340,11 @@ class BMWConnectedDrive extends IPSModule
         $this->MaintainVariable('bmw_charging_sessions', $this->Translate('charging sessions'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $isElectric);
 
         $vpos = 20;
-        $active_service = $this->ReadPropertyBoolean('active_service');
         $this->MaintainVariable('bmw_service', $this->Translate('Service messages'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_service);
 
-        $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
         $this->MaintainVariable('bmw_checkcontrol', $this->Translate('Check-Control Messages'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_checkcontrol);
 
         $vpos = 50;
-        $active_climate = $this->ReadPropertyBoolean('active_climate');
         $this->MaintainVariable('bmw_start_air_conditioner', $this->Translate('start air conditioner'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_climate);
         $this->MaintainVariable('bmw_stop_air_conditioner', $this->Translate('stop air conditioner'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_climate);
         if ($active_climate) {
@@ -336,7 +352,6 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('bmw_stop_air_conditioner', true);
         }
 
-        $active_lock = $this->ReadPropertyBoolean('active_lock');
         $this->MaintainVariable('bmw_start_lock', $this->Translate('lock door'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_lock);
         $this->MaintainVariable('bmw_start_unlock', $this->Translate('unlock door'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_lock);
         if ($active_lock) {
@@ -344,19 +359,16 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('bmw_start_unlock', true);
         }
 
-        $active_flash_headlights = $this->ReadPropertyBoolean('active_flash_headlights');
         $this->MaintainVariable('bmw_start_flash_headlights', $this->Translate('flash headlights'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_flash_headlights);
         if ($active_flash_headlights) {
             $this->MaintainAction('bmw_start_flash_headlights', true);
         }
 
-        $active_honk = $this->ReadPropertyBoolean('active_honk');
         $this->MaintainVariable('bmw_start_honk', $this->Translate('honk'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_honk);
         if ($active_honk) {
             $this->MaintainAction('bmw_start_honk', true);
         }
 
-        $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
         $this->MaintainVariable('bmw_start_vehicle_finder', $this->Translate('search vehicle'), VARIABLETYPE_INTEGER, 'BMW.Start', $vpos++, $active_vehicle_finder);
         if ($active_vehicle_finder) {
             $this->MaintainAction('bmw_start_vehicle_finder', true);
@@ -364,7 +376,6 @@ class BMWConnectedDrive extends IPSModule
 
         $this->MaintainVariable('bmw_service_history', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
-        $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
         $this->MaintainVariable('bmw_car_googlemap', $this->Translate('map'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_googlemap);
         $this->MaintainVariable('bmw_googlemap_maptype', $this->Translate('map type'), VARIABLETYPE_INTEGER, 'BMW.Googlemap', $vpos++, $active_googlemap);
         $this->MaintainVariable('bmw_googlemap_zoom', $this->Translate('map zoom'), VARIABLETYPE_INTEGER, '~Intensity.100', $vpos++, $active_googlemap);
@@ -373,13 +384,11 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('bmw_googlemap_maptype', true);
         }
 
-        $active_current_position = $this->ReadPropertyBoolean('active_current_position');
         $this->MaintainVariable('bmw_current_latitude', $this->Translate('current latitude'), VARIABLETYPE_FLOAT, 'BMW.Location', $vpos++, $active_current_position);
         $this->MaintainVariable('bmw_current_longitude', $this->Translate('current longitude'), VARIABLETYPE_FLOAT, 'BMW.Location', $vpos++, $active_current_position);
         $this->MaintainVariable('bmw_current_heading', $this->Translate('current heading'), VARIABLETYPE_INTEGER, 'BMW.Heading', $vpos++, $active_current_position);
         $this->MaintainVariable('bmw_inMotion', $this->Translate('in motion'), VARIABLETYPE_BOOLEAN, 'BMW.YesNo', $vpos++, $active_current_position);
 
-        $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
         $this->MaintainVariable('DoorStateDriverFront', $this->Translate('door driver front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStateDriverRear', $this->Translate('door driver rear'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStatePassengerFront', $this->Translate('door passenger front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
@@ -432,13 +441,15 @@ class BMWConnectedDrive extends IPSModule
         $password = $this->ReadPropertyString('password');
         $vin = $this->ReadPropertyString('vin');
         if ($user == '' || $password == '' || $vin == '') {
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
-            return;
+            $status = self::$IS_INVALIDCONFIG;
         }
 
-        $this->SetStatus(IS_ACTIVE);
-        $this->SetUpdateIntervall();
-        $this->UpdateRemoteServiceStatus();
+        $this->SetStatus($status);
+
+        if ($status == IS_ACTIVE) {
+            $this->SetUpdateIntervall();
+            $this->UpdateRemoteServiceStatus();
+        }
     }
 
     protected function GetFormElements()
@@ -600,6 +611,11 @@ class BMWConnectedDrive extends IPSModule
             'caption' => 'map',
             'items'   => [
                 [
+                    'name'    => 'active_current_position',
+                    'type'    => 'CheckBox',
+                    'caption' => 'show current position, latitude / longitude'
+                ],
+                [
                     'name'    => 'active_googlemap',
                     'type'    => 'CheckBox',
                     'caption' => 'show car position in map'
@@ -623,11 +639,6 @@ class BMWConnectedDrive extends IPSModule
                     'type'    => 'NumberSpinner',
                     'caption' => ' ... vertical'
                 ],
-                [
-                    'name'    => 'active_current_position',
-                    'type'    => 'CheckBox',
-                    'caption' => 'show current position, latitude / longitude'
-                ]
             ]
         ];
 
@@ -1566,8 +1577,6 @@ class BMWConnectedDrive extends IPSModule
 
             /*
             'bmw_charging_end'
-            'bmw_socMax'
-            'bmw_battery_size'
              */
 
             // status.chargingSettings.targetSoc
@@ -1651,22 +1660,6 @@ class BMWConnectedDrive extends IPSModule
                 $this->SetValue('bmw_service', $html);
             }
         }
-        /*
-        [status] => Array
-                [checkControlMessages] => Array
-                    (
-                        [0] => Array
-        	                    (
-                                [criticalness] => nonCritical
-                                [iconId] => 60197
-                                [title] => Motoröl
-                                [state] => OK
-                            )
-
-                    )
-
-            )
-         */
 
         $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
         if ($active_checkcontrol) {
@@ -2050,6 +2043,8 @@ class BMWConnectedDrive extends IPSModule
     public function UpdateRemoteServiceStatus()
     {
         $delete_tstamp = strtotime('-1 month');
+        //$time2failed = 5 * 60;
+        $time2failed = 20;
         $refresh_interval = self::$UpdateRemoteHistoryInterval;
         $refresh_tstamp = time() - $refresh_interval;
 
@@ -2072,8 +2067,14 @@ class BMWConnectedDrive extends IPSModule
                 if ($jdata == false) {
                     continue;
                 }
+
                 $event['eventStatus'] = $jdata['eventStatus'];
                 $event['modstamp'] = time();
+
+                if ($event['eventStatus'] == 'PENDING' && $event['creationTime'] + $time2failed < time()) {
+                    $event['eventStatus'] = 'FAILED';
+                    $this->SendDebug(__FUNCTION__, 'event=' . print_r($event, true), 0);
+                }
             }
             if ($event['eventStatus'] == 'PENDING') {
                 $n_pending++;
@@ -2275,8 +2276,7 @@ class BMWConnectedDrive extends IPSModule
                 $this->SetGoogleMapType($Value);
                 break;
             case 'bmw_googlemap_zoom':
-                $zoom = round(($Value / 100) * 21);
-                $this->SetGoogleMapZoom($zoom);
+                $this->SetGoogleMapZoom($Value);
                 break;
             default:
                 $this->SendDebug(__FUNCTION__, 'invalid ident "' . $Ident . '"', 0);
