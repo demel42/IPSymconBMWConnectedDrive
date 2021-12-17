@@ -24,8 +24,8 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
 
 ### Befehle an BMW Connected Drive senden:  
 
- - Klimaanlage ein / aus 
- - Türen öffnen /verschließen
+ - Klimatisierung starten / stoppen 
+ - Türen entriegeln / verriegeln
  - Lichthupe auslösen
  - Hupe auslösen
 
@@ -53,7 +53,6 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
 ### a. Laden des Moduls
 
 Die Webconsole von IP-Symcon mit _http://<IP-Symcon IP>:3777/console/_ öffnen. 
-
 
 Anschließend oben rechts auf das Symbol für den Modulstore klicken
 
@@ -131,54 +130,57 @@ Liefert die Daten, die mit den entsprecheden HTTP-Aufrufen gewonnen werden. Sind
 
 ### Variablen
 
-| Eigenschaft              | Typ     | Standardwert | Funktion                                  |
-| :----------------------: | :-----: | :----------: | :---------------------------------------: |
+| Eigenschaft              | Typ     | Standardwert | Funktion |
+| :----------------------- | :------ | :----------- | :------- |
 | user                     | string  |              | Benutzerkennung |
 | password                 | string  |              | Passwort |
 | country                  | integer | 1            | Land |
 | vin                      | string  |              | Fahrgestellnummer |
-| model                    | integer | 1            | Modell (Elektisch, Hybrid, Verbrennet) |
-|                          |         |              |                                           |
-| active_climate           | boolean | false        | mit Klimatisierung                        |
-| active_lock              | boolean | false        | mit Türverschluss                         |
-| active_lock_2actions     | boolean | false        | mit Türverschluss (getrennte Aktionen)    |
-| active_flash_headlights  | boolean | false        | mit Lichthupe                             |
-| active_vehicle_finder    | boolean | false        | mit Fahrzeugsuche (nicht funktionsfähig)  |
-| active_lock_data         | boolean | false        | mit Verschluss-Status                     |
-| active_honk              | boolean | false        | mit Hupe                                  |
-| active_picture           | boolean | true         | mit Anzeige eines Bildes des Fahrzeugs    |
-| active_googlemap         | boolean | false        | mit Anzeige der Karte                     |
-| googlemap_api_key        | string  |              | GoogleMaps API-Key                        |
-| horizontal_mapsize       | integer | 600          |  ... horizontale Größe                    |
-| vertical_mapsize         | integer | 400          |  ... vertikale Größe                      |
-| active_service           | boolean | false        | mit Angaben zum Service                   |
-| active_current_position  | boolean | false        | mit Angaben der aktuellen Position        |
-|                          |         |              |                                           |
-| UpdateInterval           | integer | 10           | Update-Intervall (in Minuten)             |
+| model                    | integer | 1            | Modell (Elektisch, Hybrid, Verbrenner) |
+|                          |         |              | |
+| active_climate           | boolean | false        | mit Klimatisierung |
+| active_lock              | boolean | false        | mit Türverschluss |
+| active_lock_2actions     | boolean | false        | mit Türverschluss (getrennte Aktionen) |
+| active_flash_headlights  | boolean | false        | mit Lichthupe |
+| active_vehicle_finder    | boolean | false        | mit Fahrzeugsuche (nicht funktionsfähig) |
+| active_lock_data         | boolean | false        | mit Verschluss-Status |
+| active_honk              | boolean | false        | mit Hupe |
+| active_googlemap         | boolean | false        | mit Anzeige der Karte |
+| googlemap_api_key        | string  |              | GoogleMaps API-Key |
+| horizontal_mapsize       | integer | 600          |  ... horizontale Größe |
+| vertical_mapsize         | integer | 400          |  ... vertikale Größe |
+| active_service           | boolean | false        | mit Angaben zum Service |
+| active_current_position  | boolean | false        | mit Angaben der aktuellen Position |
+|                          |         |              | |
+| UpdateInterval           | integer | 10           | Update-Intervall (in Minuten) |
 
 
 ## 6. Anhang
 
-###  a. GUIDs und Datenaustausch:
+GUIDs
 
-#### BMW:
+- Modul: `{3BEBDFE5-9DAF-3373-BFA9-A80038D3FE63}`
+- Instanzen:
+  - BMWConnectedDrive: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
 
-GUID: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}` 
-
-### b. Quellen
+Quellen / Referenzen
 
 [Bimmer Connected](https://github.com/bimmerconnected/bimmer_connected)
 [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
 
-- 2.0.3 @ 16.12.2021 15:09 (beta)
+- 2.0.4 @ 17.12.2021 12:08 (beta)
+  - Karten-Skalierung wieder von 0..100%
+  - Bil des Fahrzeugs
+
+- 2.0.3 @ 16.12.2021 15:09
   - + Tür-Verschlussstatus
 
-- 2.0.2 @ 16.12.2021 14:06 (beta)
+- 2.0.2 @ 16.12.2021 14:06
   - diverse Fixes
 
-- 2.0.1 @ 15.12.2021 21:26 (beta)
+- 2.0.1 @ 15.12.2021 21:26
   - komplette Umstellung der API
 
 - 1.13 @ 11.11.2021 10:35

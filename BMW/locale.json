@@ -17,6 +17,13 @@
 			"State": "Status",
 			"No check-control messages": "es liegen keine Check-Control Meldungen vor",
 
+			"Car view": "Fahreug Ansicht",
+			"From the front": "von vorne",
+			"Diagonal from front": "von schräg vorne",
+			"From the side": "von der Seite",
+			"Load picture": "Bild laden",
+			"Car picture": "Bild des Fahrzeugs",
+
 			"air conditioner control": "Klimaanlagen Steuerung",
 			"air conditioner": "Klimaanlage",
 			"Country": "Land",
@@ -30,7 +37,7 @@
 			"connector status": "Ladekabel-Status",
 			"convertible roof": "Dach",
 			"remote service history": "Remote-Verlauf",
-			"current heading": "aktuelle Ausrichtung",
+			"current direction": "aktuelle Richtung",
 			"current latitude": "aktueller Breitengrad",
 			"current longitude": "aktueller Längengrad",
 			"current position": "Aktuelle Position",
