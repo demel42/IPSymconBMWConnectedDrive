@@ -2057,8 +2057,7 @@ class BMWConnectedDrive extends IPSModule
     public function UpdateRemoteServiceStatus()
     {
         $delete_tstamp = strtotime('-1 month');
-        //$time2failed = 5 * 60;
-        $time2failed = 20;
+        $time2failed = 2 * 60;
         $refresh_interval = self::$UpdateRemoteHistoryInterval;
         $refresh_tstamp = time() - $refresh_interval;
 
@@ -2087,7 +2086,7 @@ class BMWConnectedDrive extends IPSModule
 
                 if ($event['eventStatus'] == 'PENDING' && $event['creationTime'] + $time2failed < time()) {
                     $event['eventStatus'] = 'FAILED';
-                    $this->SendDebug(__FUNCTION__, 'event=' . print_r($event, true), 0);
+                    $this->SendDebug(__FUNCTION__, 'status set to FAILED: event=' . print_r($event, true), 0);
                 }
             }
             if ($event['eventStatus'] == 'PENDING') {
