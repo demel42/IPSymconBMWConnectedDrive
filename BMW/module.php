@@ -118,7 +118,8 @@ class BMWConnectedDrive extends IPSModule
     private static $vehicles_endpoint = '/eadrax-vcs/v1/vehicles';
 
     private static $remoteService_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands';
-    private static $remoteStatus_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventStatus';
+    private static $remoteServiceStatus_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventStatus';
+    private static $remoteServicePosition_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventPosition';
     private static $remoteServiceHistory_endpoint = '/eadrax-vrccs/v2/presentation/remote-history';
 
     private static $vehicle_img_endpoint = '/eadrax-ics/v3/presentation/vehicles/%s/images';
@@ -346,16 +347,19 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('TriggerSoundHonk', true);
         }
 
-        $this->MaintainVariable('TriggerLocateVehicle', $this->Translate('search vehicle'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_vehicle_finder);
+        $this->MaintainVariable('TriggerLocateVehicle', $this->Translate('locate vehicle'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_vehicle_finder);
         if ($active_vehicle_finder) {
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
+        $vpos = 70;
         $this->MaintainVariable('CurrentLatitude', $this->Translate('current latitude'), VARIABLETYPE_FLOAT, 'BMW.Location', $vpos++, $active_current_position);
         $this->MaintainVariable('CurrentLongitude', $this->Translate('current longitude'), VARIABLETYPE_FLOAT, 'BMW.Location', $vpos++, $active_current_position);
         $this->MaintainVariable('CurrentDirection', $this->Translate('current direction'), VARIABLETYPE_INTEGER, 'BMW.Heading', $vpos++, $active_current_position);
+        $this->MaintainVariable('LastPositionMessage', $this->Translate('last position message'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
+
         $this->MaintainVariable('InMotion', $this->Translate('in motion'), VARIABLETYPE_BOOLEAN, 'BMW.YesNo', $vpos++, $active_current_position);
 
         $this->MaintainVariable('GoogleMap', $this->Translate('map'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_googlemap);
@@ -366,6 +370,7 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('GoogleMapZoom', true);
         }
 
+        $vpos = 80;
         $this->MaintainVariable('DoorClosureState', $this->Translate('door closure state'), VARIABLETYPE_INTEGER, 'BMW.DoorClosureState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStateDriverFront', $this->Translate('door driver front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
         $this->MaintainVariable('DoorStateDriverRear', $this->Translate('door driver rear'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
@@ -575,7 +580,7 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'name'    => 'active_vehicle_finder',
                     'type'    => 'CheckBox',
-                    'caption' => 'search vehicle'
+                    'caption' => 'locate vehicle'
                 ],
                 [
                     'name'    => 'active_service',
@@ -1488,7 +1493,7 @@ class BMWConnectedDrive extends IPSModule
             if (ctype_print($body)) {
                 $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
             } else {
-                $this->SendDebug(__FUNCTION__, ' => body contains binary data, size=' . strlen($body), 0);
+                $this->SendDebug(__FUNCTION__, ' => body potentially contains binary data, size=' . strlen($body), 0);
             }
         }
         if ($statuscode == 0) {
@@ -1620,20 +1625,30 @@ class BMWConnectedDrive extends IPSModule
 
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
         if ($active_current_position) {
-            $val = $this->GetArrayElem($properties, 'vehicleLocation.heading', '');
-            $this->SaveValue('CurrentDirection', intval($val), $isChanged);
+            $dir = $this->GetArrayElem($properties, 'vehicleLocation.heading', '');
+            if ($dir != '') {
+                $this->SaveValue('CurrentDirection', intval($dir), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'vehicleLocation.coordinates.latitude', '');
-            $this->SaveValue('CurrentLatitude', floatval($val), $isChanged);
+            $lat = $this->GetArrayElem($properties, 'vehicleLocation.coordinates.latitude', '');
+            if ($lat != '') {
+                $this->SaveValue('CurrentLatitude', floatval($lat), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'vehicleLocation.coordinates.longitude', '');
-            $this->SaveValue('CurrentLongitude', floatval($val), $isChanged);
+            $lng = $this->GetArrayElem($properties, 'vehicleLocation.coordinates.longitude', '');
+            if ($lng != '') {
+                $this->SaveValue('CurrentLongitude', floatval($lng), $isChanged);
+            }
 
-            $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
-            if ($active_googlemap) {
-                $maptype = $this->GetValue('GoogleMapType');
-                $zoom = $this->GetValue('GoogleMapZoom');
-                $this->SetGoogleMap($maptype, $zoom);
+            if ($lat != '' && $lng != '') {
+                $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
+                if ($active_googlemap) {
+                    $maptype = $this->GetValue('GoogleMapType');
+                    $zoom = $this->GetValue('GoogleMapZoom');
+                    $this->SetGoogleMap($maptype, $zoom);
+                }
+                $val = $this->GetArrayElem($properties, 'lastUpdatedAt', '');
+                $this->SaveValue('LastPositionMessage', strtotime($val), $isChanged);
             }
 
             $val = $this->GetArrayElem($properties, 'inMotion', '');
@@ -1895,15 +1910,15 @@ class BMWConnectedDrive extends IPSModule
         $instID = IPS_GetInstanceListByModuleID('{45E97A63-F870-408A-B259-2933F7EABF74}')[0];
         if (IPS_GetKernelVersion() >= 5) {
             $loc = json_decode(IPS_GetProperty($instID, 'Location'), true);
-            $home_lon = $loc['longitude'];
-            $home_lat = $loc['latitude'];
+            $lng = $loc['longitude'];
+            $lat = $loc['latitude'];
         } else {
-            $home_lon = IPS_GetProperty($instID, 'Longitude');
-            $home_lat = IPS_GetProperty($instID, 'Latitude');
+            $lng = IPS_GetProperty($instID, 'Longitude');
+            $lat = IPS_GetProperty($instID, 'Latitude');
         }
         $pos = [
-            'longitude' => number_format($home_lat, 6, '.', ''),
-            'latitude'  => number_format($home_lon, 6, '.', ''),
+            'longitude' => number_format($lng, 6, '.', ''),
+            'latitude'  => number_format($lat, 6, '.', ''),
         ];
         return $pos;
     }
@@ -2075,7 +2090,7 @@ class BMWConnectedDrive extends IPSModule
                 $params = [
                     'eventId' => $event['eventId'],
                 ];
-                $data = $this->CallAPI(self::$remoteStatus_endpoint, [], $params, '');
+                $data = $this->CallAPI(self::$remoteServiceStatus_endpoint, [], $params, '');
                 $jdata = json_decode($data, true);
                 if ($jdata == false) {
                     continue;
@@ -2087,6 +2102,49 @@ class BMWConnectedDrive extends IPSModule
                 if ($event['eventStatus'] == 'PENDING' && $event['creationTime'] + $time2failed < time()) {
                     $event['eventStatus'] = 'FAILED';
                     $this->SendDebug(__FUNCTION__, 'status set to FAILED: event=' . print_r($event, true), 0);
+                }
+                if ($event['service'] == 'VEHICLE_FINDER' && $event['eventStatus'] == 'EXECUTED') {
+                    $pos = $this->GetHomePosition();
+                    $header_add = [
+                        'latitude'  => $pos['latitude'],
+                        'longitude' => $pos['longitude'],
+                    ];
+                    $data = $this->CallAPI(self::$remoteServicePosition_endpoint, [], $params, $header_add);
+                    $jdata = json_decode($data, true);
+                    if ($jdata != false) {
+                        $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+                        $status = $this->GetArrayElem($jdata, 'positionData.status', '');
+                        if ($status == 'OK') {
+                            $dir = $this->GetArrayElem($jdata, 'positionData.position.heading', '');
+                            if ($dir != '') {
+                                $this->SetValue('CurrentDirection', intval($dir));
+                            }
+
+                            $lat = $this->GetArrayElem($jdata, 'positionData.position.latitude', '');
+                            if ($lat != '') {
+                                $this->SetValue('CurrentLatitude', floatval($lat));
+                            }
+
+                            $lng = $this->GetArrayElem($jdata, 'positionData.position.longitude', '');
+                            if ($lng != '') {
+                                $this->SetValue('CurrentLongitude', floatval($lng));
+                            }
+
+                            if ($lat != '' && $lng != '') {
+                                $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
+                                if ($active_googlemap) {
+                                    $maptype = $this->GetValue('GoogleMapType');
+                                    $zoom = $this->GetValue('GoogleMapZoom');
+                                    $this->SetGoogleMap($maptype, $zoom);
+                                }
+                                $this->SendDebug(__FUNCTION__, 'ts=' . $event['creationTime'], 0);
+                                $this->SetValue('LastPositionMessage', $event['creationTime']);
+                            }
+                        } else {
+                            $errorDetails = $this->GetArrayElem($jdata, 'errorDetails', '');
+                            $this->SendDebug(__FUNCTION__, 'status=' . $status . ', errorDetails=' . print_r($errorDetails, true), 0);
+                        }
+                    }
                 }
             }
             if ($event['eventStatus'] == 'PENDING') {

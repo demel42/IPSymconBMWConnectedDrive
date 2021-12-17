@@ -10,6 +10,7 @@
 
 			"charging info": "Lade-Information",
 			"charging sessions": "Ladevorgänge",
+			"last position message": "letzte Positions-Meldung",
 
 			"Check-Control messages": "Check-Control Meldungen",
 			"show check-control messages": "Check-Control Meldungen anzeigen",
@@ -74,7 +75,7 @@
 			"rear window": "Rückfenster",
 			"remaining electric range": "Elektrische Reichweite",
 			"remaining range": "Tankreichweite",
-			"search vehicle": "Fahrzeug suchen",
+			"locate vehicle": "Fahrzeug lokalisieren",
 			"select area": "Gebiet auswählen",
 			"Service messages": "Servicemeldungen",
 			"show car position in map": "Position des Autos in einer Karte anzeigen",

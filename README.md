@@ -170,9 +170,12 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.4 @ 17.12.2021 12:08 (beta)
+- 2.0.5 @ 17.12.2021 15:32 (beta)
+  - Auswertung des Ergebnisses von RemoteServce-Call "VEHICLE_FINDER"
+
+- 2.0.4 @ 17.12.2021 12:08
   - Karten-Skalierung wieder von 0..100%
-  - Bil des Fahrzeugs
+  - Bild des Fahrzeugs
 
 - 2.0.3 @ 16.12.2021 15:09
   - + Tür-Verschlussstatus
