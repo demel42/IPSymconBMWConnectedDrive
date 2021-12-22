@@ -794,7 +794,6 @@ class BMWConnectedDrive extends IPSModule
     private function GetBrand()
     {
         $brand = $this->ReadPropertyInteger('brand');
-        $brand = self::$BMW_BRAND_BMW;
         switch ($brand) {
             case self::$BMW_BRAND_MINI:
                 $brand = 'mini';
