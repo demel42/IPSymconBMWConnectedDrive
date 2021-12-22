@@ -730,6 +730,18 @@ class BMWConnectedDrive extends IPSModule
         $interval = $Minutes * 60 * 1000;
         $this->SendDebug(__FUNCTION__, 'minutes=' . $Minutes, 0);
         $this->SetTimerInterval('UpdateData', $interval);
+
+        $msec = $this->GetTimerInterval('UpdateData');
+        $this->SendDebug(__FUNCTION__, 'timer "UpdateData" set to msec=' . $msec, 0);
+
+        $timerList = IPS_GetTimerList();
+        foreach ($timerList as $t) {
+            $timer = IPS_GetTimer($t);
+            if ($timer['InstanceID'] != $this->InstanceID) {
+                continue;
+            }
+            $this->SendDebug(__FUNCTION__, 'timer=' . print_r($timer, true), 0);
+        }
     }
 
     private function GetRegion()

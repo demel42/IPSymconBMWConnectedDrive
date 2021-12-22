@@ -170,7 +170,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.5 @ 17.12.2021 15:32 (beta)
+- 2.0.6 @ 22.12.2021 15:07 (beta)
+  - Debug-Ausgabe im Rahmen von SetUpdateIntervall()
+
+- 2.0.5 @ 17.12.2021 15:32
   - Auswertung des Ergebnisses von RemoteServce-Call "VEHICLE_FINDER"
 
 - 2.0.4 @ 17.12.2021 12:08
