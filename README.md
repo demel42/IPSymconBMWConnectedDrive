@@ -170,7 +170,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.6 @ 22.12.2021 15:07 (beta)
+- 2.0.7 @ 22.12.2021 19:09 (beta)
+  - Unterscheidung zwischen den Marken BMW und Mini
+
+- 2.0.6 @ 22.12.2021 15:07
   - Debug-Ausgabe im Rahmen von SetUpdateIntervall()
 
 - 2.0.5 @ 17.12.2021 15:32

@@ -246,6 +246,7 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterPropertyInteger('country', self::$BMW_COUNTRY_GERMANY);
         $this->RegisterPropertyString('vin', '');
         $this->RegisterPropertyInteger('model', self::$BMW_MODEL_COMBUSTION);
+        $this->RegisterPropertyInteger('brand', self::$BMW_BRAND_BMW);
 
         $this->RegisterPropertyBoolean('active_climate', false);
         $this->RegisterPropertyBoolean('active_lock', false);
@@ -477,6 +478,23 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'label' => $this->Translate('combustion'),
                     'value' => self::$BMW_MODEL_COMBUSTION
+                ]
+            ]
+
+        ];
+
+        $items[] = [
+            'type'    => 'Select',
+            'name'    => 'brand',
+            'caption' => 'Vehicle-brand',
+            'options' => [
+                [
+                    'label' => $this->Translate('BMW'),
+                    'value' => self::$BMW_BRAND_BMW
+                ],
+                [
+                    'label' => $this->Translate('Mini'),
+                    'value' => self::$BMW_BRAND_MINI
                 ]
             ]
 
@@ -775,7 +793,7 @@ class BMWConnectedDrive extends IPSModule
 
     private function GetBrand()
     {
-        // spätere Erweiterung erforderlich?
+        $brand = $this->ReadPropertyInteger('brand');
         $brand = self::$BMW_BRAND_BMW;
         switch ($brand) {
             case self::$BMW_BRAND_MINI:
