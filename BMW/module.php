@@ -1965,7 +1965,7 @@ class BMWConnectedDrive extends IPSModule
             }
             $new_history[] = $event;
         }
-        $jdata = json_decode($data, true);
+        $jdata = $data == false ? false : json_decode($data, true);
         if ($jdata == false) {
             $event = [
                 'service'     => $service,
@@ -2211,7 +2211,9 @@ class BMWConnectedDrive extends IPSModule
         $endpoint = self::$remoteServiceHistory_endpoint . '/' . $vin;
 
         $data = $this->CallAPI($endpoint, '', '', '');
-        $jdata = json_decode($data, true);
+        if ($data == false) {
+            return;
+        }
 
         $history = json_decode($this->ReadAttributeString('RemoteServiceHistory'), true);
         if ($history == false) {

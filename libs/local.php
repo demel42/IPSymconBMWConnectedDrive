@@ -45,6 +45,9 @@ trait BMWConnectedDriveLocalLib
             case self::$IS_UNAUTHORIZED:
             case self::$IS_FORBIDDEN:
             case self::$IS_SERVERERROR:
+            case self::$IS_HTTPERROR:
+            case self::$IS_INVALIDDATA:
+            case self::$IS_APIERROR:
                 $class = self::$STATUS_RETRYABLE;
                 break;
             default:
