@@ -170,7 +170,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.7 @ 22.12.2021 19:09 (beta)
+- 2.0.8 @ 26.12.2021 15:06 (beta)
+  - Ladezykluѕ: verbesserte Erkennung des Status sowie Ermittlung Begin / Ende
+
+- 2.0.7 @ 22.12.2021 19:09
   - Unterscheidung zwischen den Marken BMW und Mini
 
 - 2.0.6 @ 22.12.2021 15:07
