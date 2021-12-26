@@ -2214,6 +2214,10 @@ class BMWConnectedDrive extends IPSModule
         if ($data == false) {
             return;
         }
+        $jdata = json_decode($data, true);
+        if ($jdata == false) {
+            return;
+        }
 
         $history = json_decode($this->ReadAttributeString('RemoteServiceHistory'), true);
         if ($history == false) {
