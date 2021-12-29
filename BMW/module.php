@@ -279,6 +279,11 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterTimer('UpdateRemoteServiceStatus', 0, 'BMW_UpdateRemoteServiceStatus(' . $this->InstanceID . ');');
 
         $this->InstallVarProfiles(false);
+
+        $this->SetMultiBuffer('VehicleData', '');
+        $this->SetMultiBuffer('ChargingStatistics', '');
+        $this->SetMultiBuffer('ChargingSessions', '');
+        $this->SetMultiBuffer('RemoteServiceHistory', '');
     }
 
     private function MaintainLockState($ident, $use, $vpos)
@@ -1582,6 +1587,7 @@ class BMWConnectedDrive extends IPSModule
 
     private function UpdateVehicleData($data)
     {
+        $this->SetMultiBuffer('VehicleData', $data);
         $jdata = json_decode($data, true);
 
         $properties = $jdata['properties'];
@@ -1929,6 +1935,7 @@ class BMWConnectedDrive extends IPSModule
 
         $data = $this->CallAPI(self::$charging_statistics_endpoint, '', $params, '');
         if ($data != false) {
+            $this->SetMultiBuffer('ChargingStatistics', $data);
             $jdata = json_decode($data, true);
             $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
         }
@@ -1972,6 +1979,7 @@ class BMWConnectedDrive extends IPSModule
 
     private function UpdateChargingSessions($data)
     {
+        $this->SetMultiBuffer('ChargingSessions', $data);
         $jdata = json_decode($data, true);
 
         $isChanged = false;
@@ -2348,6 +2356,7 @@ class BMWConnectedDrive extends IPSModule
         if ($data == false) {
             return;
         }
+        $this->SetMultiBuffer('RemoteServiceHistory', $data);
         $jdata = json_decode($data, true);
         if ($jdata == false) {
             return;
@@ -2785,5 +2794,12 @@ class BMWConnectedDrive extends IPSModule
                 IPS_DeleteVariableProfile($unused_profil);
             }
         }
+    }
+
+    public function GetRawData(string $name)
+    {
+        $data = $this->GetMultiBuffer($name);
+        $this->SendDebug(__FUNCTION__, 'name=' . $name . ', size=' . strlen($data), 0);
+        return $data;
     }
 }
