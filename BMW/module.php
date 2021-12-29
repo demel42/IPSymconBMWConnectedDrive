@@ -1737,10 +1737,8 @@ class BMWConnectedDrive extends IPSModule
                     $charging_end = 0;
                     if ($chargingStatusType == self::$BMW_CHARGING_STATE_ACTIVE || $chargingStatusType == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
                         $ts = 0;
-                        $r = explode('~', $infoLabel);
-                        if (isset($r[1])) {
-                            $d = new DateTime($r[1]);
-                            $ts = intval($d->format('U'));
+                        if (preg_match('/^([^~]*)~[ ]*([0-9]{2}):([0-9]{2})[ ]*(.*)$/', $infoLabel, $r)) {
+                            $ts = gmmktime(intval($r[2]), intval($r[3]));
                             if ($ts && $ts < time()) {
                                 $ts += (60 * 60 * 24);
                             }
@@ -1943,7 +1941,7 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function GetCarPicture(string $carView = null)
+    private function GetCarPicture(string $carView = null)
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -2218,7 +2216,7 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function UpdateRemoteServiceStatus()
+    private function UpdateRemoteServiceStatus()
     {
         $delete_tstamp = strtotime('-1 month');
         $time2failed = 2 * 60;
@@ -2313,7 +2311,7 @@ class BMWConnectedDrive extends IPSModule
         }
     }
 
-    public function GetRemoteServiceHistory()
+    private function GetRemoteServiceHistory()
     {
         $service2text = [
             'CLIMATE_NOW'        => 'climate now',
@@ -2747,7 +2745,7 @@ class BMWConnectedDrive extends IPSModule
         return $e;
     }
 
-    public function CleanupOldVersions()
+    private function CleanupOldVersions()
     {
         $unused_vars = [
             'bmw_doorDriverFront', 'bmw_doorDriverRear', 'bmw_doorLockState', 'bmw_doorPassengerFront', 'bmw_doorPassengerRear',

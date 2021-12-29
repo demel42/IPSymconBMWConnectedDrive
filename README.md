@@ -170,7 +170,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.9 @ 29.12.2021 10:27 (beta)
+- 2.0.9 @ 29.12.2021 16:12 (beta)
   - optionale Ausgabe des Zustands eines Schiebedachs
     es werden in den Bereich des Verschlusses nun nur noch die Variablen angelegt, die die API auch schickt
   - Zugriff auf die Rohdaten der API-Calls via BMW_GetRawData(),
