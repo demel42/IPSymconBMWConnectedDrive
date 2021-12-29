@@ -170,7 +170,11 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.8 @ 26.12.2021 18:36 (beta)
+- 2.0.9 @ 29.12.2021 10:04 (beta)
+  - optionale Ausgabe des Zustands eines Schiebedachs
+    es werden in den Bereich des Verschlusses nun nur noch die Variablen angelegt, die die API auch schickt
+
+- 2.0.8 @ 26.12.2021 18:36
   - Ladezykluѕ: verbesserte Erkennung des Status sowie Ermittlung Begin / Ende
   - Absicherung fehlgeschlagener HTTP-Calls
 

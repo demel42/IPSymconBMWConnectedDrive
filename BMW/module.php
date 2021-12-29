@@ -70,6 +70,13 @@ class BMWConnectedDrive extends IPSModule
     private static $BMW_SUNROOF_STATE_INTERMEDIATE = 3;
     private static $BMW_SUNROOF_STATE_CLOSED = 4;
 
+    // Glas-Schiebedach
+    private static $BMW_MOONROOF_STATE_UNKNOWN = 0;
+    private static $BMW_MOONROOF_STATE_OPEN = 1;
+    private static $BMW_MOONROOF_STATE_OPEN_TILT = 2;
+    private static $BMW_MOONROOF_STATE_INTERMEDIATE = 3;
+    private static $BMW_MOONROOF_STATE_CLOSED = 4;
+
     // Carbiodach / convertible roof
     // OPEN / CLOSED / CLOSEDSECURED / OPENSECURED / HARDTOPMOUNTED / INTERMEDIATEPOSITION / LOADINGPOSITION / LOADINGPOSITIONIMMEDIATE
 
@@ -213,6 +220,14 @@ class BMWConnectedDrive extends IPSModule
         $associations[] = ['Wert' => self::$BMW_SUNROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
         $this->CreateVarProfile('BMW.SunroofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
 
+        $associations = [];
+        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
+        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
+        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_OPEN_TILT, 'Name' => $this->Translate('tilt'), 'Farbe' => -1];
+        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1];
+        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
+        $this->CreateVarProfile('BMW.MoonroofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
+
         $this->CreateVarProfile('BMW.Mileage', VARIABLETYPE_INTEGER, ' km', 0, 0, 0, 0, 'Distance', '', $reInstall);
         $this->CreateVarProfile('BMW.Heading', VARIABLETYPE_INTEGER, ' °', 0, 360, 0, 0, 'WindDirection', '', $reInstall);
 
@@ -264,6 +279,68 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterTimer('UpdateRemoteServiceStatus', 0, 'BMW_UpdateRemoteServiceStatus(' . $this->InstanceID . ');');
 
         $this->InstallVarProfiles(false);
+    }
+
+    private function MaintainLockState($ident, $use, $vpos)
+    {
+        $settings = [
+            'DoorClosureState' => [
+                'desc'    => 'door closure state',
+                'varprof' => 'BMW.DoorClosureState',
+            ],
+            'DoorStateDriverFront' => [
+                'desc'    => 'door driver front',
+                'varprof' => 'BMW.DoorState',
+            ],
+            'DoorStateDriverRear' => [
+                'desc'    => 'door driver rear',
+                'varprof' => 'BMW.DoorState',
+            ],
+            'DoorStatePassengerFront' => [
+                'desc'    => 'door passenger front',
+                'varprof' => 'BMW.DoorState',
+            ],
+            'DoorStatePassengerRear' => [
+                'desc'    => 'door passenger rear',
+                'varprof' => 'BMW.DoorState',
+            ],
+            'WindowStateDriverFront' => [
+                'desc'    => 'window driver front',
+                'varprof' => 'BMW.WindowState',
+            ],
+            'WindowStateDriverRear' => [
+                'desc'    => 'window driver rear',
+                'varprof' => 'BMW.WindowState',
+            ],
+            'WindowStatePassengerFront' => [
+                'desc'    => 'window passenger front',
+                'varprof' => 'BMW.WindowState',
+            ],
+            'WindowStatePassengerRear' => [
+                'desc'    => 'window passenger rear',
+                'varprof' => 'BMW.WindowState',
+            ],
+            'TrunkState' => [
+                'desc'    => 'trunk',
+                'varprof' => 'BMW.TrunkState',
+            ],
+            'HoodState' => [
+                'desc'    => 'hood',
+                'varprof' => 'BMW.HoodState',
+            ],
+            'SunroofState' => [
+                'desc'    => 'sunroof',
+                'varprof' => 'BMW.SunroofState',
+            ],
+            'MoonroofState' => [
+                'desc'    => 'moonroof',
+                'varprof' => 'BMW.MoonroofState',
+            ],
+        ];
+
+        if (isset($settings[$ident])) {
+            $this->MaintainVariable($ident, $this->Translate($settings[$ident]['desc']), VARIABLETYPE_INTEGER, $settings[$ident]['varprof'], $vpos, $use);
+        }
     }
 
     public function ApplyChanges()
@@ -362,18 +439,28 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $vpos = 80;
-        $this->MaintainVariable('DoorClosureState', $this->Translate('door closure state'), VARIABLETYPE_INTEGER, 'BMW.DoorClosureState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('DoorStateDriverFront', $this->Translate('door driver front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('DoorStateDriverRear', $this->Translate('door driver rear'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('DoorStatePassengerFront', $this->Translate('door passenger front'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('DoorStatePassengerRear', $this->Translate('door passenger rear'), VARIABLETYPE_INTEGER, 'BMW.DoorState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('WindowStateDriverFront', $this->Translate('window driver front'), VARIABLETYPE_INTEGER, 'BMW.WindowState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('WindowStateDriverRear', $this->Translate('window driver rear'), VARIABLETYPE_INTEGER, 'BMW.WindowState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('WindowStatePassengerFront', $this->Translate('window passenger front'), VARIABLETYPE_INTEGER, 'BMW.WindowState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('WindowStatePassengerRear', $this->Translate('window passenger rear'), VARIABLETYPE_INTEGER, 'BMW.WindowState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('TrunkState', $this->Translate('trunk'), VARIABLETYPE_INTEGER, 'BMW.TrunkState', $vpos++, $active_lock_data);
-        $this->MaintainVariable('HoodState', $this->Translate('hood'), VARIABLETYPE_INTEGER, 'BMW.HoodState', $vpos++, $active_lock_data);
+        if ($active_lock_data == false) {
+            $lock_state_idents = [
+                'DoorClosureState',
+                'DoorStateDriverFront',
+                'DoorStateDriverRear',
+                'DoorStatePassengerFront',
+                'DoorStatePassengerRear',
+                'WindowStateDriverFront',
+                'WindowStateDriverRear',
+                'WindowStatePassengerFront',
+                'WindowStatePassengerRear',
+                'TrunkState',
+                'HoodState',
+                'SunroofState',
+                'MoonroofState',
+            ];
+            foreach ($lock_state_idents as $ident) {
+                $this->MaintainLockState($ident, false, 0);
+            }
+        }
 
+        $vpos = 100;
         $this->MaintainVariable('LastUpdateFromVehicle', $this->Translate('last status update'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
 
         $this->CleanupOldVersions();
@@ -1506,35 +1593,81 @@ class BMWConnectedDrive extends IPSModule
 
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
         if ($active_lock_data) {
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.doors.driverFront', '');
-            $this->SaveValue('DoorStateDriverFront', $this->MapDoorState($val), $isChanged);
+            $vpos = 80;
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.doors.driverRear', '');
-            $this->SaveValue('DoorStateDriverRear', $this->MapDoorState($val), $isChanged);
+            $this->SendDebug(__FUNCTION__, 'doorsAndWindows=' . print_r($properties['doorsAndWindows'], true), 0);
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.doors.passengerFront', '');
-            $this->SaveValue('DoorStatePassengerFront', $this->MapDoorState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['doors']['driverFront'])) {
+                $val = $properties['doorsAndWindows']['doors']['driverFront'];
+                $this->MaintainLockState('DoorStateDriverFront', true, $vpos++);
+                $this->SaveValue('DoorStateDriverFront', $this->MapDoorState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.doors.passengerRear', '');
-            $this->SaveValue('DoorStatePassengerRear', $this->MapDoorState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['doors']['driverRear'])) {
+                $val = $properties['doorsAndWindows']['doors']['driverRear'];
+                $this->MaintainLockState('DoorStateDriverRear', true, $vpos++);
+                $this->SaveValue('DoorStateDriverRear', $this->MapDoorState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.windows.driverFront', '');
-            $this->SaveValue('WindowStateDriverFront', $this->MapWindowState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['doors']['passengerFront'])) {
+                $val = $properties['doorsAndWindows']['doors']['passengerFront'];
+                $this->MaintainLockState('DoorStatePassengerFront', true, $vpos++);
+                $this->SaveValue('DoorStatePassengerFront', $this->MapDoorState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.windows.driverRear', '');
-            $this->SaveValue('WindowStateDriverRear', $this->MapWindowState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['doors']['passengerRear'])) {
+                $val = $properties['doorsAndWindows']['doors']['passengerRear'];
+                $this->MaintainLockState('DoorStatePassengerRear', true, $vpos++);
+                $this->SaveValue('DoorStatePassengerRear', $this->MapDoorState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.windows.passengerFront', '');
-            $this->SaveValue('WindowStatePassengerFront', $this->MapWindowState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['windows']['driverFront'])) {
+                $val = $properties['doorsAndWindows']['windows']['driverFront'];
+                $this->MaintainLockState('WindowStateDriverFront', true, $vpos++);
+                $this->SaveValue('WindowStateDriverFront', $this->MapWindowState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.windows.passengerRear', '');
-            $this->SaveValue('WindowStatePassengerRear', $this->MapWindowState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['windows']['driverRear'])) {
+                $val = $properties['doorsAndWindows']['windows']['driverRear'];
+                $this->MaintainLockState('WindowStateDriverRear', true, $vpos++);
+                $this->SaveValue('WindowStateDriverRear', $this->MapWindowState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.trunk', '');
-            $this->SaveValue('TrunkState', $this->MapTrunkState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['windows']['passengerFront'])) {
+                $val = $properties['doorsAndWindows']['windows']['passengerFront'];
+                $this->MaintainLockState('WindowStatePassengerFront', true, $vpos++);
+                $this->SaveValue('WindowStatePassengerFront', $this->MapWindowState($val), $isChanged);
+            }
 
-            $val = $this->GetArrayElem($properties, 'doorsAndWindows.hood', '');
-            $this->SaveValue('HoodState', $this->MapHoodState($val), $isChanged);
+            if (isset($properties['doorsAndWindows']['windows']['passengerRear'])) {
+                $val = $properties['doorsAndWindows']['windows']['passengerRear'];
+                $this->MaintainLockState('WindowStatePassengerRear', true, $vpos++);
+                $this->SaveValue('WindowStatePassengerRear', $this->MapWindowState($val), $isChanged);
+            }
+
+            if (isset($properties['doorsAndWindows']['trunk'])) {
+                $val = $properties['doorsAndWindows']['trunk'];
+                $this->MaintainLockState('TrunkState', true, $vpos++);
+                $this->SaveValue('TrunkState', $this->MapTrunkState($val), $isChanged);
+            }
+
+            if (isset($properties['doorsAndWindows']['hood'])) {
+                $val = $properties['doorsAndWindows']['hood'];
+                $this->MaintainLockState('HoodState', true, $vpos++);
+                $this->SaveValue('HoodState', $this->MapHoodState($val), $isChanged);
+            }
+
+            if (isset($properties['doorsAndWindows']['sunroof'])) {
+                $val = $properties['doorsAndWindows']['sunroof'];
+                $this->MaintainLockState('SunroofState', true, $vpos++);
+                $this->SaveValue('SunroofState', $this->MapSunroofState($val), $isChanged);
+            }
+
+            if (isset($properties['doorsAndWindows']['moonroof'])) {
+                $val = $properties['doorsAndWindows']['moonroof'];
+                $this->MaintainLockState('MoonroofState', true, $vpos++);
+                $this->SaveValue('MoonroofState', $this->MapMoonroofState($val), $isChanged);
+            }
 
             $areDoorsLocked = $this->GetArrayElem($properties, 'areDoorsLocked', false);
             if (boolval($areDoorsLocked)) {
@@ -1542,6 +1675,7 @@ class BMWConnectedDrive extends IPSModule
             } else {
                 $val = self::$BMW_DOOR_CLOSURE_UNLOCKED;
             }
+            $this->MaintainLockState('DoorClosureState', true, $vpos++);
             $this->SaveValue('DoorClosureState', $val, $isChanged);
         }
 
@@ -2580,6 +2714,26 @@ class BMWConnectedDrive extends IPSModule
         } else {
             $this->SendDebug(__FUNCTION__, 'unknown value "' . $s . '"', 0);
             $e = self::$BMW_SUNROOF_STATE_UNKNOWN;
+        }
+        return $e;
+    }
+
+    // Glas-Schiebedach
+    private function MapMoonroofState($s)
+    {
+        $str2enum = [
+            'UNKNOWN'      => self::$BMW_MOONROOF_STATE_UNKNOWN,
+            'OPEN'         => self::$BMW_MOONROOF_STATE_OPEN,
+            'OPEN_TILT'    => self::$BMW_MOONROOF_STATE_OPEN_TILT,
+            'INTERMEDIATE' => self::$BMW_MOONROOF_STATE_INTERMEDIATE,
+            'CLOSED'       => self::$BMW_MOONROOF_STATE_CLOSED,
+        ];
+
+        if (isset($str2enum[$s])) {
+            $e = $str2enum[$s];
+        } else {
+            $this->SendDebug(__FUNCTION__, 'unknown value "' . $s . '"', 0);
+            $e = self::$BMW_MOONROOF_STATE_UNKNOWN;
         }
         return $e;
     }
