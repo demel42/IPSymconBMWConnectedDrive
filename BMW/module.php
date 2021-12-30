@@ -348,11 +348,45 @@ class BMWConnectedDrive extends IPSModule
         }
     }
 
+    private function CheckConfiguration()
+    {
+        $s = '';
+        $r = [];
+
+        $user = $this->ReadPropertyString('user');
+        $password = $this->ReadPropertyString('password');
+        $vin = $this->ReadPropertyString('vin');
+        if ($user == '' || $password == '' || $vin == '') {
+            $this->SendDebug(__FUNCTION__, '"user", "password" and/or "vin" is empty', 0);
+            $r[] = $this->Translate('User and password of the BMW-account are required and and a registered "vin"');
+        }
+
+        $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
+        $active_current_position = $this->ReadPropertyBoolean('active_current_position');
+        if ($active_googlemap == true && $active_current_position == false) {
+            $this->SendDebug(__FUNCTION__, '"active_googlemap" needs "active_current_position"', 0);
+            $r[] = $this->Translate('Show position in Map need saving position');
+        }
+
+        $api_key = $this->ReadPropertyString('googlemap_api_key');
+        if ($active_googlemap == true && $api_key == false) {
+            $this->SendDebug(__FUNCTION__, '"active_googlemap" needs "api_key"', 0);
+            $r[] = $this->Translate('Show position in GoogleMap need the API-Key');
+        }
+
+        if ($r != []) {
+            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
+            foreach ($r as $p) {
+                $s .= '- ' . $p . PHP_EOL;
+            }
+        }
+
+        return $s;
+    }
+
     public function ApplyChanges()
     {
         parent::ApplyChanges();
-
-        $status = IS_ACTIVE;
 
         $model = $this->ReadPropertyInteger('model');
 
@@ -366,12 +400,6 @@ class BMWConnectedDrive extends IPSModule
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
-
-        if ($active_googlemap && $active_current_position == false) {
-            $this->SendDebug(__FUNCTION__, '"active_googlemap" needs "active_current_position"', 0);
-            $active_googlemap = false;
-            $status = self::$IS_INVALIDCONFIG;
-        }
 
         $vpos = 1;
         $this->MaintainVariable('Mileage', $this->Translate('mileage'), VARIABLETYPE_INTEGER, 'BMW.Mileage', $vpos++, true);
@@ -478,19 +506,16 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
-        $vin = $this->ReadPropertyString('vin');
-        if ($user == '' || $password == '' || $vin == '') {
-            $status = self::$IS_INVALIDCONFIG;
+        if ($this->CheckConfiguration() != false) {
+            $this->SetTimerInterval('UpdateData', 0);
+            $this->SetTimerInterval('UpdateRemoteServiceStatus', 0);
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
         }
 
-        $this->SetStatus($status);
-
-        if ($status == IS_ACTIVE) {
-            $this->SetUpdateIntervall();
-            $this->UpdateRemoteServiceStatus();
-        }
+        $this->SetStatus(IS_ACTIVE);
+        $this->SetUpdateIntervall();
+        $this->UpdateRemoteServiceStatus();
     }
 
     protected function GetFormElements()
@@ -501,6 +526,17 @@ class BMWConnectedDrive extends IPSModule
             'type'  => 'Image',
             'image' => 'data:image/png;base64,' . $this->GetBrandImage()
         ];
+
+        $s = $this->CheckConfiguration();
+        if ($s != '') {
+            $formElements[] = [
+                'type'    => 'Label',
+                'caption' => $s
+            ];
+            $formElements[] = [
+                'type'    => 'Label',
+            ];
+        }
 
         $formElements[] = [
             'type'    => 'CheckBox',
