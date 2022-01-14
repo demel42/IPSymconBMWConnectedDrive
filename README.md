@@ -20,7 +20,7 @@ Modul für IP-Symcon ab Version 5. Ermöglicht die Kommunikation mit BMW Connect
 
 ## 1. Funktionsumfang
 
-Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken und Statusmeldungen über BMW Connected Drive in IP-Symcon (ab Version 4) darstellen. 
+Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken und Statusmeldungen über BMW Connected Drive in IP-Symcon darstellen. 
 
 ### Befehle an BMW Connected Drive senden:  
 
@@ -28,20 +28,19 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
  - Türen entriegeln / verriegeln
  - Lichthupe auslösen
  - Hupe auslösen
+ - Fahrzeug suchen
+ - POI an Fahrzeug enden
 
 ### Status Rückmeldung:  
 
  - Fahrzeugdaten
- - Autobild, einstellbar in Perspektive und Größe
  - Fahrzeugposition in Karte
- - aktueller Breitengard
- - aktueller Längengrad
- - Tankinhalt
- - Tankreichweite
- - Status Veriegelung Türen
+ - aktuelle Position (Breitengard, Längengrad) sowie Ausrichtung
+ - Tankinhalt, Tankreichweite
+ - Status Veriegelung Türen, Fenster etc
  - Kilometerstand	
- - Servicemeldungen
- - Verlauf
+ - Service-Meldungen, Check-Control-Meldungen
+ - RemoteService-Verlauf
 	  
 ## 2. Voraussetzungen
 
@@ -52,10 +51,12 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
 
 ### a. Laden des Moduls
 
-Die Konsole von IP-Symcon mit _http://<IP-Symcon IP>:3777/console/_ öffnen. 
+Die Webconsole von IP-Symcon mit _http://\<IP-Symcon IP\>:3777/console/_ öffnen.
 
-Anschließend oben rechts auf das Symbol für den Modulstore klicken und das Modul unter `BMW Connected Drive` suchen und laden.<br>
-Alternativ im Objektbaum im Zweig *Kern Instanzen* über *Modules* mit der URL https://github.com/demel42/IPSymconBMWConnectedDrive einrichten.
+Den **Modulstore** öffnen und im Suchfeld nun `BMW Connected Drive` eingeben, das Modul auswählen und auf _Installieren_ auswählen.
+
+Alternativ kann das Modul auch über **ModulControl** (im Objektbaum innerhalb _Kern Instanzen_ die Instanz _Modules_) installiert werden,
+als URL muss `https://github.com/demel42/IPSymconBMWConnectedDrive` angegeben werden.
 
 ### b. Einrichtung in IP-Symcon
 	
