@@ -137,11 +137,13 @@ BMW_SendPOI(<InstanceID>, json_encode($jpoi));
 | active_blow_horn         | boolean | false        | Hupe auslösen |
 | active_vehicle_finder    | boolean | false        | Fahrzeugsuche auslösen |
 |                          |         |              | |
-| active_lock_data         | boolean | false        | mit Verschluss-Status |
-| active_service           | boolean | false        | mit Angaben zum Service |
-| active_current_position  | boolean | false        | mit Angaben der aktuellen Position |
+| active_lock_data         | boolean | false        | Verschluss-Status anzeigen |
+| active_motion            | boolean | false        | Fahrzeugbewegung anzeigen |
+| active_service           | boolean | false        | Service-Meldungen anzeigen |
+| active_checkcontrol      | boolean | false        | Check-Control-Meldungen anzeigen |
+| active_current_position  | boolean | false        | aktuelle Position anzeigen |
 |                          |         |              | |
-| active_googlemap         | boolean | false        | mit Anzeige der Karte |
+| active_googlemap         | boolean | false        | Anzeige einer Karte mit der Fahrzeuposition |
 | googlemap_api_key        | string  |              | GoogleMaps API-Key |
 | horizontal_mapsize       | integer | 600          |  ... horizontale Größe |
 | vertical_mapsize         | integer | 400          |  ... vertikale Größe |
@@ -177,7 +179,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.10 @ 14.01.2022 15:38 (beta)
+- 2.0.10 @ 14.01.2022 15:56 (beta)
   - weitere API-Anpsssung: immer "user-agent" im HTTP-Header schicken
   - RemoteService-Call "CHARGE_NOW"
   - SendPOI: Resieziel an Fahrzeug senden

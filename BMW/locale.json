@@ -31,6 +31,7 @@
 			"show service messages": "Servicemitteilungen anzeigen",
 			"show check-control messages": "Check-Control Meldungen anzeigen",
 			"show detailed lock state": "Detail Öffnungsstatus anzeigen / Türöffnung",
+			"show vehicle motion": "Fahrzeugbewegung anzeigen",
 			"show current position, latitude / longitude": "aktuelle Position, Längen und Breitengrad anzeigen",
 			"show car position in map": "Position des Autos in einer Karte anzeigen",
 

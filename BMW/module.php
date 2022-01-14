@@ -264,6 +264,7 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterPropertyBoolean('active_checkcontrol', false);
 
         $this->RegisterPropertyBoolean('active_current_position', false);
+        $this->RegisterPropertyBoolean('active_motion', false);
 
         $this->RegisterPropertyBoolean('active_googlemap', false);
         $this->RegisterPropertyString('googlemap_api_key', '');
@@ -400,6 +401,7 @@ class BMWConnectedDrive extends IPSModule
         $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
+        $active_motion = $this->ReadPropertyBoolean('active_motion');
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
 
         $vpos = 1;
@@ -469,7 +471,7 @@ class BMWConnectedDrive extends IPSModule
         $this->MaintainVariable('CurrentDirection', $this->Translate('current direction'), VARIABLETYPE_INTEGER, 'BMW.Heading', $vpos++, $active_current_position);
         $this->MaintainVariable('LastPositionMessage', $this->Translate('last position message'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
 
-        $this->MaintainVariable('InMotion', $this->Translate('in motion'), VARIABLETYPE_BOOLEAN, 'BMW.YesNo', $vpos++, $active_current_position);
+        $this->MaintainVariable('InMotion', $this->Translate('in motion'), VARIABLETYPE_BOOLEAN, 'BMW.YesNo', $vpos++, $active_motion);
 
         $this->MaintainVariable('GoogleMap', $this->Translate('map'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_googlemap);
         $this->MaintainVariable('GoogleMapType', $this->Translate('map type'), VARIABLETYPE_INTEGER, 'BMW.Googlemap', $vpos++, $active_googlemap);
@@ -695,7 +697,12 @@ class BMWConnectedDrive extends IPSModule
                     'name'    => 'active_lock_data',
                     'type'    => 'CheckBox',
                     'caption' => 'show detailed lock state'
-                ]
+                ],
+                [
+                    'name'    => 'active_motion',
+                    'type'    => 'CheckBox',
+                    'caption' => 'show vehicle motion'
+                ],
             ]
         ];
 
@@ -1845,7 +1852,10 @@ class BMWConnectedDrive extends IPSModule
                 $val = $this->GetArrayElem($properties, 'lastUpdatedAt', '');
                 $this->SaveValue('LastPositionMessage', strtotime($val), $isChanged);
             }
+        }
 
+        $active_motion = $this->ReadPropertyBoolean('active_motion');
+        if ($active_motion) {
             $val = $this->GetArrayElem($properties, 'inMotion', '');
             $this->SaveValue('InMotion', boolval($val), $isChanged);
         }
