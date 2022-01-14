@@ -1,12 +1,12 @@
 {
 	"id": "{3BEBDFE5-9DAF-3373-BFA9-A80038D3FE63}",
-	"author": "CH. Damsky",
+	"author": "Ch. Damsky",
 	"name": "BMWConnectedDrive",
 	"url": "https://github.com/demel42/IPSymconBMWConnectedDrive",
 	"compatibility": {
 		"version": "4.2"
 	},
-	"version": "2.0.9",
+	"version": "2.0.10",
 	"build": 0,
-	"date": 1640790748
+	"date": 1642154919
 }

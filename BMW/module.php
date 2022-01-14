@@ -119,6 +119,7 @@ class BMWConnectedDrive extends IPSModule
     ];
 
     private static $x_user_agent_fmt = 'android(v1.07_20200330);%s;1.7.0(11152)';
+    private static $user_agent = 'Dart/2.13 (dart:io)';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
@@ -452,6 +453,13 @@ class BMWConnectedDrive extends IPSModule
         if ($active_vehicle_finder) {
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
+
+        /*
+        $this->MaintainVariable('TriggerChargeNow', $this->Translate('charge now'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
+        if ($isElectric) {
+            $this->MaintainAction('TriggerChargeNow', true);
+        }
+         */
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
@@ -933,6 +941,7 @@ class BMWConnectedDrive extends IPSModule
         $config_url = $baseurl . '/' . self::$oauth_config_endpoint;
         $header = [
             'ocp-apim-subscription-key: ' . self::$ocp_apim_key[$region],
+            'user-agent: ' . self::$user_agent,
             'x-user-agent: ' . sprintf(self::$x_user_agent_fmt, $this->GetBrand()),
         ];
 
@@ -1521,6 +1530,7 @@ class BMWConnectedDrive extends IPSModule
 
         $header_base = [
             'accept'          => 'application/json',
+            'user-agent'      => self::$user_agent,
             'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand()),
             'Authorization'   => 'Bearer ' . $access_token,
             'accept-language' => $this->GetLang(),
@@ -2252,6 +2262,42 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
+    public function ChargeNow()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
+        $result = $this->ExecuteRemoteService('CHARGE_NOW', '');
+        return $result;
+    }
+
+    public function StartCharging()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
+        $result = $this->ExecuteRemoteService('CHARGE_NOW', 'START');
+        return $result;
+    }
+
+    public function StopCharging()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
+        $result = $this->ExecuteRemoteService('CHARGE_NOW', 'STOP');
+        return $result;
+    }
+
     private function UpdateRemoteServiceStatus()
     {
         $delete_tstamp = strtotime('-1 month');
@@ -2529,6 +2575,9 @@ class BMWConnectedDrive extends IPSModule
                 break;
             case 'TriggerSoundHonk':
                 $this->SoundHonk();
+                break;
+            case 'TriggerChargeNow':
+                $this->ChargeNow();
                 break;
             case 'TriggerLocateVehicle':
                 $this->LocateVehicle();
@@ -2815,6 +2864,8 @@ class BMWConnectedDrive extends IPSModule
             'lifetime_distance', 'lifetime_reset_tstamp', 'lifetime_save_liters',
 
             'bmw_last_status_update',
+
+            'TriggerSoundHonk',
         ];
         foreach ($unused_vars as $unused_var) {
             $this->UnregisterVariable($unused_var);

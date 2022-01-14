@@ -170,7 +170,11 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.9 @ 29.12.2021 16:12 (beta)
+- 2.0.10 @ 14.01.2022 11:08 (beta)
+  - weitere API-Anpsssung: immer "user-agent" im HTTP-Header schicken
+  - RemoteService-Call "CHARGE_NOW"
+
+- 2.0.9 @ 29.12.2021 16:12
   - optionale Ausgabe des Zustands eines Schiebedachs
     es werden in den Bereich des Verschlusses nun nur noch die Variablen angelegt, die die API auch schickt
   - Zugriff auf die Rohdaten der API-Calls via BMW_GetRawData(),
@@ -187,7 +191,7 @@ Quellen / Referenzen
   - Debug-Ausgabe im Rahmen von SetUpdateIntervall()
 
 - 2.0.5 @ 17.12.2021 15:32
-  - Auswertung des Ergebnisses von RemoteServce-Call "VEHICLE_FINDER"
+  - Auswertung des Ergebnisses von RemoteService-Call "VEHICLE_FINDER"
 
 - 2.0.4 @ 17.12.2021 12:08
   - Karten-Skalierung wieder von 0..100%
@@ -203,7 +207,7 @@ Quellen / Referenzen
   - komplette Umstellung der API
 
 - 1.13 @ 11.11.2021 10:35
-  -  teilweise Umstellung der API
+  - teilweise Umstellung der API
   - + battery_size_max in kWh 
   - interne Umstellungen
 
