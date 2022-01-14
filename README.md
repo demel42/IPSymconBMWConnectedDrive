@@ -54,7 +54,7 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
 
 Die Konsole von IP-Symcon mit _http://<IP-Symcon IP>:3777/console/_ öffnen. 
 
-Anschließend oben rechts auf das Symbol für den Modulstore klicken und das Modul unter `BMW Connected Drive` suchen und laen.
+Anschließend oben rechts auf das Symbol für den Modulstore klicken und das Modul unter `BMW Connected Drive` suchen und laden.<br>
 Alternativ im Objektbaum im Zweig *Kern Instanzen* über *Modules* mit der URL https://github.com/demel42/IPSymconBMWConnectedDrive einrichten.
 
 ### b. Einrichtung in IP-Symcon
