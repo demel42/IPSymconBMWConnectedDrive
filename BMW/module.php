@@ -258,7 +258,7 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterPropertyBoolean('active_flash_headlights', false);
         $this->RegisterPropertyBoolean('active_vehicle_finder', false);
         $this->RegisterPropertyBoolean('active_lock_data', false);
-        $this->RegisterPropertyBoolean('active_sound_honk', false);
+        $this->RegisterPropertyBoolean('active_blow_horn', false);
 
         $this->RegisterPropertyBoolean('active_service', false);
         $this->RegisterPropertyBoolean('active_checkcontrol', false);
@@ -396,7 +396,7 @@ class BMWConnectedDrive extends IPSModule
         $active_climate = $this->ReadPropertyBoolean('active_climate');
         $active_lock = $this->ReadPropertyBoolean('active_lock');
         $active_flash_headlights = $this->ReadPropertyBoolean('active_flash_headlights');
-        $active_sound_honk = $this->ReadPropertyBoolean('active_sound_honk');
+        $active_blow_horn = $this->ReadPropertyBoolean('active_blow_horn');
         $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
@@ -444,9 +444,9 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('TriggerFlashHeadlights', true);
         }
 
-        $this->MaintainVariable('TriggerSoundHonk', $this->Translate('sound honk'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_sound_honk);
-        if ($active_sound_honk) {
-            $this->MaintainAction('TriggerSoundHonk', true);
+        $this->MaintainVariable('TriggerBlowHorn', $this->Translate('blow horn'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_blow_horn);
+        if ($active_blow_horn) {
+            $this->MaintainAction('TriggerBlowHorn', true);
         }
 
         $this->MaintainVariable('TriggerLocateVehicle', $this->Translate('locate vehicle'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $active_vehicle_finder);
@@ -672,9 +672,9 @@ class BMWConnectedDrive extends IPSModule
                     'caption' => 'flash headlights'
                 ],
                 [
-                    'name'    => 'active_sound_honk',
+                    'name'    => 'active_blow_horn',
                     'type'    => 'CheckBox',
-                    'caption' => 'sound honk'
+                    'caption' => 'blow horn'
                 ],
                 [
                     'name'    => 'active_vehicle_finder',
@@ -1546,7 +1546,6 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $mode = $postfields != '' ? 'post' : 'get';
-
         $this->SendDebug(__FUNCTION__, 'http-' . $mode . ', url=' . $url, 0);
         $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
         if ($postfields != '') {
@@ -1564,7 +1563,12 @@ class BMWConnectedDrive extends IPSModule
         curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
         if ($postfields != '') {
             curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-            curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
+            if (isset($header_base['Content-Type']) && $header_base['Content-Type'] == 'application/json') {
+                $s = json_encode($postfields);
+            } else {
+                $s = http_build_query($postfields);
+            }
+            curl_setopt($ch, CURLOPT_POSTFIELDS, $s);
         }
         curl_setopt($ch, CURLOPT_HEADER, true);
 
@@ -1591,7 +1595,7 @@ class BMWConnectedDrive extends IPSModule
             } elseif ($httpcode >= 500 && $httpcode <= 599) {
                 $statuscode = self::$IS_SERVERERROR;
                 $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 200) {
+            } elseif ($httpcode != 200 && $httpcode != 201) {
                 $statuscode = self::$IS_HTTPERROR;
                 $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
             }
@@ -1602,7 +1606,7 @@ class BMWConnectedDrive extends IPSModule
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
 
-            if (ctype_print($body)) {
+            if ($body == '' || ctype_print($body)) {
                 $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
             } else {
                 $this->SendDebug(__FUNCTION__, ' => body potentially contains binary data, size=' . strlen($body), 0);
@@ -2182,7 +2186,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2194,7 +2198,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2206,7 +2210,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2218,7 +2222,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2230,7 +2234,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2238,11 +2242,11 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function SoundHonk()
+    public function BlowHorn()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2254,7 +2258,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2266,7 +2270,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2278,7 +2282,7 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
@@ -2290,12 +2294,65 @@ class BMWConnectedDrive extends IPSModule
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
+            return false;
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('CHARGE_NOW', 'STOP');
         return $result;
+    }
+
+    public function SendPOI(string $poi)
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return false;
+        }
+
+        $jpoi = json_decode($poi, true);
+        if (!isset($jpoi['latitude']) || !isset($jpoi['longitude'])) {
+            $this->SendDebug(__FUNCTION__, 'missing coordinates (latitude/longitude) in ' . print_r($jpoi, true), 0);
+            return false;
+        }
+        if (!isset($jpoi['name'])) {
+            $jpoi['name'] = '(' . $jpoi['latitude'] . ', ' . $jpoi['longitude'] . ')';
+        }
+
+        $vin = $this->ReadPropertyString('vin');
+
+        $endpoint = self::$vehicle_poi_endpoint;
+
+        $postfields = [
+            'vin'      => $vin,
+            'location' => [
+                'type'            => 'SHARED_DESTINATION_FROM_EXTERNAL_APP',
+                'name'            => $this->GetArrayElem($jpoi, 'name', ''),
+                'coordinates'     => [
+                    'latitude'  => number_format((float) $jpoi['latitude'], 6, '.', ''),
+                    'longitude' => number_format((float) $jpoi['longitude'], 6, '.', ''),
+                ],
+                'locationAddress' => [
+                    'street'     => $this->GetArrayElem($jpoi, 'street', ''),
+                    'postalCode' => $this->GetArrayElem($jpoi, 'postalCode', ''),
+                    'city'       => $this->GetArrayElem($jpoi, 'city', ''),
+                    'country'    => $this->GetArrayElem($jpoi, 'country', ''),
+                ],
+            ],
+        ];
+
+        $header_add = [
+            'Content-Type' => 'application/json',
+        ];
+
+        $pos = $this->GetHomePosition();
+        $params = [
+            'deviceTime' => date('Y-m-d\TH:i:s'),
+            'dlat'       => $pos['latitude'],
+            'dlon'       => $pos['longitude'],
+        ];
+        $data = $this->CallAPI($endpoint, $postfields, $params, $header_add);
+        $this->SendDebug(__FUNCTION__, 'poi=' . print_r($poi, true) . ', result=' . $data, 0);
+        return $data;
     }
 
     private function UpdateRemoteServiceStatus()
@@ -2573,12 +2630,14 @@ class BMWConnectedDrive extends IPSModule
             case 'TriggerFlashHeadlights':
                 $this->FlashHeadlights();
                 break;
-            case 'TriggerSoundHonk':
-                $this->SoundHonk();
+            case 'TriggerBlowHorn':
+                $this->BlowHorn();
                 break;
+            /*
             case 'TriggerChargeNow':
                 $this->ChargeNow();
                 break;
+             */
             case 'TriggerLocateVehicle':
                 $this->LocateVehicle();
                 break;
@@ -2864,6 +2923,8 @@ class BMWConnectedDrive extends IPSModule
             'lifetime_distance', 'lifetime_reset_tstamp', 'lifetime_save_liters',
 
             'bmw_last_status_update',
+
+            'TriggerSoundHonk',
         ];
         foreach ($unused_vars as $unused_var) {
             $this->UnregisterVariable($unused_var);

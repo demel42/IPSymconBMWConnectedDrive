@@ -52,79 +52,71 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
 
 ### a. Laden des Moduls
 
-Die Webconsole von IP-Symcon mit _http://<IP-Symcon IP>:3777/console/_ öffnen. 
+Die Konsole von IP-Symcon mit _http://<IP-Symcon IP>:3777/console/_ öffnen. 
 
-Anschließend oben rechts auf das Symbol für den Modulstore klicken
-
-![Store](img/store_icon.png?raw=true "open store")
-
-Im Suchfeld nun
-
-```
-BMW Connected Drive
-```  
-
-eingeben
-
-![Store](img/module_store_search.png?raw=true "module search")
-
-und schließend das Modul auswählen und auf _Installieren_
-
-![Store](img/install.png?raw=true "install")
-
-drücken.
-
-
-#### Alternatives Installieren über Modules Instanz
-
-Den Objektbaum _Öffnen_.
-
-![Objektbaum](img/objektbaum.png?raw=true "Objektbaum")	
-
-Die Instanz _'Modules'_ unterhalb von Kerninstanzen im Objektbaum von IP-Symcon (>=Ver. 5.x) mit einem Doppelklick öffnen und das  _Plus_ Zeichen drücken.
-
-![Modules](img/Modules.png?raw=true "Modules")	
-
-![Plus](img/plus.png?raw=true "Plus")	
-
-![ModulURL](img/add_module.png?raw=true "Add Module")
- 
-Im Feld die folgende URL eintragen und mit _OK_ bestätigen:
-
-```
-https://github.com/Wolbolar/IPSymconBMWConnectedDrive
-```  
-	
-Anschließend erscheint ein Eintrag für das Modul in der Liste der Instanz _Modules_    
-
-Es wird im Standard der Zweig (Branch) _master_ geladen, dieser enthält aktuelle Änderungen und Anpassungen.
-Nur der Zweig _master_ wird aktuell gehalten.
-
-![Master](img/master.png?raw=true "master") 
-
-Sollte eine ältere Version von IP-Symcon die kleiner ist als Version 5.1 (min 4.3) eingesetzt werden, ist auf das Zahnrad rechts in der Liste zu klicken.
-Es öffnet sich ein weiteres Fenster,
-
-![SelectBranch](img/select_branch.png?raw=true "select branch") 
-
-hier kann man auf einen anderen Zweig wechseln, für ältere Versionen kleiner als 5.1 (min 4.3) ist hier
-_Old-Version_ auszuwählen. 
-
+Anschließend oben rechts auf das Symbol für den Modulstore klicken und das Modul unter `BMW Connected Drive` suchen und laen.
+Alternativ im Objektbaum im Zweig *Kern Instanzen* über *Modules* mit der URL https://github.com/demel42/IPSymconBMWConnectedDrive einrichten.
 
 ### b. Einrichtung in IP-Symcon
 	
-In IP-Symcon nun _Instanz hinzufügen_ (_Rechtsklick -> Objekt hinzufügen -> Instanz_) auswählen unter der Kategorie, unter der man die BMW Instanz hinzufügen will,
-und _BMW_ auswählen.
+In IP-Symcon nun _Instanz hinzufügen_ (_Rechtsklick -> Objekt hinzufügen -> Instanz_) auswählen unter der Kategorie, unter der man die BMW Instanz hinzufügen will, und _BMW_ auswählen.
 Im Konfigurationsformular ist der _BMW Connected Drive User_,  das _BMW Connected Drive Passwort_ sowie die _VIN_ (Fahrgestellnummer) zu ergänzen und das Modell einzustellen.
 
 ## 4. Funktionsreferenz
-
 
 `BMW_SetUpdateIntervall(integer $InstanceID, int $Minutes)`
 Update-Intervall setzen. Ist der Wert von _Minutes_ gleich 0, wird der konfigurierte Wert verwendet.
 
 `BMW_GetRawData(integer $InstanceID, string $Name)`
 Liefert die Daten, die mit den entsprecheden HTTP-Aufrufen gewonnen werden. Sind die gleichen Daten, die früher in den gleichnamigen Variablen abgelegt wurden.
+Verfügbar sind z.Zt. *VehicleData*, *RemoteServiceHistory* sowie *ChargingStatistics*, *ChargingSessions*.
+
+`BMW_StartClimateControl(integer $InstanceID)`
+Startet die Klimatisierung
+
+`BMW_StopClimateControl(integer $InstanceID)`
+Stoppt eine laufende Klimatisierung
+
+`BMW_LockDoors(integer $InstanceID)`
+Versperrt die Türen
+
+`BMW_UnlockDoors(integer $InstanceID)`
+Entsperrt die Türen
+
+`BMW_FlashHeadlights(integer $InstanceID)`
+Löst die Lichthupe aus
+
+`BMW_BlowHorn(integer $InstanceID)`
+Löst die Hupe aus
+
+`BMW_LocateVehicle(integer $InstanceID)`
+Startet die Suche nach dem Fahrzeugt, Ergebnis wird dann in den Vらriablen zu Position aktualisiert
+
+`BMW_SendPOI(integer $InstanceID, string $poi)`
+Send ein Reiseziel an das Fahrzeug
+Die Daten sind in der json-kodierten Variable *poi' enthalten
+Vorgeschrieben ind die Zielposition (*longitude*, *latitude*), optional sind *name* sowie *street*, *postalCode*, *city*, *country*.
+```
+$jpoi = [
+    'longitude'  => 7.214935,
+    'latitude'   => 51.482533,
+    'name'       => 'Rathaus Bochum',
+    'street'     => 'Willy-Brandt-Platz',
+    'city'       => 'Bochum',
+    'postalCode' => '44777'
+];
+BMW_SendPOI(<InstanceID>, json_encode($jpoi));
+```
+
+oder minimal
+
+````
+$jpoi = [
+    'longitude' => 7.223049,
+    'latitude'  => 51.479018,
+];
+BMW_SendPOI(<InstanceID>, json_encode($jpoi));
+```
 
 ## 5. Konfiguration:
 
@@ -137,23 +129,38 @@ Liefert die Daten, die mit den entsprecheden HTTP-Aufrufen gewonnen werden. Sind
 | country                  | integer | 1            | Land |
 | vin                      | string  |              | Fahrgestellnummer |
 | model                    | integer | 1            | Modell (Elektisch, Hybrid, Verbrenner) |
+| brand                    | integer | 1            | Marke (BMW, Mini) |
 |                          |         |              | |
-| active_climate           | boolean | false        | mit Klimatisierung |
-| active_lock              | boolean | false        | mit Türverschluss |
-| active_lock_2actions     | boolean | false        | mit Türverschluss (getrennte Aktionen) |
-| active_flash_headlights  | boolean | false        | mit Lichthupe |
-| active_vehicle_finder    | boolean | false        | mit Fahrzeugsuche (nicht funktionsfähig) |
+| active_climate           | boolean | false        | Klimatisierung auslösen |
+| active_lock              | boolean | false        | Türverschluss auslösen |
+| active_flash_headlights  | boolean | false        | Lichthupe auslösen |
+| active_blow_horn         | boolean | false        | Hupe auslösen |
+| active_vehicle_finder    | boolean | false        | Fahrzeugsuche auslösen |
+|                          |         |              | |
 | active_lock_data         | boolean | false        | mit Verschluss-Status |
-| active_honk              | boolean | false        | mit Hupe |
+| active_service           | boolean | false        | mit Angaben zum Service |
+| active_current_position  | boolean | false        | mit Angaben der aktuellen Position |
+|                          |         |              | |
 | active_googlemap         | boolean | false        | mit Anzeige der Karte |
 | googlemap_api_key        | string  |              | GoogleMaps API-Key |
 | horizontal_mapsize       | integer | 600          |  ... horizontale Größe |
 | vertical_mapsize         | integer | 400          |  ... vertikale Größe |
-| active_service           | boolean | false        | mit Angaben zum Service |
-| active_current_position  | boolean | false        | mit Angaben der aktuellen Position |
 |                          |         |              | |
 | UpdateInterval           | integer | 10           | Update-Intervall (in Minuten) |
 
+### Variablenprofile
+
+Es werden folgende Variableprofile angelegt:
+* Boolean<br>
+BMW.YesNo
+
+* Integer<br>
+BMW.ChargingStatus, BMW.ConnectorStatus, BMW.DoorClosureState, BMW.DoorState, BMW.Googlemap,
+BMW.Heading, BMW.HoodState, BMW.Mileage, BMW.MoonroofState, BMW.SunroofState, BMW.TriggerRemoteService,
+BMW.TrunkState, BMW.WindowState
+
+* Float<br>
+BMW.BatteryCapacity, BMW.ChargingLevel, BMW.Location, BMW.RemainingRange, BMW.StateofCharge, BMW.TankCapacity
 
 ## 6. Anhang
 
@@ -170,9 +177,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.10 @ 14.01.2022 11:08 (beta)
+- 2.0.10 @ 14.01.2022 15:38 (beta)
   - weitere API-Anpsssung: immer "user-agent" im HTTP-Header schicken
   - RemoteService-Call "CHARGE_NOW"
+  - SendPOI: Resieziel an Fahrzeug senden
 
 - 2.0.9 @ 29.12.2021 16:12
   - optionale Ausgabe des Zustands eines Schiebedachs
