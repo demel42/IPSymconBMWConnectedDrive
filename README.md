@@ -183,7 +183,7 @@ Quellen / Referenzen
 - 2.0.10 @ 14.01.2022 16:51 (beta)
   - weitere API-Anpsssung: immer "user-agent" im HTTP-Header schicken
   - RemoteService-Call "CHARGE_NOW"
-  - SendPOI: Resieziel an Fahrzeug senden
+  - SendPOI: Reiseziel an Fahrzeug senden
 
 - 2.0.9 @ 29.12.2021 16:12
   - optionale Ausgabe des Zustands eines Schiebedachs
