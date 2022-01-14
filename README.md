@@ -181,7 +181,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.10 @ 14.01.2022 16:51 (beta)
+- 2.0.10 @ 14.01.2022 17:08 (beta)
   - weitere API-Anpsssung: immer "user-agent" im HTTP-Header schicken
   - RemoteService-Call "CHARGE_NOW"
   - SendPOI: Reiseziel an Fahrzeug senden
