@@ -64,35 +64,35 @@ Im Konfigurationsformular ist der _BMW Connected Drive User_,  das _BMW Connecte
 
 ## 4. Funktionsreferenz
 
-`BMW_SetUpdateIntervall(integer $InstanceID, int $Minutes)`
+`BMW_SetUpdateIntervall(integer $InstanceID, int $Minutes)`<br>
 Update-Intervall setzen. Ist der Wert von _Minutes_ gleich 0, wird der konfigurierte Wert verwendet.
 
-`BMW_GetRawData(integer $InstanceID, string $Name)`
+`BMW_GetRawData(integer $InstanceID, string $Name)`<br>
 Liefert die Daten, die mit den entsprecheden HTTP-Aufrufen gewonnen werden. Sind die gleichen Daten, die früher in den gleichnamigen Variablen abgelegt wurden.
 Verfügbar sind z.Zt. *VehicleData*, *RemoteServiceHistory* sowie *ChargingStatistics*, *ChargingSessions*.
 
-`BMW_StartClimateControl(integer $InstanceID)`
+`BMW_StartClimateControl(integer $InstanceID)`<br>
 Startet die Klimatisierung
 
-`BMW_StopClimateControl(integer $InstanceID)`
+`BMW_StopClimateControl(integer $InstanceID)`<br>
 Stoppt eine laufende Klimatisierung
 
-`BMW_LockDoors(integer $InstanceID)`
+`BMW_LockDoors(integer $InstanceID)`<br>
 Versperrt die Türen
 
-`BMW_UnlockDoors(integer $InstanceID)`
+`BMW_UnlockDoors(integer $InstanceID)`<br>
 Entsperrt die Türen
 
-`BMW_FlashHeadlights(integer $InstanceID)`
+`BMW_FlashHeadlights(integer $InstanceID)`<br>
 Löst die Lichthupe aus
 
-`BMW_BlowHorn(integer $InstanceID)`
+`BMW_BlowHorn(integer $InstanceID)`<br>
 Löst die Hupe aus
 
-`BMW_LocateVehicle(integer $InstanceID)`
+`BMW_LocateVehicle(integer $InstanceID)`<br>
 Startet die Suche nach dem Fahrzeugt, Ergebnis wird dann in den Vらriablen zu Position aktualisiert
 
-`BMW_SendPOI(integer $InstanceID, string $poi)`
+`BMW_SendPOI(integer $InstanceID, string $poi)`<br>
 Send ein Reiseziel an das Fahrzeug
 Die Daten sind in der json-kodierten Variable *poi' enthalten
 Vorgeschrieben ind die Zielposition (*longitude*, *latitude*), optional sind *name* sowie *street*, *postalCode*, *city*, *country*.
