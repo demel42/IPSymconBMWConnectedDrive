@@ -2864,8 +2864,6 @@ class BMWConnectedDrive extends IPSModule
             'lifetime_distance', 'lifetime_reset_tstamp', 'lifetime_save_liters',
 
             'bmw_last_status_update',
-
-            'TriggerSoundHonk',
         ];
         foreach ($unused_vars as $unused_var) {
             $this->UnregisterVariable($unused_var);
