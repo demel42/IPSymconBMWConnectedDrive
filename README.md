@@ -97,7 +97,7 @@ Send ein Reiseziel an das Fahrzeug
 Die Daten sind in der json-kodierten Variable *poi' enthalten
 Vorgeschrieben ind die Zielposition (*longitude*, *latitude*), optional sind *name* sowie *street*, *postalCode*, *city*, *country*.
 ```
-$jpoi = [
+$poi = [
     'longitude'  => 7.214935,
     'latitude'   => 51.482533,
     'name'       => 'Rathaus Bochum',
@@ -105,17 +105,17 @@ $jpoi = [
     'city'       => 'Bochum',
     'postalCode' => '44777'
 ];
-BMW_SendPOI(<InstanceID>, json_encode($jpoi));
+BMW_SendPOI(<InstanceID>, json_encode($poi));
 ```
 
 oder minimal
 
-````
-$jpoi = [
+```
+$poi = [
     'longitude' => 7.223049,
     'latitude'  => 51.479018,
 ];
-BMW_SendPOI(<InstanceID>, json_encode($jpoi));
+BMW_SendPOI(<InstanceID>, json_encode($poi));
 ```
 
 ## 5. Konfiguration:
