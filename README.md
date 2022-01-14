@@ -90,12 +90,13 @@ Löst die Lichthupe aus
 Löst die Hupe aus
 
 `BMW_LocateVehicle(integer $InstanceID)`<br>
-Startet die Suche nach dem Fahrzeugt, Ergebnis wird dann in den Vらriablen zu Position aktualisiert
+Startet die Suche nach dem Fahrzeug, die gelieferte Position wird dann in den Variablen gespeichert
 
 `BMW_SendPOI(integer $InstanceID, string $poi)`<br>
-Send ein Reiseziel an das Fahrzeug
-Die Daten sind in der json-kodierten Variable *poi' enthalten
+Sendet ein Reiseziel an das Fahrzeug.<br>
+Die Daten sind in der json-kodierten Variable *poi' enthalten.
 Vorgeschrieben ind die Zielposition (*longitude*, *latitude*), optional sind *name* sowie *street*, *postalCode*, *city*, *country*.
+
 ```
 $poi = [
     'longitude'  => 7.214935,
