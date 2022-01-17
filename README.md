@@ -181,7 +181,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.10 @ 14.01.2022 17:08 (beta)
+- 2.0.11 @ 17.01.2022 20:05 (beta)
+  - function UpdateRemoteServiceStatus() ist wieder public
+
+- 2.0.10 @ 14.01.2022 17:08
   - weitere API-Anpsssung: immer "user-agent" im HTTP-Header schicken
   - RemoteService-Call "CHARGE_NOW"
   - SendPOI: Reiseziel an Fahrzeug senden

@@ -2365,7 +2365,7 @@ class BMWConnectedDrive extends IPSModule
         return $data;
     }
 
-    private function UpdateRemoteServiceStatus()
+    public function UpdateRemoteServiceStatus()
     {
         $delete_tstamp = strtotime('-1 month');
         $time2failed = 2 * 60;
