@@ -648,7 +648,7 @@ class BMWConnectedDrive extends IPSModule
                 ],
                 [
                     'name'    => 'UpdateInterval',
-                    'type'    => 'IntervalBox',
+                    'type'    => 'NumberSpinner',
                     'caption' => 'minutes'
                 ]
             ]
