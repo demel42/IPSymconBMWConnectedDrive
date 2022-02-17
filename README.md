@@ -176,8 +176,8 @@ GUIDs
 
 Quellen / Referenzen
 
-[Bimmer Connected](https://github.com/bimmerconnected/bimmer_connected)
-[BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
+- [Bimmer Connected](https://github.com/bimmerconnected/bimmer_connected)
+- [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
 

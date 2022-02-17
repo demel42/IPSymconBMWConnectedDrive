@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/common.php';  // globale Funktionen
+require_once __DIR__ . '/../libs/CommonStubs/common.php'; // globale Funktionen
 require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
 require_once __DIR__ . '/../libs/images.php';  // eingebettete Images
 
 class BMWConnectedDrive extends IPSModule
 {
-    use BMWConnectedDriveCommonLib;
+    use StubsCommonLib;
     use BMWConnectedDriveLocalLib;
     use BMWConnectedDriveImagesLib;
 
@@ -814,16 +814,7 @@ class BMWConnectedDrive extends IPSModule
             ],
         ];
 
-        $formActions[] = [
-            'type'    => 'ExpansionPanel',
-            'caption' => 'Information',
-            'items'   => [
-                [
-                    'type'    => 'Label',
-                    'caption' => $this->InstanceInfo($this->InstanceID),
-                ],
-            ],
-        ];
+        $formActions[] = $this->GetInformationForm();
 
         return $formActions;
     }
