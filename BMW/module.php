@@ -1992,7 +1992,7 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    private function GetCarPicture(string $carView = null)
+    public function GetCarPicture(string $carView = null)
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);

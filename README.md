@@ -181,6 +181,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.0.12 @ 17.02.2022 21:24
+  - GetCarPicture() ist nun "public"
+
 - 2.0.11 @ 17.01.2022 20:05 (beta)
   - function UpdateRemoteServiceStatus() ist wieder public
 
