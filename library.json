@@ -1,13 +1,12 @@
 {
 	"id": "{3BEBDFE5-9DAF-3373-BFA9-A80038D3FE63}",
-	"author": "Fonzo",
+	"author": "Ch. Damsky",
 	"name": "BMWConnectedDrive",
-	"url": "https://www.bmw-connecteddrive.de/app/de/index.html#/portal",
+	"url": "https://github.com/demel42/IPSymconBMWConnectedDrive",
 	"compatibility": {
-		"version": "4.2",
-		"date": 1491343200
+		"version": "4.2"
 	},
-	"version": "1.9",
+	"version": "2.0.11",
 	"build": 0,
-	"date": 1580742112
+	"date": 1642446314
 }

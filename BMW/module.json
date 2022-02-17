@@ -3,9 +3,10 @@
     "name": "BMWConnectedDrive",
     "type": 3,
     "vendor": "BMW",
-    "aliases": ["BMW"],
+    "aliases": [],
     "parentRequirements": [],
     "childRequirements": [],
     "implemented": [],
-    "prefix": "BMW"
+    "prefix": "BMW",
+    "url": "https://github.com/demel42/IPSymconBMWConnectedDrive/README.md"
 }
