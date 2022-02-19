@@ -10,38 +10,38 @@ Modul für IP-Symcon ab Version 5. Ermöglicht die Kommunikation mit BMW Connect
 
 **Inhaltsverzeichnis**
 
-1. [Funktionsumfang](#1-funktionsumfang)  
-2. [Voraussetzungen](#2-voraussetzungen)  
-3. [Installation](#3-installation)  
+1. [Funktionsumfang](#1-funktionsumfang)
+2. [Voraussetzungen](#2-voraussetzungen)
+3. [Installation](#3-installation)
 4. [Funktionsreferenz](#4-funktionsreferenz)
-5. [Konfiguration](#5-konfiguartion)  
-6. [Anhang](#6-anhang)  
+5. [Konfiguration](#5-konfiguartion)
+6. [Anhang](#6-anhang)
 7. [Versions-Historie](#7-versions-historie)
 
 ## 1. Funktionsumfang
 
-Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken und Statusmeldungen über BMW Connected Drive in IP-Symcon darstellen. 
+Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken und Statusmeldungen über BMW Connected Drive in IP-Symcon darstellen.
 
-### Befehle an BMW Connected Drive senden:  
+### Befehle an BMW Connected Drive senden:
 
- - Klimatisierung starten / stoppen 
+ - Klimatisierung starten / stoppen
  - Türen entriegeln / verriegeln
  - Lichthupe auslösen
  - Hupe auslösen
  - Fahrzeug suchen
  - POI an Fahrzeug enden
 
-### Status Rückmeldung:  
+### Status Rückmeldung:
 
  - Fahrzeugdaten
  - Fahrzeugposition in Karte
  - aktuelle Position (Breitengard, Längengrad) sowie Ausrichtung
  - Tankinhalt, Tankreichweite
  - Status Veriegelung Türen, Fenster etc
- - Kilometerstand	
+ - Kilometerstand
  - Service-Meldungen, Check-Control-Meldungen
  - RemoteService-Verlauf
-	  
+
 ## 2. Voraussetzungen
 
  - IPS 4.x
@@ -59,7 +59,7 @@ Alternativ kann das Modul auch über **ModulControl** (im Objektbaum innerhalb _
 als URL muss `https://github.com/demel42/IPSymconBMWConnectedDrive` angegeben werden.
 
 ### b. Einrichtung in IP-Symcon
-	
+
 In IP-Symcon nun _Instanz hinzufügen_ (_Rechtsklick -> Objekt hinzufügen -> Instanz_) auswählen unter der Kategorie, unter der man die BMW Instanz hinzufügen will, und _BMW_ auswählen.
 Im Konfigurationsformular ist der _BMW Connected Drive User_,  das _BMW Connected Drive Passwort_ sowie die _VIN_ (Fahrgestellnummer) zu ergänzen und das Modell einzustellen.
 
@@ -181,6 +181,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.0.13 @ 19.02.2022 14:56
+  - libs/common.php -> CommonStubs
+
 - 2.0.12 @ 17.02.2022 21:24
   - GetCarPicture() ist nun "public"
 
@@ -226,7 +229,7 @@ Quellen / Referenzen
 
 - 1.13 @ 11.11.2021 10:35
   - teilweise Umstellung der API
-  - + battery_size_max in kWh 
+  - + battery_size_max in kWh
   - interne Umstellungen
 
   Achtung: vor Update Variablenprofil _BMW.BatteryCapacity_ und Variable _bmw_battery_size_ löschen
