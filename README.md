@@ -181,7 +181,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.13 @ 19.02.2022 14:56
+- 2.0.13 @ 20.02.2022 18:19
   - libs/common.php -> CommonStubs
 
 - 2.0.12 @ 17.02.2022 21:24
