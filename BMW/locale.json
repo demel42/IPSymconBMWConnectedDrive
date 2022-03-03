@@ -203,6 +203,8 @@
 			"References": "Referenzen",
 			"by instance used objects": "durch die Instanz verwendete Objekte",
 			"Objects using the instance": "Objekte, die die Instanz verwenden",
+			"Referenced statusvariables": "referenzierte Statusvariablen",
+			"Ident": "Ident",
 			"Object": "Objekt",
 			"Area": "Bereich",
 			"Name": "Bezeichnung",
