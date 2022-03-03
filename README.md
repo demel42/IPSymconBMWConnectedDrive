@@ -183,6 +183,7 @@ Quellen / Referenzen
 
 - 2.0.14 @ 01.03.2022 21:53
   - Fix in CommonStubs
+  - Möglichkeit der Anzeige der Instanz-Referenzen
 
 - 2.0.13 @ 20.02.2022 18:19
   - libs/common.php -> CommonStubs

@@ -815,6 +815,7 @@ class BMWConnectedDrive extends IPSModule
         ];
 
         $formActions[] = $this->GetInformationForm();
+        $formActions[] = $this->GetReferencesForm();
 
         return $formActions;
     }
@@ -2608,6 +2609,10 @@ class BMWConnectedDrive extends IPSModule
 
     public function RequestAction($Ident, $Value)
     {
+        if ($this->CommonRequestAction($Ident, $Value)) {
+            return;
+        }
+
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
             return;
