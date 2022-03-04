@@ -1,0 +1,18 @@
+{
+    "id": "{75729A87-D4C2-0437-15E9-E052A72DA94B}",
+    "caption": "Unlock doors",
+    "form": [ ],
+    "action": "BMW_UnlockDoors($_IPS['TARGET']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "locale": {
+        "de": {
+            "Unlock doors": "Türen entriegeln"
+        }
+    }
+}

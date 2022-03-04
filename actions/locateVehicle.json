@@ -1,0 +1,18 @@
+{
+    "id": "{30C3A4A4-EC36-435F-AC4D-9FABAE00134A}",
+    "caption": "Locate vehicle",
+    "form": [ ],
+    "action": "BMW_LocateVehicle($_IPS['TARGET']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "locale": {
+        "de": {
+            "Locate vehicle": "Fahrzeug lokalisieren"
+        }
+    }
+}

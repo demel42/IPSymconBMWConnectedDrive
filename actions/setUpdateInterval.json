@@ -1,0 +1,29 @@
+{
+    "id": "{96E43FC5-F76D-33AE-8C5D-5863C252F335}",
+    "caption": "Set update interval",
+    "form": [
+        {
+            "type": "NumberSpinner",
+            "digits": 0,
+            "minimum": 0,
+            "suffix": "Minutes",
+            "name": "INTERVAL",
+            "caption": "Interval"
+        }
+    ],
+    "action": "BMW_SetUpdateInterval($_IPS['TARGET'], $_IPS['INTERVAL']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "locale": {
+        "de": {
+            "Set update interval": "Aktualisierungs-Intervall setzen",
+			"Interval": "Intervall",
+			"Minutes": "Minuten"
+        }
+    }
+}

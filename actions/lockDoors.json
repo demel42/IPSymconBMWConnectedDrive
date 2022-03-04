@@ -1,0 +1,18 @@
+{
+    "id": "{9C0FCC15-4874-04B5-CBD8-07D1F30DE6D6}",
+    "caption": "Lock doors",
+    "form": [ ],
+    "action": "BMW_LockDoors($_IPS['TARGET']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "locale": {
+        "de": {
+            "Lock doors": "Türen verriegeln"
+        }
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "id": "{2E15F62C-7433-BBAD-A3E6-EEA85B2482BC}",
+    "caption": "Stop climate control",
+    "form": [ ],
+    "action": "BMW_StopClimateControl($_IPS['TARGET']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "locale": {
+        "de": {
+            "Stop climate control": "Klimatisierung stoppen"
+        }
+    }
+}

@@ -1,0 +1,18 @@
+{
+    "id": "{11101319-3915-93AE-5C14-930940C774B1}",
+    "caption": "Start climate control",
+    "form": [ ],
+    "action": "BMW_StartClimateControl($_IPS['TARGET']);",
+    "restrictions": {
+        "objectType": [ 1 ],
+        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
+        "includeEnvironments": [ "TestCommands", "Default" ]
+    },
+    "priority": 10,
+    "category": "target",
+    "locale": {
+        "de": {
+            "Start climate control": "Klimatisierung starten"
+        }
+    }
+}
