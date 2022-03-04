@@ -524,7 +524,7 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $this->SetStatus(IS_ACTIVE);
-        $this->SetUpdateIntervall();
+        $this->SetUpdateInterval();
         $this->UpdateRemoteServiceStatus();
     }
 
@@ -820,7 +820,7 @@ class BMWConnectedDrive extends IPSModule
         return $formActions;
     }
 
-    public function SetUpdateIntervall(int $Minutes = null)
+    public function SetUpdateInterval(int $Minutes = null)
     {
         if (!($Minutes > 0)) {
             $Minutes = $this->ReadPropertyInteger('UpdateInterval');
