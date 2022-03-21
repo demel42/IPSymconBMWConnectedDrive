@@ -181,7 +181,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.0.15 @ 04.03.2022 16:34
+- 2.0.15 @ 21.03.2022 17:37
   - Aktionen hinzugefügt
   - Korrektur: Funktion 'SetUpdateIntervall' umbenannt in 'SetUpdateInterval'
 
