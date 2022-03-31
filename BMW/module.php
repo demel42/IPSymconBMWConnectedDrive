@@ -2498,13 +2498,14 @@ class BMWConnectedDrive extends IPSModule
         $this->SetMultiBuffer('RemoteServiceHistory', $data);
         $jdata = json_decode($data, true);
         if ($jdata == false) {
-            return;
+            $jdata = [];
         }
 
         $history = json_decode($this->ReadAttributeString('RemoteServiceHistory'), true);
         if ($history == false) {
             $history = [];
         }
+        $this->SendDebug(__FUNCTION__, 'history=' . print_r($history, true), 0);
 
         $tbl = '';
         foreach ($jdata as $e) {
@@ -2517,7 +2518,10 @@ class BMWConnectedDrive extends IPSModule
                 case 'CLIMATIZE_NOW':
                     $service = 'CLIMATE_NOW';
                     foreach ($history as $event) {
-                        if ($ts == $event['creationTime'] && $event['service'] == 'CLIMATE_NOW' && $event['action'] == 'STOP') {
+                        $event_ts = $this->GetArrayElem($event, 'creationTime', '');
+                        $event_service = $this->GetArrayElem($event, 'service', '');
+                        $event_action = $this->GetArrayElem($event, 'action', '');
+                        if ($event_ts == $ts && $event_service == 'CLIMATE_NOW' && $event_action == 'STOP') {
                             $service = 'CLIMATE_STOP';
                             break;
                         }

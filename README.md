@@ -181,6 +181,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.1 @ 31.03.2022 09:47
+  - Absicherung in GetRemoteServiceHistory()
+  - libs/CommonStubs aktualisiert
+
 - 2.0.15 @ 21.03.2022 17:37
   - Aktionen hinzugefügt
   - Korrektur: Funktion 'SetUpdateIntervall' umbenannt in 'SetUpdateInterval'
