@@ -181,6 +181,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.2 @ 05.04.2022 12:04 (beta)
+  - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
+
 - 2.1 @ 31.03.2022 09:47
   - Absicherung in GetRemoteServiceHistory()
   - libs/CommonStubs aktualisiert

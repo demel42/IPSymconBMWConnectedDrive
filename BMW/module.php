@@ -404,12 +404,14 @@ class BMWConnectedDrive extends IPSModule
         $active_motion = $this->ReadPropertyBoolean('active_motion');
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
 
+        $isElectric = $model != self::$BMW_MODEL_COMBUSTION;
+        $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
+
         $vpos = 1;
         $this->MaintainVariable('Mileage', $this->Translate('mileage'), VARIABLETYPE_INTEGER, 'BMW.Mileage', $vpos++, true);
-        $this->MaintainVariable('TankCapacity', $this->Translate('tank capacity'), VARIABLETYPE_FLOAT, 'BMW.TankCapacity', $vpos++, true);
-        $this->MaintainVariable('RemainingCombinedRange', $this->Translate('remaining range'), VARIABLETYPE_FLOAT, 'BMW.RemainingRange', $vpos++, true);
 
-        $isElectric = $model != self::$BMW_MODEL_COMBUSTION;
+        $this->MaintainVariable('TankCapacity', $this->Translate('tank capacity'), VARIABLETYPE_FLOAT, 'BMW.TankCapacity', $vpos++, $hasCombustion);
+        $this->MaintainVariable('RemainingCombinedRange', $this->Translate('remaining range'), VARIABLETYPE_FLOAT, 'BMW.RemainingRange', $vpos++, $hasCombustion);
 
         $vpos = 10;
         $this->MaintainVariable('RemainingElectricRange', $this->Translate('remaining electric range'), VARIABLETYPE_FLOAT, 'BMW.RemainingRange', $vpos++, $isElectric);
@@ -1737,16 +1739,20 @@ class BMWConnectedDrive extends IPSModule
         $val = $this->GetArrayElem($properties, 'lastUpdatedAt', '');
         $this->SaveValue('LastUpdateFromVehicle', strtotime($val), $isChanged);
 
-        $val = $this->GetArrayElem($properties, 'fuelLevel.value', '');
-        $this->SaveValue('TankCapacity', floatval($val), $isChanged);
-
-        $val = $this->GetArrayElem($properties, 'combined.distance.value', '');
-        if ($val == '') {
-            $val = $this->GetArrayElem($properties, 'combustionRange.distance.value', '');
-        }
-        $this->SaveValue('RemainingCombinedRange', floatval($val), $isChanged);
-
         $model = $this->ReadPropertyInteger('model');
+
+        $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
+        if ($model != self::$BMW_MODEL_ELECTRIC) {
+            $val = $this->GetArrayElem($properties, 'fuelLevel.value', '');
+            $this->SaveValue('TankCapacity', floatval($val), $isChanged);
+
+            $val = $this->GetArrayElem($properties, 'combined.distance.value', '');
+            if ($val == '') {
+                $val = $this->GetArrayElem($properties, 'combustionRange.distance.value', '');
+            }
+            $this->SaveValue('RemainingCombinedRange', floatval($val), $isChanged);
+        }
+
         if ($model != self::$BMW_MODEL_COMBUSTION) {
             $val = $this->GetArrayElem($properties, 'electricRange.distance.value', '');
             $this->SaveValue('RemainingElectricRange', floatval($val), $isChanged);
