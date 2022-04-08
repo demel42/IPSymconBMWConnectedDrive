@@ -159,12 +159,28 @@ Es werden folgende Variableprofile angelegt:
 BMW.YesNo
 
 * Integer<br>
-BMW.ChargingStatus, BMW.ConnectorStatus, BMW.DoorClosureState, BMW.DoorState, BMW.Googlemap,
-BMW.Heading, BMW.HoodState, BMW.Mileage, BMW.MoonroofState, BMW.SunroofState, BMW.TriggerRemoteService,
-BMW.TrunkState, BMW.WindowState
+BMW.ChargingStatus,
+BMW.ConnectorStatus,
+BMW.DoorClosureState,
+BMW.DoorState,
+BMW.Googlemap,
+BMW.Heading,
+BMW.HoodState,
+BMW.Mileage,
+BMW.MoonroofState,
+BMW.SunroofState,
+BMW.TriggerRemoteService,
+BMW.TrunkState,
+BMW.WindowState
 
 * Float<br>
-BMW.BatteryCapacity, BMW.ChargingLevel, BMW.Location, BMW.RemainingRange, BMW.StateofCharge, BMW.TankCapacity
+BMW.BatteryCapacity,
+BMW.ChargingLevel,
+BMW.Location,
+BMW.RemainingRange,
+BMW.StateofCharge,
+BMW.TankCapacity,
+BMW.TirePressure
 
 ## 6. Anhang
 
@@ -181,8 +197,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2 @ 05.04.2022 12:04 (beta)
+- 2.2 @ 08.04.2022 18:33 (beta)
   - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
+  - Reifendruck anzeigen
+  - diverse Verbesserungen zu den Ladeinformationen
 
 - 2.1 @ 31.03.2022 09:47
   - Absicherung in GetRemoteServiceHistory()

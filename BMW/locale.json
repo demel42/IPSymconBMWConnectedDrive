@@ -31,6 +31,7 @@
 			"show service messages": "Servicemitteilungen anzeigen",
 			"show check-control messages": "Check-Control Meldungen anzeigen",
 			"show detailed lock state": "Detail Öffnungsstatus anzeigen / Türöffnung",
+			"show tire pressure": "Reifendruck anzeigen",
 			"show vehicle motion": "Fahrzeugbewegung anzeigen",
 			"show current position, latitude / longitude": "aktuelle Position, Längen und Breitengrad anzeigen",
 			"show car position in map": "Position des Autos in einer Karte anzeigen",
@@ -88,6 +89,7 @@
 			"charging error": "Ladefehler",
 			"invalid state": "ungültiger Status",
 			"plugged in": "verbunden",
+			"target reached": "Ladeziel erreicht",
 
 			"open": "offen",
 			"closed": "geschlossen",
@@ -99,7 +101,6 @@
 			"secured": "gesichert",
 			"selectiv locked": "teilweise versperrt",
 
-
 			"mileage": "Kilometerstand",
 			"tank capacity": "Tankinhalt",
 			"remaining range": "Tankreichweite",
@@ -110,6 +111,7 @@
 			"charging start": "Ladezyklus-Beginn",
 			"charging end": "Ladezyklus-Ende",
 			"charging info": "Lade-Information",
+			"charging preferences": "Ladepräferenzen",
 			"charging sessions": "Ladevorgänge",
 			"Service messages": "Servicemeldungen",
 			"Check-Control messages": "Check-Control Meldungen",
@@ -142,7 +144,30 @@
 			"hood": "Motorhaube",
 			"sunroof": "Schiebedach",
 			"moonroof": "Glas-Schiebedach",
+			"tire pressure front left": "Reifendruck vorne links",
+			"tire pressure front right": "Reifendruck vorne rechts",
+			"tire pressure read left": "Reifendruck hinten links",
+			"tire pressure read right": "Reifendruck hinten rechts",
 			"last status update": "Zeitpunkt des letzten Status-Update",
+
+			"time window": "Zeitfenster",
+			"immediately": "sofort laden",
+			"Charging mode": "Lademodus",
+
+			"Upcoming departure": "nächste Abfahrtszeit",
+			"today": "heute",
+			"tomorrow": "morgen",
+			"Weekly departure": "wöchentliche Abfahrtszeit",
+			"on": "an",
+			"monday": "Mo",
+			"tuesday": "Di",
+			"wednesday": "Mi",
+			"thursday": "Do",
+			"friday": "Fr",
+			"saturday": "Sa",
+			"sunday": "So",
+
+			"Charging target": "Ladeziel",
 
 			"Service type": "Serviceart",
 			"Description": "Beschreibung",
@@ -172,7 +197,7 @@
 			"door unlock": "Entriegeln",
 			"find vehicle": "Fahrzeug lokalisieren",
 			"charge now": "Ladevorgang starten",
-			"charge preferences": "Ladepreferenzen",
+			"charge preferences": "Ladepräferenzen",
 			"charging control": "Ladesteuerung",
 			"unknown service": "unbekannter Dienst",
 
