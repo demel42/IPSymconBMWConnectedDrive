@@ -560,15 +560,15 @@ class BMWConnectedDrive extends IPSModule
 
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
-            $this->SetTimerInterval('UpdateData', 0);
-            $this->SetTimerInterval('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
             $this->SetStatus(IS_INACTIVE);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
-            $this->SetTimerInterval('UpdateData', 0);
-            $this->SetTimerInterval('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
             $this->SetStatus(self::$IS_INVALIDCONFIG);
             return;
         }
@@ -875,26 +875,13 @@ class BMWConnectedDrive extends IPSModule
         return $formActions;
     }
 
-    public function SetUpdateInterval(int $Minutes = null)
+    public function SetUpdateInterval(int $min = null)
     {
-        if (!($Minutes > 0)) {
-            $Minutes = $this->ReadPropertyInteger('UpdateInterval');
+        if (is_null($min)) {
+            $min = $this->ReadPropertyInteger('UpdateInterval');
         }
-        $interval = $Minutes * 60 * 1000;
-        $this->SendDebug(__FUNCTION__, 'minutes=' . $Minutes, 0);
-        $this->SetTimerInterval('UpdateData', $interval);
-
-        $msec = $this->GetTimerInterval('UpdateData');
-        $this->SendDebug(__FUNCTION__, 'timer "UpdateData" set to msec=' . $msec, 0);
-
-        $timerList = IPS_GetTimerList();
-        foreach ($timerList as $t) {
-            $timer = IPS_GetTimer($t);
-            if ($timer['InstanceID'] != $this->InstanceID) {
-                continue;
-            }
-            $this->SendDebug(__FUNCTION__, 'timer=' . print_r($timer, true), 0);
-        }
+        $msec = $min * 60 * 1000;
+        $this->MaintainTimer('UpdateData', $msec);
     }
 
     private function GetRegion()
@@ -2121,6 +2108,12 @@ class BMWConnectedDrive extends IPSModule
                 $this->SetValue('CheckControlMessages', $html);
             }
         }
+
+        $model = $this->GetArrayElem($jdata, 'model', '');
+        $year = $this->GetArrayElem($jdata, 'year', '');
+        $bodyType = $this->GetArrayElem($jdata, 'bodyType', '');
+
+        $this->SetSummary($model . ' (' . $bodyType . '/' . $year . ')');
     }
 
     private function GetVehicleData()
@@ -2637,10 +2630,9 @@ class BMWConnectedDrive extends IPSModule
         $this->GetRemoteServiceHistory();
 
         if ($n_pending) {
-            $this->SendDebug(__FUNCTION__, 'next check in ' . $refresh_interval . 's', 0);
-            $this->SetTimerInterval('UpdateRemoteServiceStatus', $refresh_interval * 1000);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', $refresh_interval * 1000);
         } else {
-            $this->SetTimerInterval('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
         }
     }
 
@@ -2803,6 +2795,8 @@ class BMWConnectedDrive extends IPSModule
 
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
+
+		$this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
     }
 
     public function RequestAction($Ident, $Value)

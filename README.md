@@ -66,7 +66,8 @@ Im Konfigurationsformular ist der _BMW Connected Drive User_,  das _BMW Connecte
 ## 4. Funktionsreferenz
 
 `BMW_SetUpdateIntervall(integer $InstanceID, int $Minutes)`<br>
-Update-Intervall setzen. Ist der Wert von _Minutes_ gleich 0, wird der konfigurierte Wert verwendet.
+ändert das Aktualisierumgsintervall; eine Angabe von **null** setzt auf den in der Konfiguration vorgegebene Wert zurück.
+Es gibt hierzu auch zwei Aktionen (Setzen und Zurücksetzen).
 
 `BMW_GetRawData(integer $InstanceID, string $Name)`<br>
 Liefert die Daten, die mit den entsprecheden HTTP-Aufrufen gewonnen werden. Sind die gleichen Daten, die früher in den gleichnamigen Variablen abgelegt wurden.
@@ -197,10 +198,11 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2 @ 08.04.2022 18:33 (beta)
+- 2.2 @ 11.04.2022 12:37 (beta)
   - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
   - Reifendruck anzeigen
   - diverse Verbesserungen zu den Ladeinformationen
+  - Ausgabe der Instanz-Timer unter "Referenzen"
 
 - 2.1 @ 31.03.2022 09:47
   - Absicherung in GetRemoteServiceHistory()
