@@ -198,10 +198,11 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2 @ 11.04.2022 12:37 (beta)
+- 2.2 @ 11.04.2022 16:39 (beta)
   - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
   - Reifendruck anzeigen
   - diverse Verbesserungen zu den Ladeinformationen
+  - Anzeige Ladepräferenzen, Abfahrtszeiten
   - Ausgabe der Instanz-Timer unter "Referenzen"
 
 - 2.1 @ 31.03.2022 09:47

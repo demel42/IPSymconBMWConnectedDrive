@@ -497,10 +497,12 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
+		/*
         $this->MaintainVariable('TriggerChargeNow', $this->Translate('charge now'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
         if ($isElectric) {
             $this->MaintainAction('TriggerChargeNow', true);
         }
+		*/
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
@@ -1933,6 +1935,15 @@ class BMWConnectedDrive extends IPSModule
                 }
             }
 
+            $html .= '<tr>' . PHP_EOL;
+            $html .= '</tr>' . PHP_EOL;
+
+            $climatisationOn = $this->GetArrayElem($chargingProfile, 'chargingSettings.climatisationOn', false);
+            $html .= '<tr>' . PHP_EOL;
+            $html .= '<td>' . $this->Translate('Air conditioning departure time') . '</td>' . PHP_EOL;
+            $html .= '<td>' . $this->Translate($climatisationOn ? 'Yes' : 'No') . '</td>' . PHP_EOL;
+            $html .= '</tr>' . PHP_EOL;
+
             /*
                 [climatisationOn] => 1
                 [chargingSettings] => Array
@@ -1942,6 +1953,8 @@ class BMWConnectedDrive extends IPSModule
                         [idcc] => NO_ACTION
                     )
              */
+
+            $html .= '<table>' . PHP_EOL;
 
             $this->SetValue('ChargingPreferences', $html);
 
@@ -2465,30 +2478,6 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function StartCharging()
-    {
-        if ($this->CheckStatus() == self::$STATUS_INVALID) {
-            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return false;
-        }
-
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-        $result = $this->ExecuteRemoteService('CHARGE_NOW', 'START');
-        return $result;
-    }
-
-    public function StopCharging()
-    {
-        if ($this->CheckStatus() == self::$STATUS_INVALID) {
-            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return false;
-        }
-
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-        $result = $this->ExecuteRemoteService('CHARGE_NOW', 'STOP');
-        return $result;
-    }
-
     public function SendPOI(string $poi)
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
@@ -2796,7 +2785,7 @@ class BMWConnectedDrive extends IPSModule
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
 
-		$this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
+        $this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
     }
 
     public function RequestAction($Ident, $Value)
