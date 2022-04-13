@@ -198,12 +198,13 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2 @ 11.04.2022 16:39 (beta)
+- 2.2 @ 13.04.2022 14:51 (beta)
   - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
   - Reifendruck anzeigen
   - diverse Verbesserungen zu den Ladeinformationen
   - Anzeige Ladepräferenzen, Abfahrtszeiten
   - Ausgabe der Instanz-Timer unter "Referenzen"
+  - potentieller Namenskonflikt behoben (trait CommonStubs)
 
 - 2.1 @ 31.03.2022 09:47
   - Absicherung in GetRemoteServiceHistory()

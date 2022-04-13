@@ -2,13 +2,13 @@
 
 declare(strict_types=1);
 
-require_once __DIR__ . '/../libs/CommonStubs/common.php'; // globale Funktionen
-require_once __DIR__ . '/../libs/local.php';   // lokale Funktionen
-require_once __DIR__ . '/../libs/images.php';  // eingebettete Images
+require_once __DIR__ . '/../libs/common.php';
+require_once __DIR__ . '/../libs/local.php';
+require_once __DIR__ . '/../libs/images.php';
 
 class BMWConnectedDrive extends IPSModule
 {
-    use StubsCommonLib;
+    use BMWConnectedDrive\StubsCommonLib;
     use BMWConnectedDriveLocalLib;
     use BMWConnectedDriveImagesLib;
 
@@ -497,12 +497,12 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
-		/*
+        /*
         $this->MaintainVariable('TriggerChargeNow', $this->Translate('charge now'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
         if ($isElectric) {
             $this->MaintainAction('TriggerChargeNow', true);
         }
-		*/
+         */
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
