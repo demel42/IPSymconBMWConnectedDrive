@@ -198,7 +198,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2.1 @ 15.04.2022 10:45
+- 2.2.1 @ 15.04.2022 11:03
   - Korrektur der Berechnung von Ladezyklus-Beginn und --Ende
 
 - 2.2 @ 13.04.2022 14:51

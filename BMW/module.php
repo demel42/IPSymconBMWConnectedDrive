@@ -6,6 +6,8 @@ require_once __DIR__ . '/../libs/common.php';
 require_once __DIR__ . '/../libs/local.php';
 require_once __DIR__ . '/../libs/images.php';
 
+// define('CHARGE_NOW', true);
+
 class BMWConnectedDrive extends IPSModule
 {
     use BMWConnectedDrive\StubsCommonLib;
@@ -497,12 +499,14 @@ class BMWConnectedDrive extends IPSModule
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
-        /*
-        $this->MaintainVariable('TriggerChargeNow', $this->Translate('charge now'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
-        if ($isElectric) {
-            $this->MaintainAction('TriggerChargeNow', true);
+        if (defined('CHARGE_NOW')) {
+            $this->MaintainVariable('TriggerChargeNow', $this->Translate('charge now'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
+            if ($isElectric) {
+                $this->MaintainAction('TriggerChargeNow', true);
+            }
+        } else {
+            $this->UnregisterVariable('TriggerChargeNow');
         }
-         */
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
@@ -1979,7 +1983,7 @@ class BMWConnectedDrive extends IPSModule
                     if ($chargingStatusType == self::$BMW_CHARGING_STATE_ACTIVE || $chargingStatusType == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
                         $ts = 0;
                         if (preg_match('/^([^~]*)~[ ]*([0-9]{2}):([0-9]{2})[ ]*(.*)$/', $infoLabel, $r)) {
-                            $ts = mktime(intval($r[2]), intval($r[3]));
+                            $ts = mktime(intval($r[2]), intval($r[3]), 0);
                             if (isset($r[4]) && $r[4] == 'PM') {
                                 $ts += 60 * 60 * 12;
                             }
