@@ -198,7 +198,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2 @ 13.04.2022 14:51 (beta)
+- 2.2.1 @ 15.04.2022 10:45
+  - Korrektur der Berechnung von Ladezyklus-Beginn und --Ende
+
+- 2.2 @ 13.04.2022 14:51
   - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
   - Reifendruck anzeigen
   - diverse Verbesserungen zu den Ladeinformationen

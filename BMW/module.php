@@ -1979,9 +1979,12 @@ class BMWConnectedDrive extends IPSModule
                     if ($chargingStatusType == self::$BMW_CHARGING_STATE_ACTIVE || $chargingStatusType == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
                         $ts = 0;
                         if (preg_match('/^([^~]*)~[ ]*([0-9]{2}):([0-9]{2})[ ]*(.*)$/', $infoLabel, $r)) {
-                            $ts = gmmktime(intval($r[2]), intval($r[3]));
+                            $ts = mktime(intval($r[2]), intval($r[3]));
+                            if (isset($r[4]) && $r[4] == 'PM') {
+                                $ts += 60 * 60 * 12;
+                            }
                             if ($ts && $ts < time()) {
-                                $ts += (60 * 60 * 24);
+                                $ts += 60 * 60 * 24;
                             }
                         }
                         if ($chargingStatusType == self::$BMW_CHARGING_STATE_ACTIVE) {
