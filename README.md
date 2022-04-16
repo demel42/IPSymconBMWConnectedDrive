@@ -198,8 +198,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.2.1 @ 15.04.2022 11:03
-  - Korrektur der Berechnung von Ladezyklus-Beginn und --Ende
+- 2.2.1 @ 16.04.2022 12:22
+  - Korrektur der Berechnung von Ladezyklus-Beginn und -Ende
+  - Aktualisierung von submodule CommonStubs
 
 - 2.2 @ 13.04.2022 14:51
   - bei einem reinen Elektro-Modell weder Tankinhalt noch kombinierte Reichweite anzeigen
