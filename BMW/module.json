@@ -1,12 +1,12 @@
 {
-    "id": "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}",
-    "name": "BMWConnectedDrive",
-    "type": 3,
-    "vendor": "BMW",
-    "aliases": [],
-    "parentRequirements": [],
-    "childRequirements": [],
-    "implemented": [],
-    "prefix": "BMW",
-    "url": "https://github.com/demel42/IPSymconBMWConnectedDrive/README.md"
+	"id": "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}",
+	"name": "BMWConnectedDrive",
+	"type": 3,
+	"vendor": "BMW",
+	"aliases": [],
+	"parentRequirements": [],
+	"childRequirements": [],
+	"implemented": [],
+	"prefix": "BMW",
+	"url": "https://github.com/demel42/IPSymconBMWConnectedDrive/README.md"
 }
