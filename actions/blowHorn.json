@@ -1,18 +1,25 @@
 {
-    "id": "{9C6E7ECA-CD02-0B86-F3C3-5C4FA9E58955}",
-    "caption": "Blow horn",
-    "form": [ ],
-    "action": "BMW_BlowHorn($_IPS['TARGET']);",
-    "restrictions": {
-        "objectType": [ 1 ],
-        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
-        "includeEnvironments": [ "TestCommands", "Default" ]
-    },
-    "priority": 10,
-    "category": "target",
-    "locale": {
-        "de": {
-            "Blow horn": "Hupe auslösen"
-        }
-    }
+	"id": "{9C6E7ECA-CD02-0B86-F3C3-5C4FA9E58955}",
+	"caption": "Blow horn",
+	"form": [],
+	"action": "BMW_BlowHorn($_IPS['TARGET']);",
+	"restrictions": {
+		"objectType": [
+			1
+		],
+		"moduleID": [
+			"{8FD2A163-E07A-A2A2-58CC-974155FAEE33}"
+		],
+		"includeEnvironments": [
+			"TestCommands",
+			"Default"
+		]
+	},
+	"priority": 10,
+	"category": "target",
+	"locale": {
+		"de": {
+			"Blow horn": "Hupe auslösen"
+		}
+	}
 }

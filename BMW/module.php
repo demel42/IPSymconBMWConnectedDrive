@@ -14,102 +14,6 @@ class BMWConnectedDrive extends IPSModule
     use BMWConnectedDriveLocalLib;
     use BMWConnectedDriveImagesLib;
 
-    // Model
-    private static $BMW_MODEL_ELECTRIC = 1;
-    private static $BMW_MODEL_HYBRID = 2;
-    private static $BMW_MODEL_COMBUSTION = 3;
-
-    // Ladekabel/Stecker
-    private static $BMW_CONNECTOR_STATE_UNKNOWN = -1;
-    private static $BMW_CONNECTOR_STATE_DISCONNECTED = 0;
-    private static $BMW_CONNECTOR_STATE_CONNECTED = 1;
-
-    // Ladezustand
-    private static $BMW_CHARGING_STATE_UNKNOWN = -1;
-    private static $BMW_CHARGING_STATE_NOT = 0;
-    private static $BMW_CHARGING_STATE_ACTIVE = 1;
-    private static $BMW_CHARGING_STATE_ENDED = 2;
-    private static $BMW_CHARGING_STATE_PAUSED = 3;
-    private static $BMW_CHARGING_STATE_FULLY = 4;
-    private static $BMW_CHARGING_STATE_PARTIAL = 5;
-    private static $BMW_CHARGING_STATE_ERROR = 6;
-    private static $BMW_CHARGING_STATE_INVALID = 7;
-    private static $BMW_CHARGING_STATE_PLUGGED_IN = 8;
-    private static $BMW_CHARGING_STATE_TARGET = 9;
-
-    // Tür
-    private static $BMW_DOOR_STATE_UNKNOWN = 0;
-    private static $BMW_DOOR_STATE_OPEN = 1;
-    private static $BMW_DOOR_STATE_CLOSED = 2;
-
-    // Türverschluss
-    private static $BMW_DOOR_CLOSURE_UNKNOWN = 0;
-    private static $BMW_DOOR_CLOSURE_UNLOCKED = 1;
-    private static $BMW_DOOR_CLOSURE_LOCKED = 2;
-    private static $BMW_DOOR_CLOSURE_SECURED = 3;
-    private static $BMW_DOOR_CLOSURE_SELECTIVLOCKED = 4;
-
-    // Fenster
-    private static $BMW_WINDOW_STATE_UNKNOWN = 0;
-    private static $BMW_WINDOW_STATE_OPEN = 1;
-    private static $BMW_WINDOW_STATE_INTERMEDIATE = 2;
-    private static $BMW_WINDOW_STATE_CLOSED = 3;
-
-    // Motorhaube
-    private static $BMW_TRUNK_STATE_UNKNOWN = 0;
-    private static $BMW_TRUNK_STATE_OPEN = 1;
-    private static $BMW_TRUNK_STATE_CLOSED = 2;
-
-    // Kofferraum
-    private static $BMW_HOOD_STATE_UNKNOWN = 0;
-    private static $BMW_HOOD_STATE_OPEN = 1;
-    private static $BMW_HOOD_STATE_INTERMEDIATE = 2;
-    private static $BMW_HOOD_STATE_CLOSED = 3;
-
-    // Schiebedach
-    private static $BMW_SUNROOF_STATE_UNKNOWN = 0;
-    private static $BMW_SUNROOF_STATE_OPEN = 1;
-    private static $BMW_SUNROOF_STATE_OPEN_TILT = 2;
-    private static $BMW_SUNROOF_STATE_INTERMEDIATE = 3;
-    private static $BMW_SUNROOF_STATE_CLOSED = 4;
-
-    // Glas-Schiebedach
-    private static $BMW_MOONROOF_STATE_UNKNOWN = 0;
-    private static $BMW_MOONROOF_STATE_OPEN = 1;
-    private static $BMW_MOONROOF_STATE_OPEN_TILT = 2;
-    private static $BMW_MOONROOF_STATE_INTERMEDIATE = 3;
-    private static $BMW_MOONROOF_STATE_CLOSED = 4;
-
-    // Carbiodach / convertible roof
-    // OPEN / CLOSED / CLOSEDSECURED / OPENSECURED / HARDTOPMOUNTED / INTERMEDIATEPOSITION / LOADINGPOSITION / LOADINGPOSITIONIMMEDIATE
-
-    // GoogleMapType
-    private static $BMW_GOOGLEMAP_TYPE_ROADMAP = 0;
-    private static $BMW_GOOGLEMAP_TYPE_SATELLITE = 1;
-    private static $BMW_GOOGLEMAP_TYPE_HYBRID = 2;
-    private static $BMW_GOOGLEMAP_TYPE_TERRAIN = 3;
-
-    // GoogleMapZoom
-    private static $BMW_GOOGLEMAP_ZOOM_MIN = 0;
-    private static $BMW_GOOGLEMAP_ZOOM_MAX = 21;
-
-    // Land
-    private static $BMW_COUNTRY_OTHER = 0;
-    private static $BMW_COUNTRY_GERMANY = 1;
-    private static $BMW_COUNTRY_SWITZERLAND = 2;
-    private static $BMW_COUNTRY_EUROPE = 3;
-    private static $BMW_COUNTRY_USA = 4;
-
-    // Marken
-    private static $BMW_BRAND_BMW = 0;
-    private static $BMW_BRAND_MINI = 1;
-
-    // Ansicht des Fahrzeugbilds
-    // extrem komische Werte, sind aber so
-    private static $BMW_CARVIEW_FRONTSIDE = 'VehicleStatus';
-    private static $BMW_CARVIEW_FRONT = 'VehicleInfo';
-    private static $BMW_CARVIEW_SIDE = 'ChargingHistory';
-
     // Konfigurationen
     private static $server_urls_eadrax = [
         'NorthAmerica' => 'cocoapi.bmwgroup.us',
@@ -142,108 +46,6 @@ class BMWConnectedDrive extends IPSModule
     private static $charging_sessions_endpoint = '/eadrax-chs/v1/charging-sessions';
 
     private static $UpdateRemoteHistoryInterval = 5;
-
-    public function InstallVarProfiles(bool $reInstall = false)
-    {
-        $this->SendDebug(__FUNCTION__, 'reInstall=' . $this->bool2str($reInstall), 0);
-
-        $associations = [];
-        $associations[] = ['Wert' => false, 'Name' => $this->Translate('No'), 'Farbe' => -1];
-        $associations[] = ['Wert' => true, 'Name' => $this->Translate('Yes'), 'Farbe' => 0xEE0000];
-        $this->CreateVarProfile('BMW.YesNo', VARIABLETYPE_BOOLEAN, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => 0, 'Name' => $this->Translate('Start'), 'Farbe' => 0x3ADF00];
-        $this->CreateVarProfile('BMW.TriggerRemoteService', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, 'Execute', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_GOOGLEMAP_TYPE_ROADMAP, 'Name' => $this->Translate('roadmap'), 'Farbe' => 0x3ADF00];
-        $associations[] = ['Wert' => self::$BMW_GOOGLEMAP_TYPE_SATELLITE, 'Name' => $this->Translate('satellite'), 'Farbe' => 0x3ADF00];
-        $associations[] = ['Wert' => self::$BMW_GOOGLEMAP_TYPE_HYBRID, 'Name' => $this->Translate('hybrid'), 'Farbe' => 0x3ADF00];
-        $associations[] = ['Wert' => self::$BMW_GOOGLEMAP_TYPE_TERRAIN, 'Name' => $this->Translate('terrain'), 'Farbe' => 0x3ADF00];
-        $this->CreateVarProfile('BMW.Googlemap', VARIABLETYPE_INTEGER, '', 0, 3, 0, 0, 'Car', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_CONNECTOR_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => 0xEE0000];
-        $associations[] = ['Wert' => self::$BMW_CONNECTOR_STATE_DISCONNECTED, 'Name' => $this->Translate('disconnected'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_CONNECTOR_STATE_CONNECTED, 'Name' => $this->Translate('connected'), 'Farbe' => 0x228B22];
-        $this->CreateVarProfile('BMW.ConnectorStatus', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => 0xEE0000];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_NOT, 'Name' => $this->Translate('not charging'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_ACTIVE, 'Name' => $this->Translate('charging active'), 'Farbe' => 0x228B22];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_ENDED, 'Name' => $this->Translate('charging ended'), 'Farbe' => 0x0000FF];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_PAUSED, 'Name' => $this->Translate('charging paused'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_FULLY, 'Name' => $this->Translate('fully charged'), 'Farbe' => 0x0000FF];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_PARTIAL, 'Name' => $this->Translate('partial charged'), 'Farbe' => 0x0000FF];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_ERROR, 'Name' => $this->Translate('charging error'), 'Farbe' => 0xEE0000];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_INVALID, 'Name' => $this->Translate('invalid state'), 'Farbe' => 0xEE0000];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_PLUGGED_IN, 'Name' => $this->Translate('plugged in'), 'Farbe' => 0x228B22];
-        $associations[] = ['Wert' => self::$BMW_CHARGING_STATE_TARGET, 'Name' => $this->Translate('target reached'), 'Farbe' => 0x0000FF];
-        $this->CreateVarProfile('BMW.ChargingStatus', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_DOOR_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_DOOR_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_DOOR_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.DoorState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_UNLOCKED, 'Name' => $this->Translate('unlocked'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_LOCKED, 'Name' => $this->Translate('locked'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_SECURED, 'Name' => $this->Translate('secured'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_DOOR_CLOSURE_SELECTIVLOCKED, 'Name' => $this->Translate('selectiv locked'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.DoorClosureState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_WINDOW_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_WINDOW_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_WINDOW_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_WINDOW_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.WindowState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_TRUNK_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_TRUNK_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_TRUNK_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.TrunkState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_HOOD_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_HOOD_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_HOOD_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_HOOD_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.HoodState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_SUNROOF_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_SUNROOF_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_SUNROOF_STATE_OPEN_TILT, 'Name' => $this->Translate('tilt'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_SUNROOF_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_SUNROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.SunroofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [];
-        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_OPEN_TILT, 'Name' => $this->Translate('tilt'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1];
-        $associations[] = ['Wert' => self::$BMW_MOONROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1];
-        $this->CreateVarProfile('BMW.MoonroofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $this->CreateVarProfile('BMW.Mileage', VARIABLETYPE_INTEGER, ' km', 0, 0, 0, 0, 'Distance', '', $reInstall);
-        $this->CreateVarProfile('BMW.Heading', VARIABLETYPE_INTEGER, ' °', 0, 360, 0, 0, 'WindDirection', '', $reInstall);
-
-        $this->CreateVarProfile('BMW.TankCapacity', VARIABLETYPE_FLOAT, ' Liter', 0, 0, 0, 0, 'Gauge', '', $reInstall);
-        $this->CreateVarProfile('BMW.RemainingRange', VARIABLETYPE_FLOAT, ' km', 0, 0, 0, 0, 'Gauge', '', $reInstall);
-        $this->CreateVarProfile('BMW.ChargingLevel', VARIABLETYPE_FLOAT, ' %', 0, 0, 0, 0, '', '', $reInstall);
-        $this->CreateVarProfile('BMW.StateofCharge', VARIABLETYPE_FLOAT, ' kWh', 0, 0, 0, 1, '', '', $reInstall);
-        $this->CreateVarProfile('BMW.BatteryCapacity', VARIABLETYPE_FLOAT, ' kWh', 0, 0, 0, 1, '', '', $reInstall);
-        $this->CreateVarProfile('BMW.Location', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 5, 'Car', '', $reInstall);
-        $this->CreateVarProfile('BMW.TirePressure', VARIABLETYPE_FLOAT, ' bar', 0, 0, 0, 1, '', '', $reInstall);
-    }
 
     public function Create()
     {
@@ -283,8 +85,7 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterAttributeString('ApiRefreshToken', '');
         $this->RegisterAttributeString('RemoteServiceHistory', '');
 
-        $this->RegisterTimer('UpdateData', 0, 'BMW_UpdateData(' . $this->InstanceID . ');');
-        $this->RegisterTimer('UpdateRemoteServiceStatus', 0, 'BMW_UpdateRemoteServiceStatus(' . $this->InstanceID . ');');
+        $this->RegisterAttributeString('UpdateInfo', '');
 
         $this->InstallVarProfiles(false);
 
@@ -292,6 +93,11 @@ class BMWConnectedDrive extends IPSModule
         $this->SetMultiBuffer('ChargingStatistics', '');
         $this->SetMultiBuffer('ChargingSessions', '');
         $this->SetMultiBuffer('RemoteServiceHistory', '');
+
+        $this->RegisterTimer('UpdateData', 0, $this->GetModulePrefix() . '_UpdateData(' . $this->InstanceID . ');');
+        $this->RegisterTimer('UpdateRemoteServiceStatus', 0, $this->GetModulePrefix() . '_UpdateRemoteServiceStatus(' . $this->InstanceID . ');');
+
+        $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
 
     private function MaintainStateVariable($ident, $use, $vpos)
@@ -389,9 +195,8 @@ class BMWConnectedDrive extends IPSModule
         }
     }
 
-    private function CheckConfiguration()
+    private function CheckModuleConfiguration()
     {
-        $s = '';
         $r = [];
 
         $user = $this->ReadPropertyString('user');
@@ -415,21 +220,117 @@ class BMWConnectedDrive extends IPSModule
             $r[] = $this->Translate('Show position in GoogleMap need the API-Key');
         }
 
-        if ($r != []) {
-            $s = $this->Translate('The following points of the configuration are incorrect') . ':' . PHP_EOL;
-            foreach ($r as $p) {
-                $s .= '- ' . $p . PHP_EOL;
-            }
+        return $r;
+    }
+
+    private function CheckModuleUpdate(array $oldInfo, array $newInfo)
+    {
+        $r = [];
+
+        if ($this->version2num($this->version2str($oldInfo)) < $this->version2num('2.0')) {
+            $r[] = $this->Translate('Delete old variables and variableprofiles');
         }
 
-        return $s;
+        return $r;
+    }
+
+    private function CompleteModuleUpdate(array $oldInfo, array $newInfo)
+    {
+        if ($this->version2num($this->version2str($oldInfo)) < $this->version2num('2.0')) {
+            $unused_vars = [
+                'bmw_doorDriverFront', 'bmw_doorDriverRear', 'bmw_doorLockState', 'bmw_doorPassengerFront', 'bmw_doorPassengerRear',
+                'bmw_trunk', 'bmw_hood',
+                'bmw_convertibleRoofState',
+                'bmw_windowDriverFront', 'bmw_windowDriverRear', 'bmw_windowPassengerFront', 'bmw_windowPassengerRear',
+                'bmw_rearWindow',
+
+                'bmw_socMax', 'bmw_battery_size',
+                'bmw_mileage', 'bmw_tank_capacity', 'bmw_remaining_range',
+                'bmw_remaining_electric_range',
+                'bmw_charging_level', 'bmw_connector_status', 'bmw_charging_status', 'bmw_charging_end', 'bmw_charging_info', 'bmw_charging_sessions',
+
+                'bmw_start_air_conditioner', 'bmw_stop_air_conditioner',
+                'bmw_start_lock', 'bmw_start_unlock', 'bmw_start_flash_headlights', 'bmw_start_honk', 'bmw_start_vehicle_finder',
+
+                'bmw_car_picture', 'bmw_car_picture_zoom', 'bmw_perspective',
+
+                'bmw_history', 'bmw_service_history', 'bmw_checkcontrol', 'bmw_service',
+                'bmw_position_request_status',
+
+                'bmw_car_googlemap', 'bmw_googlemap_maptype', 'bmw_googlemap_zoom',
+                'bmw_current_latitude', 'bmw_current_longitude', 'bmw_current_heading', 'bmw_inMotion',
+
+                'bmw_car_interface', 'bmw_chargingprofile_interface', 'bmw_dynamic_interface', 'bmw_efficiency_interface', 'bmw_history_interface',
+                'bmw_image_interface', 'bmw_mapupdate_interface', 'bmw_navigation_interface', 'bmw_remote_services_interface',
+                'ServiceMessages_partner_interface', 'bmw_specs_interface', 'bmw_store_interface', 'ServiceMessages_interface',
+
+                'effeciency_charging', 'effeciency_consumption', 'effeciency_driving', 'effeciency_electric',
+                'lasttrip_avg_consumed', 'lasttrip_distance', 'lasttrip_duration', 'lasttrip_electric_ratio', 'lasttrip_tstamp',
+                'lifetime_distance', 'lifetime_reset_tstamp', 'lifetime_save_liters',
+
+                'bmw_last_status_update',
+
+                'TriggerSoundHonk',
+            ];
+            foreach ($unused_vars as $unused_var) {
+                $this->UnregisterVariable($unused_var);
+            }
+
+            $unused_profiles = [
+                'BMW.Perspective', 'BMW.Efficiency', 'BMW.Distance', 'BMW.Duration', 'BMW.Consumption', 'BMW.ElectricRatio', 'BMW.SavedLiters',
+                'BMW.ChargingStatus',
+            ];
+            foreach ($unused_profiles as $unused_profil) {
+                if (IPS_VariableProfileExists($unused_profil)) {
+                    IPS_DeleteVariableProfile($unused_profil);
+                }
+            }
+            $this->InstallVarProfiles(false);
+        }
+
+        return '';
     }
 
     public function ApplyChanges()
     {
         parent::ApplyChanges();
 
+        if ($this->CheckPrerequisites() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            return;
+        }
+
+        if ($this->CheckUpdate() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            return;
+        }
+
+        $refs = $this->GetReferenceList();
+        foreach ($refs as $ref) {
+            $this->UnregisterReference($ref);
+        }
+        $propertyNames = [];
+        foreach ($propertyNames as $name) {
+            $oid = $this->ReadPropertyInteger($name);
+            if ($oid >= 10000) {
+                $this->RegisterReference($oid);
+            }
+        }
+
+        if ($this->CheckConfiguration() != false) {
+            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            return;
+        }
+
         $model = $this->ReadPropertyInteger('model');
+        $isElectric = $model != self::$BMW_MODEL_COMBUSTION;
+        $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
 
         $active_service = $this->ReadPropertyBoolean('active_service');
         $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
@@ -443,9 +344,6 @@ class BMWConnectedDrive extends IPSModule
         $active_motion = $this->ReadPropertyBoolean('active_motion');
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
         $active_tire_pressure = $this->ReadPropertyBoolean('active_tire_pressure');
-
-        $isElectric = $model != self::$BMW_MODEL_COMBUSTION;
-        $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
 
         $vpos = 1;
         $this->MaintainVariable('Mileage', $this->Translate('mileage'), VARIABLETYPE_INTEGER, 'BMW.Mileage', $vpos++, true);
@@ -562,46 +460,38 @@ class BMWConnectedDrive extends IPSModule
         $vpos = 100;
         $this->MaintainVariable('LastUpdateFromVehicle', $this->Translate('last status update'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
 
-        $this->CleanupOldVersions();
-
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
             $this->MaintainTimer('UpdateData', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
-            $this->SetStatus(IS_INACTIVE);
-            return;
-        }
-
-        if ($this->CheckConfiguration() != false) {
-            $this->MaintainTimer('UpdateData', 0);
-            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            $this->SetStatus(self::$IS_DEACTIVATED);
             return;
         }
 
         $this->SetStatus(IS_ACTIVE);
-        $this->SetUpdateInterval();
-        $this->UpdateRemoteServiceStatus();
+
+        if (IPS_GetKernelRunlevel() == KR_READY) {
+            $this->SetUpdateInterval();
+            $this->UpdateRemoteServiceStatus();
+        }
+    }
+
+    public function MessageSink($TimeStamp, $SenderID, $Message, $Data)
+    {
+        parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
+
+        if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
+            $this->SetUpdateInterval();
+            $this->UpdateRemoteServiceStatus();
+        }
     }
 
     protected function GetFormElements()
     {
-        $formElements = [];
+        $formElements = $this->GetCommonFormElements('');
 
-        $formElements[] = [
-            'type'  => 'Image',
-            'image' => 'data:image/png;base64,' . $this->GetBrandImage()
-        ];
-
-        $s = $this->CheckConfiguration();
-        if ($s != '') {
-            $formElements[] = [
-                'type'    => 'Label',
-                'caption' => $s
-            ];
-            $formElements[] = [
-                'type'    => 'Label',
-            ];
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            return $formElements;
         }
 
         $formElements[] = [
@@ -610,88 +500,87 @@ class BMWConnectedDrive extends IPSModule
             'caption' => 'Disable instance'
         ];
 
-        $items[] = [
-            'name'    => 'user',
-            'type'    => 'ValidationTextBox',
-            'caption' => 'User'
-        ];
-        $items[] = [
-            'name'    => 'password',
-            'type'    => 'PasswordTextBox',
-            'caption' => 'Password'
-        ];
-
-        $items[] = [
-            'type'    => 'Select',
-            'name'    => 'country',
-            'caption' => 'Country',
-            'options' => [
-                [
-                    'label' => $this->Translate('Germany'),
-                    'value' => self::$BMW_COUNTRY_GERMANY
-                ],
-                [
-                    'label' => $this->Translate('Switzerland'),
-                    'value' => self::$BMW_COUNTRY_SWITZERLAND
-                ],
-                [
-                    'label' => $this->Translate('Europe'),
-                    'value' => self::$BMW_COUNTRY_EUROPE
-                ],
-                [
-                    'label' => $this->Translate('USA'),
-                    'value' => self::$BMW_COUNTRY_USA
-                ],
-                [
-                    'label' => $this->Translate('Rest of the World'),
-                    'value' => self::$BMW_COUNTRY_OTHER
-                ]
-            ]
-        ];
-        $items[] = [
-            'type'    => 'Select',
-            'name'    => 'brand',
-            'caption' => 'Vehicle-brand',
-            'options' => [
-                [
-                    'label' => $this->Translate('BMW'),
-                    'value' => self::$BMW_BRAND_BMW
-                ],
-                [
-                    'label' => $this->Translate('Mini'),
-                    'value' => self::$BMW_BRAND_MINI
-                ]
-            ]
-        ];
-        $items[] = [
-            'name'    => 'vin',
-            'type'    => 'ValidationTextBox',
-            'caption' => 'VIN'
-        ];
-        $items[] = [
-            'type'    => 'Select',
-            'name'    => 'model',
-            'caption' => 'mode of driving',
-            'options' => [
-                [
-                    'label' => $this->Translate('electric'),
-                    'value' => self::$BMW_MODEL_ELECTRIC
-                ],
-                [
-                    'label' => $this->Translate('hybrid'),
-                    'value' => self::$BMW_MODEL_HYBRID
-                ],
-                [
-                    'label' => $this->Translate('combustion'),
-                    'value' => self::$BMW_MODEL_COMBUSTION
-                ]
-            ]
-        ];
-
         $formElements[] = [
             'type'    => 'ExpansionPanel',
+            'items'   => [
+                [
+                    'name'    => 'user',
+                    'type'    => 'ValidationTextBox',
+                    'caption' => 'User'
+                ],
+                [
+                    'name'    => 'password',
+                    'type'    => 'PasswordTextBox',
+                    'caption' => 'Password'
+                ],
+                [
+                    'type'    => 'Select',
+                    'name'    => 'country',
+                    'caption' => 'Country',
+                    'options' => [
+                        [
+                            'label' => $this->Translate('Germany'),
+                            'value' => self::$BMW_COUNTRY_GERMANY
+                        ],
+                        [
+                            'label' => $this->Translate('Switzerland'),
+                            'value' => self::$BMW_COUNTRY_SWITZERLAND
+                        ],
+                        [
+                            'label' => $this->Translate('Europe'),
+                            'value' => self::$BMW_COUNTRY_EUROPE
+                        ],
+                        [
+                            'label' => $this->Translate('USA'),
+                            'value' => self::$BMW_COUNTRY_USA
+                        ],
+                        [
+                            'label' => $this->Translate('Rest of the World'),
+                            'value' => self::$BMW_COUNTRY_OTHER
+                        ]
+                    ]
+                ],
+                [
+                    'type'    => 'Select',
+                    'name'    => 'brand',
+                    'caption' => 'Vehicle-brand',
+                    'options' => [
+                        [
+                            'label' => $this->Translate('BMW'),
+                            'value' => self::$BMW_BRAND_BMW
+                        ],
+                        [
+                            'label' => $this->Translate('Mini'),
+                            'value' => self::$BMW_BRAND_MINI
+                        ]
+                    ]
+                ],
+                [
+                    'name'    => 'vin',
+                    'type'    => 'ValidationTextBox',
+                    'caption' => 'VIN'
+                ],
+                [
+                    'type'    => 'Select',
+                    'name'    => 'model',
+                    'caption' => 'mode of driving',
+                    'options' => [
+                        [
+                            'label' => $this->Translate('electric'),
+                            'value' => self::$BMW_MODEL_ELECTRIC
+                        ],
+                        [
+                            'label' => $this->Translate('hybrid'),
+                            'value' => self::$BMW_MODEL_HYBRID
+                        ],
+                        [
+                            'label' => $this->Translate('combustion'),
+                            'value' => self::$BMW_MODEL_COMBUSTION
+                        ]
+                    ]
+                ],
+            ],
             'caption' => 'Account data',
-            'items'   => $items,
         ];
 
         $formElements[] = [
@@ -699,20 +588,17 @@ class BMWConnectedDrive extends IPSModule
             'caption' => 'Update interval',
             'items'   => [
                 [
-                    'type'  => 'Label',
-                    'label' => 'Update interval in minutes'
-                ],
-                [
                     'name'    => 'UpdateInterval',
                     'type'    => 'NumberSpinner',
-                    'caption' => 'minutes'
-                ]
-            ]
+                    'minimum' => 0,
+                    'suffix'  => 'minutes',
+                    'caption' => 'Update interval'
+                ],
+            ],
         ];
 
         $formElements[] = [
             'type'    => 'ExpansionPanel',
-            'caption' => 'options',
             'items'   => [
                 [
                     'name'    => 'active_climate',
@@ -764,12 +650,12 @@ class BMWConnectedDrive extends IPSModule
                     'type'    => 'CheckBox',
                     'caption' => 'show vehicle motion'
                 ],
-            ]
+            ],
+            'caption' => 'options',
         ];
 
         $formElements[] = [
             'type'    => 'ExpansionPanel',
-            'caption' => 'map',
             'items'   => [
                 [
                     'name'    => 'active_current_position',
@@ -800,7 +686,8 @@ class BMWConnectedDrive extends IPSModule
                     'type'    => 'NumberSpinner',
                     'caption' => ' ... vertical'
                 ],
-            ]
+            ],
+            'caption' => 'map',
         ];
 
         return $formElements;
@@ -810,10 +697,19 @@ class BMWConnectedDrive extends IPSModule
     {
         $formActions = [];
 
+        if ($this->GetStatus() == self::$IS_UPDATEUNCOMPLETED) {
+            $formActions[] = $this->GetCompleteUpdateFormAction();
+
+            $formActions[] = $this->GetInformationFormAction();
+            $formActions[] = $this->GetReferencesFormAction();
+
+            return $formActions;
+        }
+
         $formActions[] = [
             'type'    => 'Button',
             'label'   => 'Update data',
-            'onClick' => 'BMW_UpdateData($id);'
+            'onClick' => $this->GetModulePrefix() . '_UpdateData($id);'
         ];
 
         $formActions[] = [
@@ -841,7 +737,7 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'type'    => 'Button',
                     'caption' => 'Load picture',
-                    'onClick' => 'BMW_GetCarPicture($id, $carView);'
+                    'onClick' => $this->GetModulePrefix() . '_GetCarPicture($id, $carView);'
                 ],
             ],
         ];
@@ -854,12 +750,12 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'type'    => 'Button',
                     'label'   => 'Relogin',
-                    'onClick' => 'BMW_Relogin($id);'
+                    'onClick' => $this->GetModulePrefix() . '_Relogin($id);'
                 ],
                 [
                     'type'    => 'Button',
                     'caption' => 'Re-install variable-profiles',
-                    'onClick' => 'BMW_InstallVarProfiles($id, true);'
+                    'onClick' => $this->GetModulePrefix() . '_InstallVarProfiles($id, true);'
                 ]
             ]
         ];
@@ -875,8 +771,8 @@ class BMWConnectedDrive extends IPSModule
             ],
         ];
 
-        $formActions[] = $this->GetInformationForm();
-        $formActions[] = $this->GetReferencesForm();
+        $formActions[] = $this->GetInformationFormAction();
+        $formActions[] = $this->GetReferencesFormAction();
 
         return $formActions;
     }
@@ -3086,57 +2982,6 @@ class BMWConnectedDrive extends IPSModule
     private function CalcTirePressure($s)
     {
         return floatval($s) / 100;
-    }
-
-    private function CleanupOldVersions()
-    {
-        $unused_vars = [
-            'bmw_doorDriverFront', 'bmw_doorDriverRear', 'bmw_doorLockState', 'bmw_doorPassengerFront', 'bmw_doorPassengerRear',
-            'bmw_trunk', 'bmw_hood',
-            'bmw_convertibleRoofState',
-            'bmw_windowDriverFront', 'bmw_windowDriverRear', 'bmw_windowPassengerFront', 'bmw_windowPassengerRear',
-            'bmw_rearWindow',
-
-            'bmw_socMax', 'bmw_battery_size',
-            'bmw_mileage', 'bmw_tank_capacity', 'bmw_remaining_range',
-            'bmw_remaining_electric_range',
-            'bmw_charging_level', 'bmw_connector_status', 'bmw_charging_status', 'bmw_charging_end', 'bmw_charging_info', 'bmw_charging_sessions',
-
-            'bmw_start_air_conditioner', 'bmw_stop_air_conditioner',
-            'bmw_start_lock', 'bmw_start_unlock', 'bmw_start_flash_headlights', 'bmw_start_honk', 'bmw_start_vehicle_finder',
-
-            'bmw_car_picture', 'bmw_car_picture_zoom', 'bmw_perspective',
-
-            'bmw_history', 'bmw_service_history', 'bmw_checkcontrol', 'bmw_service',
-            'bmw_position_request_status',
-
-            'bmw_car_googlemap', 'bmw_googlemap_maptype', 'bmw_googlemap_zoom',
-            'bmw_current_latitude', 'bmw_current_longitude', 'bmw_current_heading', 'bmw_inMotion',
-
-            'bmw_car_interface', 'bmw_chargingprofile_interface', 'bmw_dynamic_interface', 'bmw_efficiency_interface', 'bmw_history_interface',
-            'bmw_image_interface', 'bmw_mapupdate_interface', 'bmw_navigation_interface', 'bmw_remote_services_interface',
-            'ServiceMessages_partner_interface', 'bmw_specs_interface', 'bmw_store_interface', 'ServiceMessages_interface',
-
-            'effeciency_charging', 'effeciency_consumption', 'effeciency_driving', 'effeciency_electric',
-            'lasttrip_avg_consumed', 'lasttrip_distance', 'lasttrip_duration', 'lasttrip_electric_ratio', 'lasttrip_tstamp',
-            'lifetime_distance', 'lifetime_reset_tstamp', 'lifetime_save_liters',
-
-            'bmw_last_status_update',
-
-            'TriggerSoundHonk',
-        ];
-        foreach ($unused_vars as $unused_var) {
-            $this->UnregisterVariable($unused_var);
-        }
-
-        $unused_profiles = [
-            'BMW.Perspective', 'BMW.Efficiency', 'BMW.Distance', 'BMW.Duration', 'BMW.Consumption', 'BMW.ElectricRatio', 'BMW.SavedLiters',
-        ];
-        foreach ($unused_profiles as $unused_profil) {
-            if (IPS_VariableProfileExists($unused_profil)) {
-                IPS_DeleteVariableProfile($unused_profil);
-            }
-        }
     }
 
     public function GetRawData(string $name)

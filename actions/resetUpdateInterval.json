@@ -1,18 +1,25 @@
 {
-    "id": "{89D15FF2-A456-F846-DC7B-1E51B395F064}",
-    "caption": "Reset update interval to default",
-    "form": [],
-    "action": "BMW_SetUpdateInterval($_IPS['TARGET'], null);",
-    "restrictions": {
-        "objectType": [ 1 ],
-        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
-        "includeEnvironments": [ "TestCommands", "Default" ]
-    },
-    "priority": 10,
-    "category": "target",
-    "locale": {
-        "de": {
-            "Reset update interval to default": "Aktualisierungs-Intervall auf Standardwært zurücksetzen"
-        }
-    }
+	"id": "{89D15FF2-A456-F846-DC7B-1E51B395F064}",
+	"caption": "Reset update interval to default",
+	"form": [],
+	"action": "BMW_SetUpdateInterval($_IPS['TARGET'], null);",
+	"restrictions": {
+		"objectType": [
+			1
+		],
+		"moduleID": [
+			"{8FD2A163-E07A-A2A2-58CC-974155FAEE33}"
+		],
+		"includeEnvironments": [
+			"TestCommands",
+			"Default"
+		]
+	},
+	"priority": 10,
+	"category": "target",
+	"locale": {
+		"de": {
+			"Reset update interval to default": "Aktualisierungs-Intervall auf Standardwært zurücksetzen"
+		}
+	}
 }

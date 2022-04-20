@@ -1,18 +1,25 @@
 {
-    "id": "{D869E8AD-0E18-E48C-CDF9-95BC4F94060D}",
-    "caption": "Flash headlights",
-    "form": [ ],
-    "action": "BMW_FlashHeadlights($_IPS['TARGET']);",
-    "restrictions": {
-        "objectType": [ 1 ],
-        "moduleID": [ "{8FD2A163-E07A-A2A2-58CC-974155FAEE33}" ],
-        "includeEnvironments": [ "TestCommands", "Default" ]
-    },
-    "priority": 10,
-    "category": "target",
-    "locale": {
-        "de": {
-            "Flash headlights": "Lichthupe auslösen"
-        }
-    }
+	"id": "{D869E8AD-0E18-E48C-CDF9-95BC4F94060D}",
+	"caption": "Flash headlights",
+	"form": [],
+	"action": "BMW_FlashHeadlights($_IPS['TARGET']);",
+	"restrictions": {
+		"objectType": [
+			1
+		],
+		"moduleID": [
+			"{8FD2A163-E07A-A2A2-58CC-974155FAEE33}"
+		],
+		"includeEnvironments": [
+			"TestCommands",
+			"Default"
+		]
+	},
+	"priority": 10,
+	"category": "target",
+	"locale": {
+		"de": {
+			"Flash headlights": "Lichthupe auslösen"
+		}
+	}
 }

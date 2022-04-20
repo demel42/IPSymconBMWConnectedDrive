@@ -198,6 +198,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.3 @ 20.04.2022 17:10
+  - Implememtierung einer Update-Logik
+  - diverse interne Änderungen
+
 - 2.2.1 @ 16.04.2022 12:22
   - Korrektur der Berechnung von Ladezyklus-Beginn und -Ende
   - Aktualisierung von submodule CommonStubs
