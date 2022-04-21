@@ -227,7 +227,7 @@ class BMWConnectedDrive extends IPSModule
     {
         $r = [];
 
-        if ($this->version2num($this->version2str($oldInfo)) < $this->version2num('2.0')) {
+        if ($this->version2num($oldInfo) < $this->version2num('2.0')) {
             $r[] = $this->Translate('Delete old variables and variableprofiles');
         }
 
@@ -236,7 +236,7 @@ class BMWConnectedDrive extends IPSModule
 
     private function CompleteModuleUpdate(array $oldInfo, array $newInfo)
     {
-        if ($this->version2num($this->version2str($oldInfo)) < $this->version2num('2.0')) {
+        if ($this->version2num($oldInfo) < $this->version2num('2.0')) {
             $unused_vars = [
                 'bmw_doorDriverFront', 'bmw_doorDriverRear', 'bmw_doorLockState', 'bmw_doorPassengerFront', 'bmw_doorPassengerRear',
                 'bmw_trunk', 'bmw_hood',
