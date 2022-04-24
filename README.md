@@ -198,7 +198,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.3 @ 20.04.2022 17:10
+- 2.3 @ 24.04.2022 14:23
   - Implememtierung einer Update-Logik
   - diverse interne Änderungen
 
