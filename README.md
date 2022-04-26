@@ -1,10 +1,8 @@
 # IPSymconBMWConnectedDrive
-[![Version](https://img.shields.io/badge/Symcon-PHPModul-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
-[![Version](https://img.shields.io/badge/Symcon%20Version-%3E%205.1-green.svg)](https://www.symcon.de/service/dokumentation/installation/)
-![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
-[![StyleCI](https://github.styleci.io/repos/118332358/shield?branch=master)](https://github.styleci.io/repos/118332358)
 
-Modul für IP-Symcon ab Version 5. Ermöglicht die Kommunikation mit BMW Connected Drive.
+[![IPS-Version](https://img.shields.io/badge/Symcon_Version-6+-red.svg)](https://www.symcon.de/service/dokumentation/entwicklerbereich/sdk-tools/sdk-php/)
+![Code](https://img.shields.io/badge/Code-PHP-blue.svg)
+[![License](https://img.shields.io/badge/License-CC%20BY--NC--SA%204.0-green.svg)](https://creativecommons.org/licenses/by-nc-sa/4.0/)
 
 ## Dokumentation
 
@@ -44,8 +42,8 @@ Mit dem Modul lassen sich Befehle an einen BMW mit BMW Connected Drive schicken 
 
 ## 2. Voraussetzungen
 
- - IPS 4.x
- - ein BMW mit BMW Connected Drive
+ - IP-Symcon ab Version 6
+ - ein BMW mit eingerichtetem BMW Connected Drive
 
 ## 3. Installation
 
@@ -197,6 +195,10 @@ Quellen / Referenzen
 - [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
+
+- 2.3.1 @ 26.04.2022 12:29
+  - Korrektur: self::$IS_DEACTIVATED wieder IS_INACTIVE
+  - IPS-Version ist nun minimal 6.0
 
 - 2.3 @ 24.04.2022 14:23
   - Implememtierung einer Update-Logik

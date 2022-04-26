@@ -4,9 +4,9 @@
 	"name": "BMWConnectedDrive",
 	"url": "https://github.com/demel42/IPSymconBMWConnectedDrive",
 	"compatibility": {
-		"version": "4.2"
+		"version": "6.0"
 	},
-	"version": "2.3",
+	"version": "2.3.1",
 	"build": 0,
-	"date": 1650467439
+	"date": 1650968953
 }
