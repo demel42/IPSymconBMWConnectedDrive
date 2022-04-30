@@ -198,6 +198,7 @@ Quellen / Referenzen
 
 - 2.3.2 @ 30.04.2022 18:20
   - Überlagerung von Translate und Aufteilung von locale.json in 3 translation.json (Modul, libs und CommonStubs)
+  - Feld "GoogleMap API-Key" verbreitert
 
 - 2.3.1 @ 26.04.2022 12:29
   - Korrektur: self::$IS_DEACTIVATED wieder IS_INACTIVE

@@ -669,6 +669,7 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'name'    => 'googlemap_api_key',
                     'type'    => 'ValidationTextBox',
+					'width'   => '400px',
                     'caption' => 'GoogleMap API-Key'
                 ],
                 [
