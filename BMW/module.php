@@ -47,6 +47,15 @@ class BMWConnectedDrive extends IPSModule
 
     private static $UpdateRemoteHistoryInterval = 5;
 
+    private $ModuleDir;
+
+    public function __construct(string $InstanceID)
+    {
+        parent::__construct($InstanceID);
+
+        $this->ModuleDir = __DIR__;
+    }
+
     public function Create()
     {
         parent::Create();
@@ -295,7 +304,7 @@ class BMWConnectedDrive extends IPSModule
     {
         parent::ApplyChanges();
 
-		$this->MaintainReferences();
+        $this->MaintainReferences();
 
         if ($this->CheckPrerequisites() != false) {
             $this->MaintainTimer('UpdateData', 0);

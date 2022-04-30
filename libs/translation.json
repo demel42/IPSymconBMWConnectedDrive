@@ -1,0 +1,89 @@
+{
+	"translations": {
+		"de": { 
+			"__variableprofile__", "BMW.YesNo",
+			"No": "Nein",
+			"Yes": "Ja",
+
+			"__variableprofile__", ""BMW.TriggerRemoteService,
+			"Start": "ausführen",
+
+			"__variableprofile__", "BMW.Googlemap",
+			"roadmap": "Straßenkarte",
+			"satellite": "Satelittenbild",
+			"hybrid": "Hybrid",
+			"terrain": "Terrain",
+
+			"__variableprofile__", "BMW.ConnectorStatus",
+			"unknown": "unbekannt",
+			"disconnected": "nicht verbunden",
+			"connected": "verbunden",
+
+			"__variableprofile__", "BMW.ChargingStatus",
+			"unknown": "unbekannt",
+			"not charging": "inaktiv",
+			"charging active": "aktiv",
+			"charging ended": "beendet",
+			"charging paused": "unterbrochen",
+			"fully charged": "vollständig",
+			"partial charged": "teilweise",
+			"charging error": "Ladefehler",
+			"invalid state": "ungültiger Status",
+			"plugged in": "verbunden",
+			"target reached": "Ladeziel erreicht",
+
+			"__variableprofile__", "BMW.DoorState",
+			"unknown": "unbekannt",
+			"open": "offen",
+			"closed": "geschlossen",
+
+			"__variableprofile__", "BMW.DoorClosureState",
+			"unknown": "unbekannt",
+			"locked": "verriegelt",
+			"unlocked": "entriegelt",
+			"secured": "gesichert",
+			"selectiv locked": "teilweise versperrt",
+
+			"__variableprofile__", "BMW.WindowState",
+			"unknown": "unbekannt",
+			"open": "offen",
+			"intermediate": "Zwischenposition",
+			"closed": "geschlossen",
+
+			"__variableprofile__", "BMW.TrunkState",
+			"unknown": "unbekannt",
+			"open": "offen",
+			"closed": "geschlossen",
+
+			"__variableprofile__", "BMW.HoodState",
+			"unknown": "unbekannt",
+			"open": "offen",
+			"intermediate": "Zwischenposition",
+			"closed": "geschlossen",
+
+			"__variableprofile__", "BMW.SunroofState",
+			"unknown": "unbekannt",
+			"open": "offen",
+			"tilt": "gekippt",
+			"intermediate": "Zwischenposition",
+			"closed": "geschlossen",
+
+			"__variableprofile__", "BMW.MoonroofState",
+			"unknown": "unbekannt",
+			"open": "offen",
+			"tilt": "gekippt",
+			"intermediate": "Zwischenposition",
+			"closed": "geschlossen",
+
+			"__status__": "",
+			"Instance is inactive (unauthorized)": "Instanz ist inaktiv (Authorisierung fehlerhaft)",
+			"Instance is inactive (forbidden)": "Instanz ist inaktiv (fehlende Berechtigung)",
+			"Instance is inactive (server error)": "Instanz ist inaktiv (Serverfehler)",
+			"Instance is inactive (http error)": "Instanz ist inaktiv (HTTP-Fehler)",
+			"Instance is inactive (invalid data)": "Instanz ist inaktiv (ungültige Daten)",
+			"Instance is inactive (api error)": "Instanz ist inaktiv (API-Fehler)",
+
+			"__end__": ""
+		}
+	}
+}
