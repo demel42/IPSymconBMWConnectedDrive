@@ -196,6 +196,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.3.3 @ 10.05.2022 15:06
+  - update submodule CommonStubs
+  - Absicherung Array-Zugriff
+
 - 2.3.2 @ 30.04.2022 18:20
   - Überlagerung von Translate und Aufteilung von locale.json in 3 translation.json (Modul, libs und CommonStubs)
   - Feld "GoogleMap API-Key" verbreitert

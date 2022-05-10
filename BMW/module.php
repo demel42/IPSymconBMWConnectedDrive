@@ -669,7 +669,7 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'name'    => 'googlemap_api_key',
                     'type'    => 'ValidationTextBox',
-					'width'   => '400px',
+                    'width'   => '400px',
                     'caption' => 'GoogleMap API-Key'
                 ],
                 [
@@ -1594,76 +1594,77 @@ class BMWConnectedDrive extends IPSModule
         if ($active_lock_data) {
             $vpos = 80;
 
-            $this->SendDebug(__FUNCTION__, 'doorsAndWindows=' . print_r($properties['doorsAndWindows'], true), 0);
+            $doorsAndWindows = isset($properties['doorsAndWindows']) ? $properties['doorsAndWindows'] : [];
+            $this->SendDebug(__FUNCTION__, 'doorsAndWindows=' . print_r($doorsAndWindows, true), 0);
 
-            if (isset($properties['doorsAndWindows']['doors']['driverFront'])) {
-                $val = $properties['doorsAndWindows']['doors']['driverFront'];
+            if (isset($doorsAndWindows['doors']['driverFront'])) {
+                $val = $doorsAndWindows['doors']['driverFront'];
                 $this->MaintainStateVariable('DoorStateDriverFront', true, $vpos++);
                 $this->SaveValue('DoorStateDriverFront', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['doors']['driverRear'])) {
-                $val = $properties['doorsAndWindows']['doors']['driverRear'];
+            if (isset($doorsAndWindows['doors']['driverRear'])) {
+                $val = $doorsAndWindows['doors']['driverRear'];
                 $this->MaintainStateVariable('DoorStateDriverRear', true, $vpos++);
                 $this->SaveValue('DoorStateDriverRear', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['doors']['passengerFront'])) {
-                $val = $properties['doorsAndWindows']['doors']['passengerFront'];
+            if (isset($doorsAndWindows['doors']['passengerFront'])) {
+                $val = $doorsAndWindows['doors']['passengerFront'];
                 $this->MaintainStateVariable('DoorStatePassengerFront', true, $vpos++);
                 $this->SaveValue('DoorStatePassengerFront', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['doors']['passengerRear'])) {
-                $val = $properties['doorsAndWindows']['doors']['passengerRear'];
+            if (isset($doorsAndWindows['doors']['passengerRear'])) {
+                $val = $doorsAndWindows['doors']['passengerRear'];
                 $this->MaintainStateVariable('DoorStatePassengerRear', true, $vpos++);
                 $this->SaveValue('DoorStatePassengerRear', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['windows']['driverFront'])) {
-                $val = $properties['doorsAndWindows']['windows']['driverFront'];
+            if (isset($doorsAndWindows['windows']['driverFront'])) {
+                $val = $doorsAndWindows['windows']['driverFront'];
                 $this->MaintainStateVariable('WindowStateDriverFront', true, $vpos++);
                 $this->SaveValue('WindowStateDriverFront', $this->MapWindowState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['windows']['driverRear'])) {
-                $val = $properties['doorsAndWindows']['windows']['driverRear'];
+            if (isset($doorsAndWindows['windows']['driverRear'])) {
+                $val = $doorsAndWindows['windows']['driverRear'];
                 $this->MaintainStateVariable('WindowStateDriverRear', true, $vpos++);
                 $this->SaveValue('WindowStateDriverRear', $this->MapWindowState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['windows']['passengerFront'])) {
-                $val = $properties['doorsAndWindows']['windows']['passengerFront'];
+            if (isset($doorsAndWindows['windows']['passengerFront'])) {
+                $val = $doorsAndWindows['windows']['passengerFront'];
                 $this->MaintainStateVariable('WindowStatePassengerFront', true, $vpos++);
                 $this->SaveValue('WindowStatePassengerFront', $this->MapWindowState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['windows']['passengerRear'])) {
-                $val = $properties['doorsAndWindows']['windows']['passengerRear'];
+            if (isset($doorsAndWindows['windows']['passengerRear'])) {
+                $val = $doorsAndWindows['windows']['passengerRear'];
                 $this->MaintainStateVariable('WindowStatePassengerRear', true, $vpos++);
                 $this->SaveValue('WindowStatePassengerRear', $this->MapWindowState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['trunk'])) {
-                $val = $properties['doorsAndWindows']['trunk'];
+            if (isset($doorsAndWindows['trunk'])) {
+                $val = $doorsAndWindows['trunk'];
                 $this->MaintainStateVariable('TrunkState', true, $vpos++);
                 $this->SaveValue('TrunkState', $this->MapTrunkState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['hood'])) {
-                $val = $properties['doorsAndWindows']['hood'];
+            if (isset($doorsAndWindows['hood'])) {
+                $val = $doorsAndWindows['hood'];
                 $this->MaintainStateVariable('HoodState', true, $vpos++);
                 $this->SaveValue('HoodState', $this->MapHoodState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['sunroof'])) {
-                $val = $properties['doorsAndWindows']['sunroof'];
+            if (isset($doorsAndWindows['sunroof'])) {
+                $val = $doorsAndWindows['sunroof'];
                 $this->MaintainStateVariable('SunroofState', true, $vpos++);
                 $this->SaveValue('SunroofState', $this->MapSunroofState($val), $isChanged);
             }
 
-            if (isset($properties['doorsAndWindows']['moonroof'])) {
-                $val = $properties['doorsAndWindows']['moonroof'];
+            if (isset($doorsAndWindows['moonroof'])) {
+                $val = $doorsAndWindows['moonroof'];
                 $this->MaintainStateVariable('MoonroofState', true, $vpos++);
                 $this->SaveValue('MoonroofState', $this->MapMoonroofState($val), $isChanged);
             }
@@ -1682,25 +1683,26 @@ class BMWConnectedDrive extends IPSModule
         if ($active_tire_pressure) {
             $vpos = 95;
 
-            $this->SendDebug(__FUNCTION__, 'tires=' . print_r($properties['tires'], true), 0);
+            $tires = isset($properties['tires']) ? $properties['tires'] : [];
+            $this->SendDebug(__FUNCTION__, 'tires=' . print_r($tires, true), 0);
 
-            if (isset($properties['tires']['frontLeft']['status']['currentPressure'])) {
-                $val = $properties['tires']['frontLeft']['status']['currentPressure'];
+            if (isset($tires['frontLeft']['status']['currentPressure'])) {
+                $val = $tires['frontLeft']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureFrontLeft', true, $vpos++);
                 $this->SaveValue('TirePressureFrontLeft', $this->CalcTirePressure($val), $isChanged);
             }
-            if (isset($properties['tires']['frontRight']['status']['currentPressure'])) {
-                $val = $properties['tires']['frontRight']['status']['currentPressure'];
+            if (isset($tires['frontRight']['status']['currentPressure'])) {
+                $val = $tires['frontRight']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureFrontRight', true, $vpos++);
                 $this->SaveValue('TirePressureFrontRight', $this->CalcTirePressure($val), $isChanged);
             }
-            if (isset($properties['tires']['rearLeft']['status']['currentPressure'])) {
-                $val = $properties['tires']['rearLeft']['status']['currentPressure'];
+            if (isset($tires['rearLeft']['status']['currentPressure'])) {
+                $val = $tires['rearLeft']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureRearLeft', true, $vpos++);
                 $this->SaveValue('TirePressureRearLeft', $this->CalcTirePressure($val), $isChanged);
             }
-            if (isset($properties['tires']['rearRight']['status']['currentPressure'])) {
-                $val = $properties['tires']['rearRight']['status']['currentPressure'];
+            if (isset($tires['rearRight']['status']['currentPressure'])) {
+                $val = $tires['rearRight']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureRearRight', true, $vpos++);
                 $this->SaveValue('TirePressureRearRight', $this->CalcTirePressure($val), $isChanged);
             }
