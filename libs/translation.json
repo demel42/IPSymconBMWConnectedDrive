@@ -1,25 +1,25 @@
 {
 	"translations": {
 		"de": { 
-			"__variableprofile__", "BMW.YesNo",
+			"__variableprofile__": "BMW.YesNo",
 			"No": "Nein",
 			"Yes": "Ja",
 
-			"__variableprofile__", ""BMW.TriggerRemoteService,
+			"__variableprofile__": "BMW.TriggerRemoteService",
 			"Start": "ausführen",
 
-			"__variableprofile__", "BMW.Googlemap",
+			"__variableprofile__": "BMW.Googlemap",
 			"roadmap": "Straßenkarte",
 			"satellite": "Satelittenbild",
 			"hybrid": "Hybrid",
 			"terrain": "Terrain",
 
-			"__variableprofile__", "BMW.ConnectorStatus",
+			"__variableprofile__": "BMW.ConnectorStatus",
 			"unknown": "unbekannt",
 			"disconnected": "nicht verbunden",
 			"connected": "verbunden",
 
-			"__variableprofile__", "BMW.ChargingStatus",
+			"__variableprofile__": "BMW.ChargingStatus",
 			"unknown": "unbekannt",
 			"not charging": "inaktiv",
 			"charging active": "aktiv",
@@ -32,43 +32,43 @@
 			"plugged in": "verbunden",
 			"target reached": "Ladeziel erreicht",
 
-			"__variableprofile__", "BMW.DoorState",
+			"__variableprofile__": "BMW.DoorState",
 			"unknown": "unbekannt",
 			"open": "offen",
 			"closed": "geschlossen",
 
-			"__variableprofile__", "BMW.DoorClosureState",
+			"__variableprofile__": "BMW.DoorClosureState",
 			"unknown": "unbekannt",
 			"locked": "verriegelt",
 			"unlocked": "entriegelt",
 			"secured": "gesichert",
 			"selectiv locked": "teilweise versperrt",
 
-			"__variableprofile__", "BMW.WindowState",
+			"__variableprofile__": "BMW.WindowState",
 			"unknown": "unbekannt",
 			"open": "offen",
 			"intermediate": "Zwischenposition",
 			"closed": "geschlossen",
 
-			"__variableprofile__", "BMW.TrunkState",
+			"__variableprofile__": "BMW.TrunkState",
 			"unknown": "unbekannt",
 			"open": "offen",
 			"closed": "geschlossen",
 
-			"__variableprofile__", "BMW.HoodState",
+			"__variableprofile__": "BMW.HoodState",
 			"unknown": "unbekannt",
 			"open": "offen",
 			"intermediate": "Zwischenposition",
 			"closed": "geschlossen",
 
-			"__variableprofile__", "BMW.SunroofState",
+			"__variableprofile__": "BMW.SunroofState",
 			"unknown": "unbekannt",
 			"open": "offen",
 			"tilt": "gekippt",
 			"intermediate": "Zwischenposition",
 			"closed": "geschlossen",
 
-			"__variableprofile__", "BMW.MoonroofState",
+			"__variableprofile__": "BMW.MoonroofState",
 			"unknown": "unbekannt",
 			"open": "offen",
 			"tilt": "gekippt",

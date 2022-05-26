@@ -11,7 +11,7 @@ trait BMWConnectedDriveLocalLib
     public static $IS_INVALIDDATA = IS_EBASE + 14;
     public static $IS_APIERROR = IS_EBASE + 15;
 
-    protected function GetFormStatus()
+    private function GetFormStatus()
     {
         $formStatus = $this->GetCommonFormStatus();
 
@@ -147,7 +147,7 @@ trait BMWConnectedDriveLocalLib
     private static $BMW_CARVIEW_FRONT = 'VehicleInfo';
     private static $BMW_CARVIEW_SIDE = 'ChargingHistory';
 
-    public function InstallVarProfiles(bool $reInstall = false)
+    private function InstallVarProfiles(bool $reInstall = false)
     {
         $this->SendDebug(__FUNCTION__, 'reInstall=' . $this->bool2str($reInstall), 0);
 

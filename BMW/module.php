@@ -103,8 +103,8 @@ class BMWConnectedDrive extends IPSModule
         $this->SetMultiBuffer('ChargingSessions', '');
         $this->SetMultiBuffer('RemoteServiceHistory', '');
 
-        $this->RegisterTimer('UpdateData', 0, $this->GetModulePrefix() . '_UpdateData(' . $this->InstanceID . ');');
-        $this->RegisterTimer('UpdateRemoteServiceStatus', 0, $this->GetModulePrefix() . '_UpdateRemoteServiceStatus(' . $this->InstanceID . ');');
+        $this->RegisterTimer('UpdateData', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");');
+        $this->RegisterTimer('UpdateRemoteServiceStatus', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateRemoteServiceStatus", "");');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
@@ -485,7 +485,7 @@ class BMWConnectedDrive extends IPSModule
         }
     }
 
-    protected function GetFormElements()
+    private function GetFormElements()
     {
         $formElements = $this->GetCommonFormElements('');
 
@@ -693,7 +693,7 @@ class BMWConnectedDrive extends IPSModule
         return $formElements;
     }
 
-    protected function GetFormActions()
+    private function GetFormActions()
     {
         $formActions = [];
 
@@ -709,7 +709,7 @@ class BMWConnectedDrive extends IPSModule
         $formActions[] = [
             'type'    => 'Button',
             'label'   => 'Update data',
-            'onClick' => $this->GetModulePrefix() . '_UpdateData($id);'
+            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");',
         ];
 
         $formActions[] = [
@@ -737,7 +737,7 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'type'    => 'Button',
                     'caption' => 'Load picture',
-                    'onClick' => $this->GetModulePrefix() . '_GetCarPicture($id, $carView);'
+                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "GetCarPicture", $carView);',
                 ],
             ],
         ];
@@ -750,13 +750,9 @@ class BMWConnectedDrive extends IPSModule
                 [
                     'type'    => 'Button',
                     'label'   => 'Relogin',
-                    'onClick' => $this->GetModulePrefix() . '_Relogin($id);'
+                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "Relogin", "");',
                 ],
-                [
-                    'type'    => 'Button',
-                    'caption' => 'Re-install variable-profiles',
-                    'onClick' => $this->GetModulePrefix() . '_InstallVarProfiles($id, true);'
-                ]
+                $this->GetInstallVarProfilesFormItem(),
             ]
         ];
 
@@ -829,7 +825,7 @@ class BMWConnectedDrive extends IPSModule
         return $brand;
     }
 
-    public function Relogin()
+    private function Relogin()
     {
         $this->WriteAttributeString('ApiSettings', '');
         $this->WriteAttributeString('ApiRefreshToken', '');
@@ -2096,7 +2092,7 @@ class BMWConnectedDrive extends IPSModule
         return $result;
     }
 
-    public function GetCarPicture(string $carView = null)
+    private function GetCarPicture(string $carView = null)
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -2296,7 +2292,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('CLIMATE_NOW', 'START');
-        return $result;
+        return true;
     }
 
     public function StopClimateControl()
@@ -2308,7 +2304,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('CLIMATE_NOW', 'STOP');
-        return $result;
+        return true;
     }
 
     public function LockDoors()
@@ -2320,7 +2316,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('DOOR_LOCK', '');
-        return $result;
+        return true;
     }
 
     public function UnlockDoors()
@@ -2332,7 +2328,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('DOOR_UNLOCK', '');
-        return $result;
+        return true;
     }
 
     public function FlashHeadlights()
@@ -2344,7 +2340,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('LIGHT_FLASH', '');
-        return $result;
+        return true;
     }
 
     public function BlowHorn()
@@ -2356,7 +2352,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('HORN_BLOW', '');
-        return $result;
+        return true;
     }
 
     public function LocateVehicle()
@@ -2368,7 +2364,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('VEHICLE_FINDER', '');
-        return $result;
+        return true;
     }
 
     public function ChargeNow()
@@ -2380,7 +2376,7 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
         $result = $this->ExecuteRemoteService('CHARGE_NOW', '');
-        return $result;
+        return true;
     }
 
     public function SendPOI(string $poi)
@@ -2436,7 +2432,7 @@ class BMWConnectedDrive extends IPSModule
         return $data;
     }
 
-    public function UpdateRemoteServiceStatus()
+    private function UpdateRemoteServiceStatus()
     {
         $delete_tstamp = strtotime('-1 month');
         $time2failed = 2 * 60;
@@ -2666,7 +2662,7 @@ class BMWConnectedDrive extends IPSModule
         }
     }
 
-    public function UpdateData()
+    private function UpdateData()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -2693,9 +2689,9 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
     }
 
-    public function RequestAction($Ident, $Value)
+    public function RequestAction($ident, $value)
     {
-        if ($this->CommonRequestAction($Ident, $Value)) {
+        if ($this->CommonRequestAction($ident, $value)) {
             return;
         }
 
@@ -2704,41 +2700,56 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $this->SendDebug(__FUNCTION__, 'ident=' . $Ident . ', value=' . $Value, 0);
-        $this->SetValue($Ident, $Value);
-        switch ($Ident) {
+        $this->SendDebug(__FUNCTION__, 'ident=' . $ident . ', value=' . $value, 0);
+        $r = false;
+        switch ($ident) {
             case 'TriggerStartClimatisation':
-                $this->StartClimateControl();
+                $r = $this->StartClimateControl();
                 break;
             case 'TriggerStopClimatisation':
-                $this->StopClimateControl();
+                $r = $this->StopClimateControl();
                 break;
             case 'TriggerLockDoors':
-                $this->LockDoors();
+                $r = $this->LockDoors();
                 break;
             case 'TriggerUnlockDoors':
-                $this->UnlockDoors();
+                $r = $this->UnlockDoors();
                 break;
             case 'TriggerFlashHeadlights':
-                $this->FlashHeadlights();
+                $r = $this->FlashHeadlights();
                 break;
             case 'TriggerBlowHorn':
-                $this->BlowHorn();
+                $r = $this->BlowHorn();
                 break;
             case 'TriggerChargeNow':
-                $this->ChargeNow();
+                $r = $this->ChargeNow();
                 break;
             case 'TriggerLocateVehicle':
-                $this->LocateVehicle();
+                $r = $this->LocateVehicle();
                 break;
             case 'GoogleMapType':
-                $this->SetGoogleMapType($Value);
+                $r = $this->SetGoogleMapType($value);
                 break;
             case 'GoogleMapZoom':
-                $this->SetGoogleMapZoom($Value);
+                $r = $this->SetGoogleMapZoom($value);
+                break;
+            case 'UpdateData':
+                $this->UpdateData();
+                break;
+            case 'UpdateRemoteServiceStatus':
+                $this->UpdateRemoteServiceStatus();
+                break;
+            case 'Relogin':
+                $this->Relogin();
+                break;
+            case 'GetCarPicture':
+                $this->GetCarPicture($value);
                 break;
             default:
-                $this->SendDebug(__FUNCTION__, 'invalid ident "' . $Ident . '"', 0);
+                $this->SendDebug(__FUNCTION__, 'invalid ident "' . $ident . '"', 0);
+        }
+        if ($r) {
+            $this->SetValue($ident, $value);
         }
     }
 
@@ -2810,6 +2821,7 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, 'maptype=' . $maptype, 0);
         $zoom = $this->GetValue('GoogleMapZoom');
         $this->SetGoogleMap($maptype, $zoom);
+        return true;
     }
 
     private function SetGoogleMapZoom($zoom)
@@ -2817,6 +2829,7 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, 'zoom=' . $zoom, 0);
         $maptype = $this->GetValue('GoogleMapType');
         $this->SetGoogleMap($maptype, $zoom);
+        return true;
     }
 
     // Ladezustand
