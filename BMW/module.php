@@ -20,13 +20,18 @@ class BMWConnectedDrive extends IPSModule
         'RestOfWorld'  => 'cocoapi.bmwgroup.com',
     ];
 
-    private static $ocp_apim_key = [
-        'NorthAmerica' => '31e102f5-6f7e-7ef3-9044-ddce63891362',
-        'RestOfWorld'  => '4f1c85a3-758f-a37d-bbb6-f8704494acfa',
+    private static $region_map = [
+        'NorthAmerica' => 'nas',
+        'RestOfWorld'  => 'row',
     ];
 
-    private static $x_user_agent_fmt = 'android(v1.07_20200330);%s;1.7.0(11152)';
-    private static $user_agent = 'Dart/2.13 (dart:io)';
+    private static $ocp_apim_key = [
+        'NorthAmerica' => 'MzFlMTAyZjUtNmY3ZS03ZWYzLTkwNDQtZGRjZTYzODkxMzYy',
+        'RestOfWorld'  => 'NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh',
+    ];
+
+    private static $x_user_agent_fmt = 'android(SP1A.210812.016.C1);%s;2.5.2(14945);%s';
+    private static $user_agent = 'Dart/2.14 (dart:io)';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
@@ -877,11 +882,11 @@ class BMWConnectedDrive extends IPSModule
 
         $this->SendDebug(__FUNCTION__, '*** get config', 0);
 
-        $config_url = $baseurl . '/' . self::$oauth_config_endpoint;
+        $config_url = $baseurl . self::$oauth_config_endpoint;
         $header = [
-            'ocp-apim-subscription-key: ' . self::$ocp_apim_key[$region],
+            'ocp-apim-subscription-key: ' . base64_decode(self::$ocp_apim_key[$region]),
             'user-agent: ' . self::$user_agent,
-            'x-user-agent: ' . sprintf(self::$x_user_agent_fmt, $this->GetBrand()),
+            'x-user-agent: ' . sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
         ];
 
         $this->SendDebug(__FUNCTION__, 'http-get, url=' . $config_url, 0);
@@ -1470,7 +1475,7 @@ class BMWConnectedDrive extends IPSModule
         $header_base = [
             'accept'          => 'application/json',
             'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand()),
+            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
             'Authorization'   => 'Bearer ' . $access_token,
             'accept-language' => $this->GetLang(),
         ];
