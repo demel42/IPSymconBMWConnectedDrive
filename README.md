@@ -196,9 +196,11 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.5 @ 28.05.2022 10:40
+- 2.5 @ 28.05.2022 11:29
   - erneute Änderung der BMW-API (Änderung der "user-agent")
   - Übersetzung ergänzt
+  - update submodule CommonStubs
+    Fix: Ausgabe des nächsten Timer-Zeitpunkts
 
 - 2.4 @ 26.05.2022 13:42
   - Übersetzung für Variablenprofile und Instanz-Status fehlerhaft

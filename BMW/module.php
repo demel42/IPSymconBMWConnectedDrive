@@ -1989,9 +1989,7 @@ class BMWConnectedDrive extends IPSModule
                 $html = $this->Translate('No required services');
             }
 
-            if ($this->GetValue('ServiceMessages') != $html) {
-                $this->SetValue('ServiceMessages', $html);
-            }
+            $this->SetValue('ServiceMessages', $html);
         }
 
         $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
@@ -2023,9 +2021,7 @@ class BMWConnectedDrive extends IPSModule
                 $html = $this->Translate('No check-control messages');
             }
 
-            if ($this->GetValue('CheckControlMessages') != $html) {
-                $this->SetValue('CheckControlMessages', $html);
-            }
+            $this->SetValue('CheckControlMessages', $html);
         }
 
         $model = $this->GetArrayElem($jdata, 'model', '');
@@ -2176,9 +2172,7 @@ class BMWConnectedDrive extends IPSModule
             $html = $this->Translate('there are no charging sessions present');
         }
 
-        if ($this->GetValue('ChargingSessions') != $html) {
-            $this->SetValue('ChargingSessions', $html);
-        }
+        $this->SetValue('ChargingSessions', $html);
     }
 
     private function GetChargingSessions()
@@ -2662,9 +2656,7 @@ class BMWConnectedDrive extends IPSModule
             $html = $this->Translate('No information about the course available');
         }
 
-        if ($this->GetValue('RemoteServiceHistory') != $html) {
-            $this->SetValue('RemoteServiceHistory', $html);
-        }
+        $this->SetValue('RemoteServiceHistory', $html);
     }
 
     private function UpdateData()
