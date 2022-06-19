@@ -196,6 +196,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.5.1 @ 19.06.2022 14:50
+  - Fix: Variable 'ChargingStatus' wurde aus zwei Datenfeldern doppelt gesetzt mit u.U. unterschiedlichen Werten
+  - Fix: Angabe der Kompatibilität auf 6.2 korrigiert
+
 - 2.5 @ 28.05.2022 11:29
   - erneute Änderung der BMW-API (Änderung der "user-agent")
   - Übersetzung ergänzt
