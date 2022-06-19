@@ -1875,7 +1875,7 @@ class BMWConnectedDrive extends IPSModule
 
                     $val = $this->GetArrayElem($fuelIndicator, 'chargingStatusType', '');
                     $chargingStatusType = $this->MapChargingState($val);
-                    $this->SaveValue('ChargingStatus', $chargingStatusType, $isChanged);
+                    //$this->SaveValue('ChargingStatus', $chargingStatusType, $isChanged);
 
                     $charging_start = 0;
                     $charging_end = 0;
