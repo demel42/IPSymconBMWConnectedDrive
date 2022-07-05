@@ -314,21 +314,21 @@ class BMWConnectedDrive extends IPSModule
         if ($this->CheckPrerequisites() != false) {
             $this->MaintainTimer('UpdateData', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
-            $this->SetStatus(self::$IS_INVALIDPREREQUISITES);
+            $this->MaintainStatus(self::$IS_INVALIDPREREQUISITES);
             return;
         }
 
         if ($this->CheckUpdate() != false) {
             $this->MaintainTimer('UpdateData', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
-            $this->SetStatus(self::$IS_UPDATEUNCOMPLETED);
+            $this->MaintainStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
             $this->MaintainTimer('UpdateData', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
-            $this->SetStatus(self::$IS_INVALIDCONFIG);
+            $this->MaintainStatus(self::$IS_INVALIDCONFIG);
             return;
         }
 
@@ -468,11 +468,11 @@ class BMWConnectedDrive extends IPSModule
         if ($module_disable) {
             $this->MaintainTimer('UpdateData', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
-            $this->SetStatus(IS_INACTIVE);
+            $this->MaintainStatus(IS_INACTIVE);
             return;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
 
         if (IPS_GetKernelRunlevel() == KR_READY) {
             $this->SetUpdateInterval();
@@ -949,7 +949,7 @@ class BMWConnectedDrive extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
         $this->SendDebug(__FUNCTION__, ' => oauth_settings=' . print_r($oauth_settings, true), 0);
@@ -1084,7 +1084,7 @@ class BMWConnectedDrive extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
         $this->SendDebug(__FUNCTION__, 'authorization="' . $redirect_opts['authorization'] . '"', 0);
@@ -1184,7 +1184,7 @@ class BMWConnectedDrive extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
         $this->SendDebug(__FUNCTION__, 'code="' . $location_opts['code'] . '"', 0);
@@ -1275,11 +1275,11 @@ class BMWConnectedDrive extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
 
         $access_token = $jbody['access_token'];
         $refresh_token = $jbody['refresh_token'];
@@ -1408,7 +1408,7 @@ class BMWConnectedDrive extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
 
             $this->WriteAttributeString('ApiRefreshToken', '');
             $this->SetBuffer('AccessToken', '');
@@ -1416,7 +1416,7 @@ class BMWConnectedDrive extends IPSModule
             return false;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
 
         $access_token = $jbody['access_token'];
         $refresh_token = $jbody['refresh_token'];
@@ -1564,7 +1564,7 @@ class BMWConnectedDrive extends IPSModule
         }
         if ($statuscode) {
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SetStatus($statuscode);
+            $this->MaintainStatus($statuscode);
             return false;
         }
 
@@ -1574,7 +1574,7 @@ class BMWConnectedDrive extends IPSModule
             $body = false;
         }
 
-        $this->SetStatus(IS_ACTIVE);
+        $this->MaintainStatus(IS_ACTIVE);
 
         return $body;
     }

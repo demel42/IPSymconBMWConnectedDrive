@@ -196,6 +196,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.6 @ 05.07.2022 09:29
+  - Verbesserung: IPS-Status wird nur noch gesetzt, wenn er sich ändert
+
 - 2.5.1 @ 19.06.2022 14:50
   - Fix: Variable 'ChargingStatus' wurde aus zwei Datenfeldern doppelt gesetzt mit u.U. unterschiedlichen Werten
   - Fix: Angabe der Kompatibilität auf 6.2 korrigiert
