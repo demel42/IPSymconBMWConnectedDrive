@@ -37,7 +37,7 @@ class BMWConnectedDrive extends IPSModule
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
     private static $oauth_token_endpoint = '/gcdm/oauth/token';
 
-    private static $vehicles_endpoint = '/eadrax-vcs/v1/vehicles';
+    private static $vehicles_endpoint = '/eadrax-vcs/v2/vehicles';
 
     private static $remoteService_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands';
     private static $remoteServiceStatus_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventStatus';
@@ -86,7 +86,6 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterPropertyBoolean('active_checkcontrol', false);
 
         $this->RegisterPropertyBoolean('active_current_position', false);
-        $this->RegisterPropertyBoolean('active_motion', false);
 
         $this->RegisterPropertyBoolean('active_googlemap', false);
         $this->RegisterPropertyString('googlemap_api_key', '');
@@ -172,15 +171,10 @@ class BMWConnectedDrive extends IPSModule
                 'vartype' => VARIABLETYPE_INTEGER,
                 'varprof' => 'BMW.HoodState',
             ],
-            'SunroofState' => [
-                'desc'    => 'sunroof',
+            'RoofState' => [
+                'desc'    => 'roof',
                 'vartype' => VARIABLETYPE_INTEGER,
-                'varprof' => 'BMW.SunroofState',
-            ],
-            'MoonroofState' => [
-                'desc'    => 'moonroof',
-                'vartype' => VARIABLETYPE_INTEGER,
-                'varprof' => 'BMW.MoonroofState',
+                'varprof' => 'BMW.RoofState',
             ],
             'TirePressureFrontLeft' => [
                 'desc'    => 'tire pressure front left',
@@ -245,6 +239,10 @@ class BMWConnectedDrive extends IPSModule
             $r[] = $this->Translate('Delete old variables and variableprofiles');
         }
 
+        if ($this->version2num($oldInfo) < $this->version2num('2.7')) {
+            $r[] = $this->Translate('Delete old variables and variableprofiles');
+        }
+
         return $r;
     }
 
@@ -302,6 +300,27 @@ class BMWConnectedDrive extends IPSModule
             $this->InstallVarProfiles(false);
         }
 
+        if ($this->version2num($oldInfo) < $this->version2num('2.7')) {
+            $unused_vars = [
+                'ChargingInfo',
+                'InMotion',
+                'SunroofState', 'MoonroofState',
+            ];
+            foreach ($unused_vars as $unused_var) {
+                $this->UnregisterVariable($unused_var);
+            }
+
+            $unused_profiles = [
+                'BMW.SunroofState', 'BMW.MoonroofState'
+            ];
+            foreach ($unused_profiles as $unused_profil) {
+                if (IPS_VariableProfileExists($unused_profil)) {
+                    IPS_DeleteVariableProfile($unused_profil);
+                }
+            }
+            $this->InstallVarProfiles(false);
+        }
+
         return '';
     }
 
@@ -345,7 +364,6 @@ class BMWConnectedDrive extends IPSModule
         $active_vehicle_finder = $this->ReadPropertyBoolean('active_vehicle_finder');
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
-        $active_motion = $this->ReadPropertyBoolean('active_motion');
         $active_lock_data = $this->ReadPropertyBoolean('active_lock_data');
         $active_tire_pressure = $this->ReadPropertyBoolean('active_tire_pressure');
 
@@ -417,8 +435,6 @@ class BMWConnectedDrive extends IPSModule
         $this->MaintainVariable('CurrentLongitude', $this->Translate('current longitude'), VARIABLETYPE_FLOAT, 'BMW.Location', $vpos++, $active_current_position);
         $this->MaintainVariable('CurrentDirection', $this->Translate('current direction'), VARIABLETYPE_INTEGER, 'BMW.Heading', $vpos++, $active_current_position);
         $this->MaintainVariable('LastPositionMessage', $this->Translate('last position message'), VARIABLETYPE_INTEGER, '~UnixTimestamp', $vpos++, true);
-
-        $this->MaintainVariable('InMotion', $this->Translate('in motion'), VARIABLETYPE_BOOLEAN, 'BMW.YesNo', $vpos++, $active_motion);
 
         $this->MaintainVariable('GoogleMap', $this->Translate('map'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $active_googlemap);
         $this->MaintainVariable('GoogleMapType', $this->Translate('map type'), VARIABLETYPE_INTEGER, 'BMW.Googlemap', $vpos++, $active_googlemap);
@@ -648,11 +664,6 @@ class BMWConnectedDrive extends IPSModule
                     'name'    => 'active_tire_pressure',
                     'type'    => 'CheckBox',
                     'caption' => 'show tire pressure'
-                ],
-                [
-                    'name'    => 'active_motion',
-                    'type'    => 'CheckBox',
-                    'caption' => 'show vehicle motion'
                 ],
             ],
             'caption' => 'options',
@@ -1584,10 +1595,8 @@ class BMWConnectedDrive extends IPSModule
         $this->SetMultiBuffer('VehicleData', $data);
         $jdata = json_decode($data, true);
 
-        $properties = $jdata['properties'];
-        $this->SendDebug(__FUNCTION__, 'properties=' . print_r($properties, true), 0);
-        $status = $jdata['status'];
-        $this->SendDebug(__FUNCTION__, 'status=' . print_r($status, true), 0);
+        $state = $jdata['state'];
+        $this->SendDebug(__FUNCTION__, 'state=' . print_r($state, true), 0);
 
         $isChanged = false;
 
@@ -1595,146 +1604,143 @@ class BMWConnectedDrive extends IPSModule
         if ($active_lock_data) {
             $vpos = 80;
 
-            $doorsAndWindows = isset($properties['doorsAndWindows']) ? $properties['doorsAndWindows'] : [];
-            $this->SendDebug(__FUNCTION__, 'doorsAndWindows=' . print_r($doorsAndWindows, true), 0);
+            $doorsState = isset($state['doorsState']) ? $state['doorsState'] : [];
+            $this->SendDebug(__FUNCTION__, 'doorsState=' . print_r($doorsState, true), 0);
 
-            if (isset($doorsAndWindows['doors']['driverFront'])) {
-                $val = $doorsAndWindows['doors']['driverFront'];
+            if (isset($doorsState['leftFront'])) {
+                $val = $doorsState['leftFront'];
                 $this->MaintainStateVariable('DoorStateDriverFront', true, $vpos++);
                 $this->SaveValue('DoorStateDriverFront', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['doors']['driverRear'])) {
-                $val = $doorsAndWindows['doors']['driverRear'];
+            if (isset($doorsState['leftRear'])) {
+                $val = $doorsState['leftRear'];
                 $this->MaintainStateVariable('DoorStateDriverRear', true, $vpos++);
                 $this->SaveValue('DoorStateDriverRear', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['doors']['passengerFront'])) {
-                $val = $doorsAndWindows['doors']['passengerFront'];
+            if (isset($doorsState['rightFront'])) {
+                $val = $doorsState['rightFront'];
                 $this->MaintainStateVariable('DoorStatePassengerFront', true, $vpos++);
                 $this->SaveValue('DoorStatePassengerFront', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['doors']['passengerRear'])) {
-                $val = $doorsAndWindows['doors']['passengerRear'];
+            if (isset($doorsState['rightRear'])) {
+                $val = $doorsState['rightRear'];
                 $this->MaintainStateVariable('DoorStatePassengerRear', true, $vpos++);
                 $this->SaveValue('DoorStatePassengerRear', $this->MapDoorState($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['windows']['driverFront'])) {
-                $val = $doorsAndWindows['windows']['driverFront'];
-                $this->MaintainStateVariable('WindowStateDriverFront', true, $vpos++);
-                $this->SaveValue('WindowStateDriverFront', $this->MapWindowState($val), $isChanged);
-            }
-
-            if (isset($doorsAndWindows['windows']['driverRear'])) {
-                $val = $doorsAndWindows['windows']['driverRear'];
-                $this->MaintainStateVariable('WindowStateDriverRear', true, $vpos++);
-                $this->SaveValue('WindowStateDriverRear', $this->MapWindowState($val), $isChanged);
-            }
-
-            if (isset($doorsAndWindows['windows']['passengerFront'])) {
-                $val = $doorsAndWindows['windows']['passengerFront'];
-                $this->MaintainStateVariable('WindowStatePassengerFront', true, $vpos++);
-                $this->SaveValue('WindowStatePassengerFront', $this->MapWindowState($val), $isChanged);
-            }
-
-            if (isset($doorsAndWindows['windows']['passengerRear'])) {
-                $val = $doorsAndWindows['windows']['passengerRear'];
-                $this->MaintainStateVariable('WindowStatePassengerRear', true, $vpos++);
-                $this->SaveValue('WindowStatePassengerRear', $this->MapWindowState($val), $isChanged);
-            }
-
-            if (isset($doorsAndWindows['trunk'])) {
-                $val = $doorsAndWindows['trunk'];
+            if (isset($doorsState['trunk'])) {
+                $val = $doorsState['trunk'];
                 $this->MaintainStateVariable('TrunkState', true, $vpos++);
                 $this->SaveValue('TrunkState', $this->MapTrunkState($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['hood'])) {
-                $val = $doorsAndWindows['hood'];
+            if (isset($doorsState['hood'])) {
+                $val = $doorsState['hood'];
                 $this->MaintainStateVariable('HoodState', true, $vpos++);
                 $this->SaveValue('HoodState', $this->MapHoodState($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['sunroof'])) {
-                $val = $doorsAndWindows['sunroof'];
-                $this->MaintainStateVariable('SunroofState', true, $vpos++);
-                $this->SaveValue('SunroofState', $this->MapSunroofState($val), $isChanged);
+            if (isset($doorsState['combinedSecurityState'])) {
+                $val = $doorsState['combinedSecurityState'];
+                $this->MaintainStateVariable('DoorClosureState', true, $vpos++);
+                $this->SaveValue('DoorClosureState', $this->MapDoorClosure($val), $isChanged);
             }
 
-            if (isset($doorsAndWindows['moonroof'])) {
-                $val = $doorsAndWindows['moonroof'];
-                $this->MaintainStateVariable('MoonroofState', true, $vpos++);
-                $this->SaveValue('MoonroofState', $this->MapMoonroofState($val), $isChanged);
+            $windowsState = isset($state['windowsState']) ? $state['windowsState'] : [];
+            $this->SendDebug(__FUNCTION__, 'windowsState=' . print_r($windowsState, true), 0);
+
+            if (isset($windowsState['leftFront'])) {
+                $val = $windowsState['leftFront'];
+                $this->MaintainStateVariable('WindowStateDriverFront', true, $vpos++);
+                $this->SaveValue('WindowStateDriverFront', $this->MapWindowState($val), $isChanged);
             }
 
-            $areDoorsLocked = $this->GetArrayElem($properties, 'areDoorsLocked', false);
-            if (boolval($areDoorsLocked)) {
-                $val = self::$BMW_DOOR_CLOSURE_LOCKED;
-            } else {
-                $val = self::$BMW_DOOR_CLOSURE_UNLOCKED;
+            if (isset($windowsState['leftRear'])) {
+                $val = $windowsState['leftRear'];
+                $this->MaintainStateVariable('WindowStateDriverRear', true, $vpos++);
+                $this->SaveValue('WindowStateDriverRear', $this->MapWindowState($val), $isChanged);
             }
-            $this->MaintainStateVariable('DoorClosureState', true, $vpos++);
-            $this->SaveValue('DoorClosureState', $val, $isChanged);
+
+            if (isset($windowsState['rightFront'])) {
+                $val = $windowsState['rightFront'];
+                $this->MaintainStateVariable('WindowStatePassengerFront', true, $vpos++);
+                $this->SaveValue('WindowStatePassengerFront', $this->MapWindowState($val), $isChanged);
+            }
+
+            if (isset($windowsState['rightRear'])) {
+                $val = $windowsState['rightRear'];
+                $this->MaintainStateVariable('WindowStatePassengerRear', true, $vpos++);
+                $this->SaveValue('WindowStatePassengerRear', $this->MapWindowState($val), $isChanged);
+            }
+
+            $roofState = isset($state['roofState']) ? $state['roofState'] : [];
+            $this->SendDebug(__FUNCTION__, 'roofState=' . print_r($roofState, true), 0);
+
+            if (isset($roofState['roofState'])) {
+                $val = $roofState['roofState'];
+                $this->MaintainStateVariable('RoofState', true, $vpos++);
+                $this->SaveValue('RoofState', $this->MapRoofState($val), $isChanged);
+            }
         }
 
         $active_tire_pressure = $this->ReadPropertyBoolean('active_tire_pressure');
         if ($active_tire_pressure) {
             $vpos = 95;
 
-            $tires = isset($properties['tires']) ? $properties['tires'] : [];
-            $this->SendDebug(__FUNCTION__, 'tires=' . print_r($tires, true), 0);
+            $tireState = isset($state['tireState']) ? $state['tireState'] : [];
+            $this->SendDebug(__FUNCTION__, 'tireState=' . print_r($tireState, true), 0);
 
-            if (isset($tires['frontLeft']['status']['currentPressure'])) {
-                $val = $tires['frontLeft']['status']['currentPressure'];
+            if (isset($tireState['frontLeft']['status']['currentPressure'])) {
+                $val = $tireState['frontLeft']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureFrontLeft', true, $vpos++);
                 $this->SaveValue('TirePressureFrontLeft', $this->CalcTirePressure($val), $isChanged);
             }
-            if (isset($tires['frontRight']['status']['currentPressure'])) {
-                $val = $tires['frontRight']['status']['currentPressure'];
+            if (isset($tireState['frontRight']['status']['currentPressure'])) {
+                $val = $tireState['frontRight']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureFrontRight', true, $vpos++);
                 $this->SaveValue('TirePressureFrontRight', $this->CalcTirePressure($val), $isChanged);
             }
-            if (isset($tires['rearLeft']['status']['currentPressure'])) {
-                $val = $tires['rearLeft']['status']['currentPressure'];
+            if (isset($tireState['rearLeft']['status']['currentPressure'])) {
+                $val = $tireState['rearLeft']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureRearLeft', true, $vpos++);
                 $this->SaveValue('TirePressureRearLeft', $this->CalcTirePressure($val), $isChanged);
             }
-            if (isset($tires['rearRight']['status']['currentPressure'])) {
-                $val = $tires['rearRight']['status']['currentPressure'];
+            if (isset($tireState['rearRight']['status']['currentPressure'])) {
+                $val = $tireState['rearRight']['status']['currentPressure'];
                 $this->MaintainStateVariable('TirePressureRearRight', true, $vpos++);
                 $this->SaveValue('TirePressureRearRight', $this->CalcTirePressure($val), $isChanged);
             }
         }
 
-        $val = $this->GetArrayElem($properties, 'lastUpdatedAt', '');
+        $val = $this->GetArrayElem($state, 'lastUpdatedAt', '');
         $this->SaveValue('LastUpdateFromVehicle', strtotime($val), $isChanged);
 
         $model = $this->ReadPropertyInteger('model');
 
         $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
+
         if ($model != self::$BMW_MODEL_ELECTRIC) {
-            $val = $this->GetArrayElem($properties, 'fuelLevel.value', '');
+            $val = $this->GetArrayElem($state, 'combustionFuelLevel.remainingFuelLiters', '');
             $this->SaveValue('TankCapacity', floatval($val), $isChanged);
-            $val = $this->GetArrayElem($properties, 'combined.distance.value', '');
-            if ($val == '') {
-                $val = $this->GetArrayElem($properties, 'combustionRange.distance.value', '');
-            }
+
+            $val = $this->GetArrayElem($state, 'combustionFuelLevel.range', '');
             $this->SaveValue('RemainingCombinedRange', floatval($val), $isChanged);
         }
 
         if ($model != self::$BMW_MODEL_COMBUSTION) {
-            $val = $this->GetArrayElem($properties, 'electricRange.distance.value', '');
+            $electricChargingState = isset($state['electricChargingState']) ? $state['electricChargingState'] : [];
+            $this->SendDebug(__FUNCTION__, 'electricChargingState=' . print_r($electricChargingState, true), 0);
+
+            $val = $this->GetArrayElem($electricChargingState, 'range', '');
             $this->SaveValue('RemainingElectricRange', floatval($val), $isChanged);
 
-            $this->SendDebug(__FUNCTION__, 'chargingState=' . print_r($properties['chargingState'], true), 0);
-
-            $val = $this->GetArrayElem($properties, 'chargingState.chargePercentage', '');
+            $val = $this->GetArrayElem($electricChargingState, 'chargingLevelPercent', '');
             $this->SaveValue('ChargingLevel', floatval($val), $isChanged);
 
-            $val = $this->GetArrayElem($properties, 'chargingState.isChargerConnected', '');
+            $val = $this->GetArrayElem($electricChargingState, 'isChargerConnected', '');
             if (boolval($val) == true) {
                 $connector_status = self::$BMW_CONNECTOR_STATE_CONNECTED;
             } else {
@@ -1742,11 +1748,11 @@ class BMWConnectedDrive extends IPSModule
             }
             $this->SaveValue('ChargingConnectorStatus', $connector_status, $isChanged);
 
-            $val = $this->GetArrayElem($properties, 'chargingState.state', '');
-            $charging_status = $this->MapChargingState($val);
-            $this->SaveValue('ChargingStatus', $charging_status, $isChanged);
+            $val = $this->GetArrayElem($electricChargingState, 'chargingStatus', '');
+            $chargingStatus = $this->MapChargingState($val);
+            $this->SaveValue('ChargingStatus', $chargingStatus, $isChanged);
 
-            $chargingProfile = $this->GetArrayElem($status, 'chargingProfile', '');
+            $chargingProfile = $this->GetArrayElem($state, 'chargingProfile', '');
             $this->SendDebug(__FUNCTION__, 'chargingProfile=' . print_r($chargingProfile, true), 0);
 
             $html = '<style>' . PHP_EOL;
@@ -1847,87 +1853,48 @@ class BMWConnectedDrive extends IPSModule
             $html .= '<td>' . $this->Translate($climatisationOn ? 'Yes' : 'No') . '</td>' . PHP_EOL;
             $html .= '</tr>' . PHP_EOL;
 
-            /*
-                [climatisationOn] => 1
-                [chargingSettings] => Array
-                    (
-                        [isAcCurrentLimitActive] =>
-                        [hospitality] => NO_ACTION
-                        [idcc] => NO_ACTION
-                    )
-             */
-
             $html .= '<table>' . PHP_EOL;
 
             $this->SetValue('ChargingPreferences', $html);
 
-            $fuelIndicators = $status['fuelIndicators'];
-            if ($fuelIndicators != '') {
-                foreach ($fuelIndicators as $fuelIndicator) {
-                    $rangeIconId = $this->GetArrayElem($fuelIndicator, 'rangeIconId', '');
-                    if ($rangeIconId != 59683 /* Electric */) {
-                        continue;
-                    }
-                    $this->SendDebug(__FUNCTION__, 'fuelIndicator=' . print_r($fuelIndicator, true), 0);
-
-                    $infoLabel = $this->GetArrayElem($fuelIndicator, 'infoLabel', '');
-                    $this->SaveValue('ChargingInfo', $infoLabel, $isChanged);
-
-                    $val = $this->GetArrayElem($fuelIndicator, 'chargingStatusType', '');
-                    $chargingStatusType = $this->MapChargingState($val);
-                    //$this->SaveValue('ChargingStatus', $chargingStatusType, $isChanged);
-
-                    $charging_start = 0;
-                    $charging_end = 0;
-                    if ($chargingStatusType == self::$BMW_CHARGING_STATE_ACTIVE || $chargingStatusType == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
-                        $ts = 0;
-                        if (preg_match('/^([^~]*)~[ ]*([0-9]{2}):([0-9]{2})[ ]*(.*)$/', $infoLabel, $r)) {
-                            $ts = mktime(intval($r[2]), intval($r[3]), 0);
-                            if (isset($r[4]) && $r[4] == 'PM') {
-                                $ts += 60 * 60 * 12;
-                            }
-                            if ($ts && $ts < time()) {
-                                $ts += 60 * 60 * 24;
-                            }
-                        }
-                        if ($chargingStatusType == self::$BMW_CHARGING_STATE_ACTIVE) {
-                            $charging_start = 0;
-                            $charging_end = $ts;
-                        }
-                        if ($chargingStatusType == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
-                            $charging_start = $ts;
-                            $charging_end = 0;
-                        }
-                    }
-                    $this->SaveValue('ChargingStart', $charging_start, $isChanged);
-                    $this->SaveValue('ChargingEnd', $charging_end, $isChanged);
-
-                    $s = 'infoLabel=' . $infoLabel;
-                    $s .= ', charging_status=' . $charging_status;
-                    if ($charging_start) {
-                        $s .= ', start=' . date('d.m. H:i:s', $charging_start);
-                    }
-                    if ($charging_end) {
-                        $s .= ', end=' . date('d.m. H:i:s', $charging_end);
-                    }
-                    $this->SendDebug(__FUNCTION__, $s . ', indicator=' . print_r($fuelIndicator, true), 0);
+            if ($chargingStatus == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
+                $h = $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.hour', 0);
+                $m = $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.minute', 0);
+                $ts = mktime($h, $m, 0);
+                if ($ts && $ts < time()) {
+                    $ts += 60 * 60 * 24;
                 }
+                $charging_start = $ts;
+            } else {
+                $charging_start = 0;
             }
+            $this->SaveValue('ChargingStart', $charging_start, $isChanged);
+
+            if ($chargingStatus == self::$BMW_CHARGING_STATE_ACTIVE) {
+                $val = $this->GetArrayElem($electricChargingState, 'remainingChargingMinutes', 0);
+                $charging_end = time() + ($val * 60);
+            } else {
+                $charging_end = 0;
+            }
+            $this->SaveValue('ChargingEnd', $charging_end, $isChanged);
         }
 
         $active_current_position = $this->ReadPropertyBoolean('active_current_position');
         if ($active_current_position) {
-            $dir = $this->GetArrayElem($properties, 'vehicleLocation.heading', '');
+            $location = isset($state['location']) ? $state['location'] : [];
+            $this->SendDebug(__FUNCTION__, 'location=' . print_r($location, true), 0);
+
+            $dir = $this->GetArrayElem($location, 'heading', '');
             if ($dir != '') {
                 $this->SaveValue('CurrentDirection', intval($dir), $isChanged);
             }
 
-            $lat = $this->GetArrayElem($properties, 'vehicleLocation.coordinates.latitude', '');
+            $lat = $this->GetArrayElem($location, 'coordinates.latitude', '');
             if ($lat != '') {
                 $this->SaveValue('CurrentLatitude', floatval($lat), $isChanged);
             }
 
-            $lng = $this->GetArrayElem($properties, 'vehicleLocation.coordinates.longitude', '');
+            $lng = $this->GetArrayElem($location, 'coordinates.longitude', '');
             if ($lng != '') {
                 $this->SaveValue('CurrentLongitude', floatval($lng), $isChanged);
             }
@@ -1939,37 +1906,29 @@ class BMWConnectedDrive extends IPSModule
                     $zoom = $this->GetValue('GoogleMapZoom');
                     $this->SetGoogleMap($maptype, $zoom);
                 }
-                $val = $this->GetArrayElem($properties, 'lastUpdatedAt', '');
+                $val = $this->GetArrayElem($state, 'lastUpdatedAt', '');
                 $this->SaveValue('LastPositionMessage', strtotime($val), $isChanged);
             }
         }
 
-        $active_motion = $this->ReadPropertyBoolean('active_motion');
-        if ($active_motion) {
-            $val = $this->GetArrayElem($properties, 'inMotion', '');
-            $this->SaveValue('InMotion', boolval($val), $isChanged);
-        }
-
-        $val = $this->GetArrayElem($status, 'currentMileage.mileage', '');
+        $val = $this->GetArrayElem($state, 'currentMileage', 0);
         $this->SaveValue('Mileage', intval($val), $isChanged);
 
         $active_service = $this->ReadPropertyBoolean('active_service');
         if ($active_service) {
+            $requiredServices = $this->GetArrayElem($state, 'requiredServices', '');
+            $this->SendDebug(__FUNCTION__, 'requiredServices=' . print_r($requiredServices, true), 0);
+
             $tbl = '';
-            $requiredServices = $this->GetArrayElem($status, 'requiredServices', '');
             if ($requiredServices != '') {
                 foreach ($requiredServices as $requiredService) {
-                    $title = $requiredService['title'];
-                    if (isset($requiredService['longDescription'])) {
-                        $desc = $requiredService['longDescription'];
-                    } else {
-                        $desc = '';
-                    }
-                    $subtitle = $requiredService['subtitle'];
+                    $description = $requiredService['description'];
+                    $ts = strtotime($requiredService['dateTime']);
+                    $tstamp = date('m/Y', $ts);
+
                     $tbl .= '<tr>' . PHP_EOL;
-                    $tbl .= '<td>' . $title . '</td>' . PHP_EOL;
-                    $tbl .= '<td>' . $desc . '</td>' . PHP_EOL;
-                    $tbl .= '<td>' . $subtitle . '</td>' . PHP_EOL;
+                    $tbl .= '<td>' . $description . '</td>' . PHP_EOL;
+                    $tbl .= '<td>' . $tstamp . '</td>' . PHP_EOL;
                     $tbl .= '</tr>' . PHP_EOL;
                 }
             }
@@ -1979,7 +1938,6 @@ class BMWConnectedDrive extends IPSModule
                 $html .= '</style>' . PHP_EOL;
                 $html .= '<table>' . PHP_EOL;
                 $html .= '<tr>' . PHP_EOL;
-                $html .= '<th>' . $this->Translate('Service type') . '</th>' . PHP_EOL;
                 $html .= '<th>' . $this->Translate('Description') . '</th>' . PHP_EOL;
                 $html .= '<th>' . $this->Translate('Due') . '</th>' . PHP_EOL;
                 $html .= '</tr>' . PHP_EOL;
@@ -1994,15 +1952,37 @@ class BMWConnectedDrive extends IPSModule
 
         $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
         if ($active_checkcontrol) {
+            $checkControlMessages = $this->GetArrayElem($state, 'checkControlMessages', '');
+            $this->SendDebug(__FUNCTION__, 'checkControlMessages=' . print_r($checkControlMessages, true), 0);
+
             $tbl = '';
-            $checkControlMessages = $this->GetArrayElem($status, 'checkControlMessages', '');
+            $checkControlMessages = $this->GetArrayElem($state, 'checkControlMessages', '');
             if ($checkControlMessages != '') {
                 foreach ($checkControlMessages as $checkControlMessages) {
-                    $title = $checkControlMessages['title'];
-                    $state = $checkControlMessages['state'];
+                    $type = $checkControlMessages['type'];
+                    switch ($type) {
+                        case 'ENGINE_OIL':
+                            $type = $this->Translate('Engine oil');
+                            break;
+                        case 'TIRE_PRESSURE':
+                            $type = $this->Translate('Tire pressure');
+                            break;
+                        default:
+                            $type = $this->Translate('Unknown type') . ' ˝' . $type . '"';
+                            break;
+                    }
+                    $severity = $checkControlMessages['severity'];
+                    switch ($severity) {
+                        case 'LOW':
+                            $severity = $this->Translate('OK');
+                            break;
+                        default:
+                            $severity = $this->Translate('Unknown severity') . ' ˝' . $severity . '"';
+                            break;
+                    }
                     $tbl .= '<tr>' . PHP_EOL;
-                    $tbl .= '<td>' . $title . '</td>' . PHP_EOL;
-                    $tbl .= '<td>' . $state . '</td>' . PHP_EOL;
+                    $tbl .= '<td>' . $type . '</td>' . PHP_EOL;
+                    $tbl .= '<td>' . $severity . '</td>' . PHP_EOL;
                     $tbl .= '</tr>' . PHP_EOL;
                 }
             }
@@ -2023,12 +2003,6 @@ class BMWConnectedDrive extends IPSModule
 
             $this->SetValue('CheckControlMessages', $html);
         }
-
-        $model = $this->GetArrayElem($jdata, 'model', '');
-        $year = $this->GetArrayElem($jdata, 'year', '');
-        $bodyType = $this->GetArrayElem($jdata, 'bodyType', '');
-
-        $this->SetSummary($model . ' (' . $bodyType . '/' . $year . ')');
     }
 
     private function GetVehicleData()
@@ -2049,18 +2023,97 @@ class BMWConnectedDrive extends IPSModule
             'appDateTime'   => date('U') . date('v'), // Millisekunden
             'tireGuardMode' => 'ENABLED',
         ];
-        $data = $this->CallAPI(self::$vehicles_endpoint, '', $params, '');
+        $url = self::$vehicles_endpoint;
+        $data = $this->CallAPI($url, '', $params, '');
         if ($data != false) {
             $jdata = json_decode($data, true);
-            $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
             foreach ($jdata as $vehicle) {
                 if ($vehicle['vin'] == $vin) {
                     $this->SendDebug(__FUNCTION__, 'vehicle=' . print_r($vehicle, true), 0);
-                    $result = json_encode($vehicle);
-                    $this->UpdateVehicleData($result);
+                    $model = $this->GetArrayElem($vehicle, 'attributes.model', '');
+                    $year = $this->GetArrayElem($vehicle, 'attributes.year', '');
+                    $bodyType = $this->GetArrayElem($vehicle, 'attributes.bodyType', '');
+                    $this->SetSummary($model . ' (' . $bodyType . '/' . $year . ')');
                     break;
                 }
             }
+        }
+
+        /*
+21.07.2022, 15:25:03 |       GetVehicleData | vehicle=Array
+(
+    [vin] => WBAWY510800E34942
+    [mappingInfo] => Array
+        (
+            [isAssociated] =>
+            [isLmmEnabled] =>
+            [mappingStatus] => CONFIRMED
+            [isPrimaryUser] => 1
+        )
+
+    [appVehicleType] => CONNECTED
+    [attributes] => Array
+        (
+            [lastFetched] => 2022-07-21T13:25:03.374Z
+            [model] => X3 xDrive30d
+            [year] => 2016
+            [color] => 4281545523
+            [brand] => BMW
+            [driveTrain] => COMBUSTION
+            [headUnitType] => NBT_EVO
+            [hmiVersion] => ID5
+            [softwareVersionCurrent] => Array
+                (
+                    [puStep] => Array
+                        (
+                            [month] => 11
+                            [year] => 16
+                        )
+
+                    [iStep] => 502
+                    [seriesCluster] => F025
+                )
+
+            [softwareVersionExFactory] => Array
+                (
+                    [puStep] => Array
+                        (
+                            [month] => 11
+                            [year] => 16
+                        )
+
+                    [iStep] => 502
+                    [seriesCluster] => F025
+                )
+
+            [telematicsUnit] => ATM1
+            [bodyType] => F25
+            [countryOfOrigin] => DE
+            [a4aType] => BLUETOOTH
+            [driverGuideInfo] => Array
+                (
+                    [androidAppScheme] => com.bmwgroup.driversguide.row
+                    [iosAppScheme] => bmwdriversguide:///open
+                    [androidStoreUrl] => https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row
+                    [iosStoreUrl] => https://apps.apple.com/de/app/id714042749?mt=8
+                )
+
+        )
+
+)
+
+
+
+
+
+         */
+
+        $url = self::$vehicles_endpoint . '/' . $vin . '/state';
+        $data = $this->CallAPI($url, '', $params, '');
+        if ($data != false) {
+            $jdata = json_decode($data, true);
+            $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+            $this->UpdateVehicleData($data);
         }
         return $result;
     }
@@ -2686,8 +2739,34 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
     }
 
+    private function LocalRequestAction($ident, $value)
+    {
+        $r = true;
+        switch ($ident) {
+            case 'UpdateData':
+                $this->UpdateData();
+                break;
+            case 'UpdateRemoteServiceStatus':
+                $this->UpdateRemoteServiceStatus();
+                break;
+            case 'Relogin':
+                $this->Relogin();
+                break;
+            case 'GetCarPicture':
+                $this->GetCarPicture($value);
+                break;
+            default:
+                $r = false;
+                break;
+        }
+        return $r;
+    }
+
     public function RequestAction($ident, $value)
     {
+        if ($this->LocalRequestAction($ident, $value)) {
+            return;
+        }
         if ($this->CommonRequestAction($ident, $value)) {
             return;
         }
@@ -2729,18 +2808,6 @@ class BMWConnectedDrive extends IPSModule
                 break;
             case 'GoogleMapZoom':
                 $r = $this->SetGoogleMapZoom($value);
-                break;
-            case 'UpdateData':
-                $this->UpdateData();
-                break;
-            case 'UpdateRemoteServiceStatus':
-                $this->UpdateRemoteServiceStatus();
-                break;
-            case 'Relogin':
-                $this->Relogin();
-                break;
-            case 'GetCarPicture':
-                $this->GetCarPicture($value);
                 break;
             default:
                 $this->SendDebug(__FUNCTION__, 'invalid ident "' . $ident . '"', 0);
@@ -2951,41 +3018,21 @@ class BMWConnectedDrive extends IPSModule
     }
 
     // Schiebedach
-    private function MapSunroofState($s)
+    private function MapRoofState($s)
     {
         $str2enum = [
-            'UNKNOWN'      => self::$BMW_SUNROOF_STATE_UNKNOWN,
-            'OPEN'         => self::$BMW_SUNROOF_STATE_OPEN,
-            'OPEN_TILT'    => self::$BMW_SUNROOF_STATE_OPEN_TILT,
-            'INTERMEDIATE' => self::$BMW_SUNROOF_STATE_INTERMEDIATE,
-            'CLOSED'       => self::$BMW_SUNROOF_STATE_CLOSED,
+            'UNKNOWN'      => self::$BMW_ROOF_STATE_UNKNOWN,
+            'OPEN'         => self::$BMW_ROOF_STATE_OPEN,
+            'OPEN_TILT'    => self::$BMW_ROOF_STATE_OPEN_TILT,
+            'INTERMEDIATE' => self::$BMW_ROOF_STATE_INTERMEDIATE,
+            'CLOSED'       => self::$BMW_ROOF_STATE_CLOSED,
         ];
 
         if (isset($str2enum[$s])) {
             $e = $str2enum[$s];
         } else {
             $this->SendDebug(__FUNCTION__, 'unknown value "' . $s . '"', 0);
-            $e = self::$BMW_SUNROOF_STATE_UNKNOWN;
-        }
-        return $e;
-    }
-
-    // Glas-Schiebedach
-    private function MapMoonroofState($s)
-    {
-        $str2enum = [
-            'UNKNOWN'      => self::$BMW_MOONROOF_STATE_UNKNOWN,
-            'OPEN'         => self::$BMW_MOONROOF_STATE_OPEN,
-            'OPEN_TILT'    => self::$BMW_MOONROOF_STATE_OPEN_TILT,
-            'INTERMEDIATE' => self::$BMW_MOONROOF_STATE_INTERMEDIATE,
-            'CLOSED'       => self::$BMW_MOONROOF_STATE_CLOSED,
-        ];
-
-        if (isset($str2enum[$s])) {
-            $e = $str2enum[$s];
-        } else {
-            $this->SendDebug(__FUNCTION__, 'unknown value "' . $s . '"', 0);
-            $e = self::$BMW_MOONROOF_STATE_UNKNOWN;
+            $e = self::$BMW_ROOF_STATE_UNKNOWN;
         }
         return $e;
     }

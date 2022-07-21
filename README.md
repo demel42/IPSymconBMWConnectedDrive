@@ -139,7 +139,6 @@ BMW_SendPOI(<InstanceID>, json_encode($poi));
 | active_vehicle_finder    | boolean | false        | Fahrzeugsuche auslösen |
 |                          |         |              | |
 | active_lock_data         | boolean | false        | Verschluss-Status anzeigen |
-| active_motion            | boolean | false        | Fahrzeugbewegung anzeigen |
 | active_service           | boolean | false        | Service-Meldungen anzeigen |
 | active_checkcontrol      | boolean | false        | Check-Control-Meldungen anzeigen |
 | active_current_position  | boolean | false        | aktuelle Position anzeigen |
@@ -166,8 +165,7 @@ BMW.Googlemap,
 BMW.Heading,
 BMW.HoodState,
 BMW.Mileage,
-BMW.MoonroofState,
-BMW.SunroofState,
+BMW.RoofState,
 BMW.TriggerRemoteService,
 BMW.TrunkState,
 BMW.WindowState
@@ -195,6 +193,12 @@ Quellen / Referenzen
 - [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
+
+- 2.7 @ 21.07.2022 15:32
+  - Fix: API-Änderung ('/v1/vehicles' ersetzt durch '/v2/vehicles')
+    - es gibt keine Unterscheidung mehr von Schiebedach-Typen
+	- Variable 'in Bewegung' ist weggefallen
+	- Variable 'CheckControl' wird nur eingeschränkt unterstützt
 
 - 2.6 @ 05.07.2022 09:29
   - Verbesserung: IPS-Status wird nur noch gesetzt, wenn er sich ändert

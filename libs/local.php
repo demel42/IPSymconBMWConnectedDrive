@@ -104,21 +104,11 @@ trait BMWConnectedDriveLocalLib
     private static $BMW_HOOD_STATE_CLOSED = 3;
 
     // Schiebedach
-    private static $BMW_SUNROOF_STATE_UNKNOWN = 0;
-    private static $BMW_SUNROOF_STATE_OPEN = 1;
-    private static $BMW_SUNROOF_STATE_OPEN_TILT = 2;
-    private static $BMW_SUNROOF_STATE_INTERMEDIATE = 3;
-    private static $BMW_SUNROOF_STATE_CLOSED = 4;
-
-    // Glas-Schiebedach
-    private static $BMW_MOONROOF_STATE_UNKNOWN = 0;
-    private static $BMW_MOONROOF_STATE_OPEN = 1;
-    private static $BMW_MOONROOF_STATE_OPEN_TILT = 2;
-    private static $BMW_MOONROOF_STATE_INTERMEDIATE = 3;
-    private static $BMW_MOONROOF_STATE_CLOSED = 4;
-
-    // Carbiodach / convertible roof
-    // OPEN / CLOSED / CLOSEDSECURED / OPENSECURED / HARDTOPMOUNTED / INTERMEDIATEPOSITION / LOADINGPOSITION / LOADINGPOSITIONIMMEDIATE
+    private static $BMW_ROOF_STATE_UNKNOWN = 0;
+    private static $BMW_ROOF_STATE_OPEN = 1;
+    private static $BMW_ROOF_STATE_OPEN_TILT = 2;
+    private static $BMW_ROOF_STATE_INTERMEDIATE = 3;
+    private static $BMW_ROOF_STATE_CLOSED = 4;
 
     // GoogleMapType
     private static $BMW_GOOGLEMAP_TYPE_ROADMAP = 0;
@@ -232,22 +222,13 @@ trait BMWConnectedDriveLocalLib
         $this->CreateVarProfile('BMW.HoodState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
 
         $associations = [
-            ['Wert' => self::$BMW_SUNROOF_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_SUNROOF_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_SUNROOF_STATE_OPEN_TILT, 'Name' => $this->Translate('tilt'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_SUNROOF_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_SUNROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1],
+            ['Wert' => self::$BMW_ROOF_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1],
+            ['Wert' => self::$BMW_ROOF_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1],
+            ['Wert' => self::$BMW_ROOF_STATE_OPEN_TILT, 'Name' => $this->Translate('tilt'), 'Farbe' => -1],
+            ['Wert' => self::$BMW_ROOF_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1],
+            ['Wert' => self::$BMW_ROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1],
         ];
-        $this->CreateVarProfile('BMW.SunroofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
-
-        $associations = [
-            ['Wert' => self::$BMW_MOONROOF_STATE_UNKNOWN, 'Name' => $this->Translate('unknown'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_MOONROOF_STATE_OPEN, 'Name' => $this->Translate('open'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_MOONROOF_STATE_OPEN_TILT, 'Name' => $this->Translate('tilt'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_MOONROOF_STATE_INTERMEDIATE, 'Name' => $this->Translate('intermediate'), 'Farbe' => -1],
-            ['Wert' => self::$BMW_MOONROOF_STATE_CLOSED, 'Name' => $this->Translate('closed'), 'Farbe' => -1],
-        ];
-        $this->CreateVarProfile('BMW.MoonroofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
+        $this->CreateVarProfile('BMW.RoofState', VARIABLETYPE_INTEGER, '', 0, 0, 0, 0, '', $associations, $reInstall);
 
         $this->CreateVarProfile('BMW.Mileage', VARIABLETYPE_INTEGER, ' km', 0, 0, 0, 0, 'Distance', '', $reInstall);
         $this->CreateVarProfile('BMW.Heading', VARIABLETYPE_INTEGER, ' °', 0, 360, 0, 0, 'WindDirection', '', $reInstall);
