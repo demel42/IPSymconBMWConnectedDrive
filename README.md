@@ -194,6 +194,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.9 @ 22.07.2022 15:46
+  - Fix: "CheckControl" abgesichert, Übersetzung
+
 - 2.8 @ 22.07.2022 09:31
   - Fix: Angabe der Kompatibilität auf 6.1 korrigiert
 

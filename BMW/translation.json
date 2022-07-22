@@ -107,15 +107,6 @@
 			"window passenger front": "Fenster Beifahrer vorne",
 			"window passenger rear": "Fenster Beifahrer hinten",
 
-			"__variable__": "CheckControlMessages.type",
-			"Engine oil": "Motoröl",
-			"Tire pressure": "Reifendruck",
-			"Unknown type": "unbekannter Typ",
-
-			"__variable__": "CheckControlMessages.severity",
-			"OK": "OK",
-			"Unknown severity": "unbekannter Schweregrad",
-
 			"__function__": "UpdateVehicleData / ChargingPreferences",
 			"Charging mode": "Lademodus",
 			"immediately": "sofort laden",
@@ -141,10 +132,25 @@
 			"Due": "Fälligkeit",
 			"No required services": "Kein erforderlicher Service",
 
+			"Oil": "Öl",
+			"Vehicle check": "Fahrzeugkontrolle",
+			"Tire wear rear": "Reifenverschleiß hinten",
+			"Tire wear front": "Reifenverschleiß vorne",
+			"Break fluid": "Bremsflüssigkeit",
+			"Emission check": "Abgasuntersuchung",
+			"Unknown type": "Unbekannter Typ",
+
 			"__function__": "UpdateVehicleData / CheckControlMessages",
 			"Message": "Meldung",
 			"State": "Status",
 			"No check-control messages": "es liegen keine Check-Control Meldungen vor",
+			
+			"Engine oil": "Motoröl",
+			"Tire pressure": "Reifendruck",
+			"Unknown type": "unbekannter Typ",
+
+			"OK": "OK",
+			"Unknown severity": "unbekannter Schweregrad",
 
 			"__function__": "UpdateChargingSessions",
 			"Moment": "Zeitpunkt",

@@ -1922,11 +1922,36 @@ class BMWConnectedDrive extends IPSModule
             $tbl = '';
             if ($requiredServices != '') {
                 foreach ($requiredServices as $requiredService) {
-                    $description = $requiredService['description'];
-                    $ts = strtotime($requiredService['dateTime']);
-                    $tstamp = date('m/Y', $ts);
+                    $description = $this->GetArrayElem($requiredService, 'description', '');
+                    $dateTime = $this->GetArrayElem($requiredService, 'dateTime', '');
+                    $tstamp = $dateTime != '' ? date('m/Y', strtotime($dateTime)) : '';
+                    $type = $this->GetArrayElem($requiredService, 'type', '');
+                    switch ($type) {
+                        case 'OIL':
+                            $type = $this->Translate('Oil');
+                            break;
+                        case 'VEHICLE_CHECK':
+                            $type = $this->Translate('Vehicle check');
+                            break;
+                        case 'TIRE_WEAR_REAR':
+                            $type = $this->Translate('Tire wear rear');
+                            break;
+                        case 'TIRE_WEAR_FRONT':
+                            $type = $this->Translate('Tire wear front');
+                            break;
+                        case 'BRAKE_FLUID':
+                            $type = $this->Translate('Break fluid');
+                            break;
+                        case 'EMISSION_CHECK':
+                            $type = $this->Translate('Emission check');
+                            break;
+                        default:
+                            $type = $this->Translate('Unknown type') . ' ˝' . $type . '"';
+                            break;
+                    }
 
                     $tbl .= '<tr>' . PHP_EOL;
+                    $tbl .= '<td>' . $type . '</td>' . PHP_EOL;
                     $tbl .= '<td>' . $description . '</td>' . PHP_EOL;
                     $tbl .= '<td>' . $tstamp . '</td>' . PHP_EOL;
                     $tbl .= '</tr>' . PHP_EOL;
@@ -1938,6 +1963,7 @@ class BMWConnectedDrive extends IPSModule
                 $html .= '</style>' . PHP_EOL;
                 $html .= '<table>' . PHP_EOL;
                 $html .= '<tr>' . PHP_EOL;
+                $html .= '<th>' . $this->Translate('Service type') . '</th>' . PHP_EOL;
                 $html .= '<th>' . $this->Translate('Description') . '</th>' . PHP_EOL;
                 $html .= '<th>' . $this->Translate('Due') . '</th>' . PHP_EOL;
                 $html .= '</tr>' . PHP_EOL;
@@ -1959,7 +1985,7 @@ class BMWConnectedDrive extends IPSModule
             $checkControlMessages = $this->GetArrayElem($state, 'checkControlMessages', '');
             if ($checkControlMessages != '') {
                 foreach ($checkControlMessages as $checkControlMessages) {
-                    $type = $checkControlMessages['type'];
+                    $type = $this->GetArrayElem($checkControlMessages, 'type', '');
                     switch ($type) {
                         case 'ENGINE_OIL':
                             $type = $this->Translate('Engine oil');
@@ -1971,7 +1997,7 @@ class BMWConnectedDrive extends IPSModule
                             $type = $this->Translate('Unknown type') . ' ˝' . $type . '"';
                             break;
                     }
-                    $severity = $checkControlMessages['severity'];
+                    $severity = $this->GetArrayElem($checkControlMessages, 'severity', '');
                     switch ($severity) {
                         case 'LOW':
                             $severity = $this->Translate('OK');
