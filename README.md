@@ -194,6 +194,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.8 @ 22.07.2022 09:31
+  - Fix: Angabe der Kompatibilität auf 6.1 korrigiert
+
 - 2.7 @ 21.07.2022 15:32
   - Fix: API-Änderung ('/v1/vehicles' ersetzt durch '/v2/vehicles')
     - es gibt keine Unterscheidung mehr von Schiebedach-Typen
