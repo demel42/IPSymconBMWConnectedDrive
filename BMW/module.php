@@ -243,6 +243,10 @@ class BMWConnectedDrive extends IPSModule
             $r[] = $this->Translate('Delete old variables and variableprofiles');
         }
 
+        if ($this->version2num($oldInfo) < $this->version2num('2.9.1')) {
+            $r[] = $this->Translate('Delete old variables');
+        }
+
         return $r;
     }
 
@@ -321,6 +325,10 @@ class BMWConnectedDrive extends IPSModule
             $this->InstallVarProfiles(false);
         }
 
+        if ($this->version2num($oldInfo) < $this->version2num('2.9.1')) {
+            $this->UnregisterVariable('ChargingInfo');
+        }
+
         return '';
     }
 
@@ -380,7 +388,6 @@ class BMWConnectedDrive extends IPSModule
         $this->MaintainVariable('ChargingStatus', $this->Translate('charging status'), VARIABLETYPE_INTEGER, 'BMW.ChargingStatus', $vpos++, $isElectric);
         $this->MaintainVariable('ChargingStart', $this->Translate('charging start'), VARIABLETYPE_INTEGER, '~UnixTimestampTime', $vpos++, $isElectric);
         $this->MaintainVariable('ChargingEnd', $this->Translate('charging end'), VARIABLETYPE_INTEGER, '~UnixTimestampTime', $vpos++, $isElectric);
-        $this->MaintainVariable('ChargingInfo', $this->Translate('charging info'), VARIABLETYPE_STRING, '', $vpos++, $isElectric);
         $this->MaintainVariable('ChargingPreferences', $this->Translate('charging preferences'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $isElectric);
         $this->MaintainVariable('ChargingSessions', $this->Translate('charging sessions'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, $isElectric);
 
@@ -458,8 +465,7 @@ class BMWConnectedDrive extends IPSModule
                 'WindowStatePassengerRear',
                 'TrunkState',
                 'HoodState',
-                'SunroofState',
-                'MoonroofState',
+                'RoofState',
             ];
             foreach ($idents as $ident) {
                 $this->MaintainStateVariable($ident, false, 0);
@@ -1750,6 +1756,9 @@ class BMWConnectedDrive extends IPSModule
 
             $val = $this->GetArrayElem($electricChargingState, 'chargingStatus', '');
             $chargingStatus = $this->MapChargingState($val);
+            if ($connector_status == self::$BMW_CONNECTOR_STATE_DISCONNECTED && $chargingStatus == self::$BMW_CHARGING_STATE_INVALID) {
+                $chargingStatus = self::$BMW_CHARGING_STATE_NOT;
+            }
             $this->SaveValue('ChargingStatus', $chargingStatus, $isChanged);
 
             $chargingProfile = $this->GetArrayElem($state, 'chargingProfile', '');
@@ -1857,25 +1866,32 @@ class BMWConnectedDrive extends IPSModule
 
             $this->SetValue('ChargingPreferences', $html);
 
-            if ($chargingStatus == self::$BMW_CHARGING_STATE_PLUGGED_IN) {
-                $h = $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.hour', 0);
-                $m = $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.minute', 0);
-                $ts = mktime($h, $m, 0);
-                if ($ts && $ts < time()) {
-                    $ts += 60 * 60 * 24;
-                }
-                $charging_start = $ts;
-            } else {
-                $charging_start = 0;
+            switch ($chargingStatus) {
+                case self::$BMW_CHARGING_STATE_PLUGGED_IN:
+                    $h = $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.hour', 0);
+                    $m = $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.minute', 0);
+                    $ts = mktime($h, $m, 0);
+                    if ($ts && $ts < time()) {
+                        $ts += 60 * 60 * 24;
+                    }
+                    $charging_start = $ts;
+                    $charging_end = 0;
+                    break;
+                case self::$BMW_CHARGING_STATE_ACTIVE:
+                    $charging_start = $this->GetValue('ChargingStart');
+                    if ($charging_start == 0) {
+                        $charging_start = time();
+                    }
+                    $m = $this->GetArrayElem($electricChargingState, 'remainingChargingMinutes', 0);
+                    $charging_end = time() + ($m * 60);
+                    break;
+                default:
+                    $charging_start = 0;
+                    $charging_end = 0;
+                    break;
             }
-            $this->SaveValue('ChargingStart', $charging_start, $isChanged);
 
-            if ($chargingStatus == self::$BMW_CHARGING_STATE_ACTIVE) {
-                $val = $this->GetArrayElem($electricChargingState, 'remainingChargingMinutes', 0);
-                $charging_end = time() + ($val * 60);
-            } else {
-                $charging_end = 0;
-            }
+            $this->SaveValue('ChargingStart', $charging_start, $isChanged);
             $this->SaveValue('ChargingEnd', $charging_end, $isChanged);
         }
 
