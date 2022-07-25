@@ -5,6 +5,7 @@
 
 			"__function__": "CheckUpdate",
 			"Delete old variables and variableprofiles": "Alte Variablen und Variablenprofile löschen",
+			"Delete old variables": "Alte Variablen löschen",
 
 			"__function__": "CheckConfiguration",
 			"User and password of the BMW-account are required and and a registered VIN": "Benutzer und Passwort des BMW-Kontos werden benötigt und eine registrierte VIN",
