@@ -235,18 +235,16 @@ class BMWConnectedDrive extends IPSModule
     {
         $r = [];
 
-        if ($oldInfo != []) {
-            if ($this->version2num($oldInfo) < $this->version2num('2.0')) {
-                $r[] = $this->Translate('Delete old variables and variableprofiles');
-            }
+        if ($this->version2num($oldInfo) < $this->version2num('2.0')) {
+            $r[] = $this->Translate('Delete old variables and variableprofiles');
+        }
 
-            if ($this->version2num($oldInfo) < $this->version2num('2.7')) {
-                $r[] = $this->Translate('Delete old variables and variableprofiles');
-            }
+        if ($this->version2num($oldInfo) < $this->version2num('2.7')) {
+            $r[] = $this->Translate('Delete old variables and variableprofiles');
+        }
 
-            if ($this->version2num($oldInfo) < $this->version2num('2.9.1')) {
-                $r[] = $this->Translate('Delete old variables');
-            }
+        if ($this->version2num($oldInfo) < $this->version2num('2.9.1')) {
+            $r[] = $this->Translate('Delete old variables');
         }
 
         return $r;
