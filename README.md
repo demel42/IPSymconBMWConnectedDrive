@@ -194,7 +194,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 2.9.1 @ 25.07.2022 10:28
+- 2.9.1 @ 26.07.2022 09:25
   - Fix: Setzen von 'ChargingStart' und 'ChargingEnd' korrigiert
   - Fix: Aufbereitung für 'ChargingStatus' verfeinert
     Wenn Ladekabel-Status 'nicht verbunden' ist, dann ist der Ladezyklus-Status 'inaktiv'
