@@ -194,6 +194,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.9.2 @ 26.07.2022 15:38
+  - Fix: eine fehlende Übersetzung nachgetragen
+
 - 2.9.1 @ 26.07.2022 10:17
   - Fix: Setzen von 'ChargingStart' und 'ChargingEnd' korrigiert
   - Fix: Aufbereitung für 'ChargingStatus' verfeinert

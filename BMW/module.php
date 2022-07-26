@@ -212,7 +212,7 @@ class BMWConnectedDrive extends IPSModule
         $vin = $this->ReadPropertyString('vin');
         if ($user == '' || $password == '' || $vin == '') {
             $this->SendDebug(__FUNCTION__, '"user", "password" and/or "vin" is empty', 0);
-            $r[] = $this->Translate('User and password of the BMW-account are required and and a registered "vin"');
+            $r[] = $this->Translate('User and password of the BMW-account are required and and a registered VIN');
         }
 
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
