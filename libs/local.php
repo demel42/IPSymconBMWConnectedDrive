@@ -234,6 +234,7 @@ trait BMWConnectedDriveLocalLib
         $this->CreateVarProfile('BMW.Heading', VARIABLETYPE_INTEGER, ' °', 0, 360, 0, 0, 'WindDirection', '', $reInstall);
 
         $this->CreateVarProfile('BMW.TankCapacity', VARIABLETYPE_FLOAT, ' Liter', 0, 0, 0, 0, 'Gauge', '', $reInstall);
+        $this->CreateVarProfile('BMW.TankLevel', VARIABLETYPE_FLOAT, ' %', 0, 0, 0, 0, '', '', $reInstall);
         $this->CreateVarProfile('BMW.RemainingRange', VARIABLETYPE_FLOAT, ' km', 0, 0, 0, 0, 'Gauge', '', $reInstall);
         $this->CreateVarProfile('BMW.ChargingLevel', VARIABLETYPE_FLOAT, ' %', 0, 0, 0, 0, '', '', $reInstall);
         $this->CreateVarProfile('BMW.StateofCharge', VARIABLETYPE_FLOAT, ' kWh', 0, 0, 0, 1, '', '', $reInstall);

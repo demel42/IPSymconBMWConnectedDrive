@@ -177,6 +177,7 @@ BMW.Location,
 BMW.RemainingRange,
 BMW.StateofCharge,
 BMW.TankCapacity,
+BMW.TankLevel,
 BMW.TirePressure
 
 ## 6. Anhang
@@ -193,6 +194,9 @@ Quellen / Referenzen
 - [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
+
+- 2.10 @ 01.08.2022 17:18
+  - Fix: manche Modelle liefern nun Tankfüllstand (FuelPercent') statt Tankinhalt (FuelLiters)
 
 - 2.9.2 @ 26.07.2022 15:38
   - Fix: eine fehlende Übersetzung nachgetragen

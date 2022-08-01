@@ -196,6 +196,17 @@ class BMWConnectedDrive extends IPSModule
                 'vartype' => VARIABLETYPE_FLOAT,
                 'varprof' => 'BMW.TirePressure',
             ],
+
+            'TankCapacity' => [
+                'desc'    => 'tank capacity',
+                'vartype' => VARIABLETYPE_FLOAT,
+                'varprof' => 'BMW.TankCapacity',
+            ],
+            'TankLevel' => [
+                'desc'    => 'tank level',
+                'vartype' => VARIABLETYPE_FLOAT,
+                'varprof' => 'BMW.TankLevel',
+            ],
         ];
 
         if (isset($settings[$ident])) {
@@ -1729,8 +1740,20 @@ class BMWConnectedDrive extends IPSModule
         $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
 
         if ($model != self::$BMW_MODEL_ELECTRIC) {
-            $val = $this->GetArrayElem($state, 'combustionFuelLevel.remainingFuelLiters', '');
-            $this->SaveValue('TankCapacity', floatval($val), $isChanged);
+            if (isset($state['combustionFuelLevel']['remainingFuelLiters'])) {
+                $val = $state['combustionFuelLevel']['remainingFuelLiters'];
+                $this->MaintainStateVariable('TankCapacity', true, 2);
+                $this->SaveValue('TankCapacity', $val, $isChanged);
+            } else {
+                $this->UnregisterVariable('TankCapacity');
+            }
+            if (isset($state['combustionFuelLevel']['remainingFuelPercent'])) {
+                $val = $state['combustionFuelLevel']['remainingFuelPercent'];
+                $this->MaintainStateVariable('TankLevel', true, 2);
+                $this->SaveValue('TankLevel', $val, $isChanged);
+            } else {
+                $this->UnregisterVariable('TankLevel');
+            }
 
             $val = $this->GetArrayElem($state, 'combustionFuelLevel.range', '');
             $this->SaveValue('RemainingCombinedRange', floatval($val), $isChanged);
