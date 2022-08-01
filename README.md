@@ -196,7 +196,7 @@ Quellen / Referenzen
 ## 7. Versions-Historie
 
 - 2.10 @ 01.08.2022 17:18
-  - Fix: manche Modelle liefern nun Tankfüllstand (FuelPercent') statt Tankinhalt (FuelLiters)
+  - Fix: manche Modelle liefern nun Tankfüllstand ('FuelPercent') statt Tankinhalt ('FuelLiters')
 
 - 2.9.2 @ 26.07.2022 15:38
   - Fix: eine fehlende Übersetzung nachgetragen
