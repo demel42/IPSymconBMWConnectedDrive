@@ -195,6 +195,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.10.1 @ 07.10.2022 13:59
+  - update submodule CommonStubs
+    Fix: Update-Prüfung wieder funktionsfähig
+
 - 2.10 @ 01.08.2022 17:18
   - Fix: manche Modelle liefern nun Tankfüllstand ('FuelPercent') statt Tankinhalt ('FuelLiters')
 
