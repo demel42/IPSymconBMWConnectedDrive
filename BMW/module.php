@@ -509,7 +509,7 @@ class BMWConnectedDrive extends IPSModule
 
         if (IPS_GetKernelRunlevel() == KR_READY) {
             $this->SetUpdateInterval();
-            $this->UpdateRemoteServiceStatus();
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 1000);
         }
     }
 
@@ -519,7 +519,7 @@ class BMWConnectedDrive extends IPSModule
 
         if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
             $this->SetUpdateInterval();
-            $this->UpdateRemoteServiceStatus();
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 1000);
         }
     }
 

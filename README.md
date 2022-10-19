@@ -195,6 +195,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 2.11 @ 19.10.2022 09:31
+  - Fix: MessageSink() angepasst, um Warnungen aufgrund zu langer Laufzeit von KR_READY zu vermeiden
+  - update submodule CommonStubs
+
 - 2.10.1 @ 07.10.2022 13:59
   - update submodule CommonStubs
     Fix: Update-Prüfung wieder funktionsfähig
