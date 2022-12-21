@@ -1,0 +1,18 @@
+{
+	"id": "{2B3E3F00-33AC-4A54-8E20-F8B57241913D}",
+	"name": "BMWConnectedDriveIO",
+	"type": 1,
+	"vendor": "BMW",
+	"aliases": [
+		"BMW ConnectedDrive I/O"
+	],
+	"parentRequirements": [],
+	"childRequirements": [
+		"{7D93F416-125A-4CAE-B707-0DB2A2361013}"
+	],
+	"implemented": [
+		"{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}"
+	],
+	"prefix": "BMW",
+	"url": "https://github.com/demel42/IPSymconBMWConnectedDrive/README.md"
+}

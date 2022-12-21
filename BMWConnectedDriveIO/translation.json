@@ -1,0 +1,30 @@
+{
+	"translations": {
+		"de": { 
+			"BMW": "BMW",
+
+			"__function__": "CheckConfiguration",
+			"User and password of the BMW-account are required": "Benutzer und Passwort des BMW-Kontos werden benötigt",
+
+			"__elements__": "",
+			"Disable instance": "Instanz deaktivieren",
+
+			"Account data": "Zugangsdaten",
+			"User": "Benutzer",
+			"Password": "Passwort",
+			"Country": "Land",
+			"Vehicle-brand": "Fahrzeug-Marke",
+
+			"__actions__": "",
+			"Test access": "Zugang prüfen",
+			"Clear token": "Token löschen",
+
+			"__function__": "TestAccess",
+			"invalid account-data": "Ungültige Zugangsdaten",
+			"valid account-data": "Gültige Zugangsdaten",
+			"registered vehicles found": "registrierte Fahrzeuge gefunden",
+
+			"__end__": ""
+		}
+	}
+}

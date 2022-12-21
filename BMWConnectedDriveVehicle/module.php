@@ -8,47 +8,11 @@ require_once __DIR__ . '/../libs/images.php';
 
 // define('CHARGE_NOW', true);
 
-class BMWConnectedDrive extends IPSModule
+class BMWConnectedDriveVehicle extends IPSModule
 {
     use BMWConnectedDrive\StubsCommonLib;
     use BMWConnectedDriveLocalLib;
     use BMWConnectedDriveImagesLib;
-
-    // Konfigurationen
-    private static $server_urls_eadrax = [
-        'NorthAmerica' => 'cocoapi.bmwgroup.us',
-        'RestOfWorld'  => 'cocoapi.bmwgroup.com',
-    ];
-
-    private static $region_map = [
-        'NorthAmerica' => 'nas',
-        'RestOfWorld'  => 'row',
-    ];
-
-    private static $ocp_apim_key = [
-        'NorthAmerica' => 'MzFlMTAyZjUtNmY3ZS03ZWYzLTkwNDQtZGRjZTYzODkxMzYy',
-        'RestOfWorld'  => 'NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh',
-    ];
-
-    private static $x_user_agent_fmt = 'android(SP1A.210812.016.C1);%s;2.5.2(14945);%s';
-    private static $user_agent = 'Dart/2.14 (dart:io)';
-
-    private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
-    private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
-    private static $oauth_token_endpoint = '/gcdm/oauth/token';
-
-    private static $vehicles_endpoint = '/eadrax-vcs/v2/vehicles';
-
-    private static $remoteService_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands';
-    private static $remoteServiceStatus_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventStatus';
-    private static $remoteServicePosition_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventPosition';
-    private static $remoteServiceHistory_endpoint = '/eadrax-vrccs/v2/presentation/remote-history';
-
-    private static $vehicle_img_endpoint = '/eadrax-ics/v3/presentation/vehicles/%s/images';
-    private static $vehicle_poi_endpoint = '/eadrax-dcs/v1/send-to-car/send-to-car';
-
-    private static $charging_statistics_endpoint = '/eadrax-chs/v1/charging-statistics';
-    private static $charging_sessions_endpoint = '/eadrax-chs/v1/charging-sessions';
 
     private static $UpdateRemoteHistoryInterval = 5;
 
@@ -67,12 +31,14 @@ class BMWConnectedDrive extends IPSModule
 
         $this->RegisterPropertyBoolean('module_disable', false);
 
+        // alte, nicht mehr benötigte, Properties
         $this->RegisterPropertyString('user', '');
         $this->RegisterPropertyString('password', '');
         $this->RegisterPropertyInteger('country', self::$BMW_COUNTRY_GERMANY);
-        $this->RegisterPropertyString('vin', '');
-        $this->RegisterPropertyInteger('model', self::$BMW_MODEL_COMBUSTION);
         $this->RegisterPropertyInteger('brand', self::$BMW_BRAND_BMW);
+
+        $this->RegisterPropertyString('vin', '');
+        $this->RegisterPropertyInteger('model', self::$BMW_DRIVE_TYPE_COMBUSTION);
 
         $this->RegisterPropertyBoolean('active_climate', false);
         $this->RegisterPropertyBoolean('active_lock', false);
@@ -94,14 +60,13 @@ class BMWConnectedDrive extends IPSModule
 
         $this->RegisterPropertyInteger('UpdateInterval', 10);
 
-        $this->RegisterAttributeString('ApiSettings', '');
-        $this->RegisterAttributeString('ApiRefreshToken', '');
         $this->RegisterAttributeString('RemoteServiceHistory', '');
 
         $this->RegisterAttributeString('UpdateInfo', '');
 
         $this->InstallVarProfiles(false);
 
+        $this->SetBuffer('Summary', '');
         $this->SetMultiBuffer('VehicleData', '');
         $this->SetMultiBuffer('ChargingStatistics', '');
         $this->SetMultiBuffer('ChargingSessions', '');
@@ -111,6 +76,8 @@ class BMWConnectedDrive extends IPSModule
         $this->RegisterTimer('UpdateRemoteServiceStatus', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateRemoteServiceStatus", "");');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
+
+        $this->ConnectParent('{2B3E3F00-33AC-4A54-8E20-F8B57241913D}');
     }
 
     private function MaintainStateVariable($ident, $use, $vpos)
@@ -218,12 +185,10 @@ class BMWConnectedDrive extends IPSModule
     {
         $r = [];
 
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
         $vin = $this->ReadPropertyString('vin');
-        if ($user == '' || $password == '' || $vin == '') {
-            $this->SendDebug(__FUNCTION__, '"user", "password" and/or "vin" is empty', 0);
-            $r[] = $this->Translate('User and password of the BMW-account are required and and a registered VIN');
+        if ($vin == '') {
+            $this->SendDebug(__FUNCTION__, '"vin" is empty', 0);
+            $r[] = $this->Translate('A registered VIN is required');
         }
 
         $active_googlemap = $this->ReadPropertyBoolean('active_googlemap');
@@ -256,6 +221,10 @@ class BMWConnectedDrive extends IPSModule
 
         if ($this->version2num($oldInfo) < $this->version2num('2.9.1')) {
             $r[] = $this->Translate('Delete old variables');
+        }
+
+        if ($this->version2num($oldInfo) < $this->version2num('3.0')) {
+            $r[] = $this->Translate('Generate a I/O instance');
         }
 
         return $r;
@@ -340,6 +309,49 @@ class BMWConnectedDrive extends IPSModule
             $this->UnregisterVariable('ChargingInfo');
         }
 
+        if ($this->version2num($oldInfo) < $this->version2num('3.0')) {
+            $user = $this->ReadPropertyString('user');
+
+            $inst = IPS_GetInstance($this->InstanceID);
+            $connectionID = $inst['ConnectionID'];
+            if (IPS_InstanceExists($connectionID) == false) {
+                IPS_DisconnectInstance($this->InstanceID);
+                $connectionID = 0;
+            }
+
+            $u_connectionID = 0;
+            $guid = '{2B3E3F00-33AC-4A54-8E20-F8B57241913D}'; // BMWConnectedDriveIO
+            $instIDs = IPS_GetInstanceListByModuleID($guid);
+            foreach ($instIDs as $instID) {
+                if (IPS_GetProperty($instID, 'user') == $user) {
+                    $u_connectionID = $instID;
+                    break;
+                }
+            }
+
+            if ($u_connectionID == 0) {
+                if ($connectionID != 0 && IPS_GetProperty($connectionID, 'user') == '') {
+                    $u_connectionID = $connectionID;
+                } else {
+                    $u_connectionID = IPS_CreateInstance($guid);
+                }
+                IPS_SetProperty($u_connectionID, 'user', $user);
+                IPS_SetProperty($u_connectionID, 'password', $this->ReadPropertyString('password'));
+                IPS_SetProperty($u_connectionID, 'country', $this->ReadPropertyInteger('country'));
+                IPS_SetProperty($u_connectionID, 'brand', $this->ReadPropertyInteger('brand'));
+                IPS_ApplyChanges($u_connectionID);
+                IPS_SetName($u_connectionID, 'BMWConnectedDrive I/O (' . $user . ')');
+            }
+
+            if ($u_connectionID != $connectionID) {
+                if ($connectionID != 0) {
+                    IPS_DisconnectInstance($this->InstanceID);
+                    $connectionID = 0;
+                }
+                IPS_ConnectInstance($this->InstanceID, $u_connectionID);
+            }
+        }
+
         return '';
     }
 
@@ -371,8 +383,8 @@ class BMWConnectedDrive extends IPSModule
         }
 
         $model = $this->ReadPropertyInteger('model');
-        $isElectric = $model != self::$BMW_MODEL_COMBUSTION;
-        $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
+        $isElectric = $model != self::$BMW_DRIVE_TYPE_COMBUSTION;
+        $hasCombustion = $model != self::$BMW_DRIVE_TYPE_ELECTRIC;
 
         $active_service = $this->ReadPropertyBoolean('active_service');
         $active_checkcontrol = $this->ReadPropertyBoolean('active_checkcontrol');
@@ -541,58 +553,6 @@ class BMWConnectedDrive extends IPSModule
             'type'    => 'ExpansionPanel',
             'items'   => [
                 [
-                    'name'    => 'user',
-                    'type'    => 'ValidationTextBox',
-                    'caption' => 'User'
-                ],
-                [
-                    'name'    => 'password',
-                    'type'    => 'PasswordTextBox',
-                    'caption' => 'Password'
-                ],
-                [
-                    'type'    => 'Select',
-                    'name'    => 'country',
-                    'caption' => 'Country',
-                    'options' => [
-                        [
-                            'label' => $this->Translate('Germany'),
-                            'value' => self::$BMW_COUNTRY_GERMANY
-                        ],
-                        [
-                            'label' => $this->Translate('Switzerland'),
-                            'value' => self::$BMW_COUNTRY_SWITZERLAND
-                        ],
-                        [
-                            'label' => $this->Translate('Europe'),
-                            'value' => self::$BMW_COUNTRY_EUROPE
-                        ],
-                        [
-                            'label' => $this->Translate('USA'),
-                            'value' => self::$BMW_COUNTRY_USA
-                        ],
-                        [
-                            'label' => $this->Translate('Rest of the World'),
-                            'value' => self::$BMW_COUNTRY_OTHER
-                        ]
-                    ]
-                ],
-                [
-                    'type'    => 'Select',
-                    'name'    => 'brand',
-                    'caption' => 'Vehicle-brand',
-                    'options' => [
-                        [
-                            'label' => $this->Translate('BMW'),
-                            'value' => self::$BMW_BRAND_BMW
-                        ],
-                        [
-                            'label' => $this->Translate('Mini'),
-                            'value' => self::$BMW_BRAND_MINI
-                        ]
-                    ]
-                ],
-                [
                     'name'    => 'vin',
                     'type'    => 'ValidationTextBox',
                     'caption' => 'VIN'
@@ -601,23 +561,10 @@ class BMWConnectedDrive extends IPSModule
                     'type'    => 'Select',
                     'name'    => 'model',
                     'caption' => 'mode of driving',
-                    'options' => [
-                        [
-                            'label' => $this->Translate('electric'),
-                            'value' => self::$BMW_MODEL_ELECTRIC
-                        ],
-                        [
-                            'label' => $this->Translate('hybrid'),
-                            'value' => self::$BMW_MODEL_HYBRID
-                        ],
-                        [
-                            'label' => $this->Translate('combustion'),
-                            'value' => self::$BMW_MODEL_COMBUSTION
-                        ]
-                    ]
+                    'options' => $this->DriveTypeAsOptions(),
                 ],
             ],
-            'caption' => 'Account data',
+            'caption' => 'Vehicle data',
         ];
 
         $formElements[] = [
@@ -754,12 +701,12 @@ class BMWConnectedDrive extends IPSModule
                     'caption' => 'Car view',
                     'options' => [
                         [
-                            'label' => $this->Translate('From the front'),
-                            'value' => self::$BMW_CARVIEW_FRONT
-                        ],
-                        [
                             'label' => $this->Translate('Diagonal from front'),
                             'value' => self::$BMW_CARVIEW_FRONTSIDE
+                        ],
+                        [
+                            'label' => $this->Translate('From the front'),
+                            'value' => self::$BMW_CARVIEW_FRONT
                         ],
                         [
                             'label' => $this->Translate('From the side'),
@@ -780,11 +727,6 @@ class BMWConnectedDrive extends IPSModule
             'caption'   => 'Expert area',
             'expanded'  => false,
             'items'     => [
-                [
-                    'type'    => 'Button',
-                    'label'   => 'Relogin',
-                    'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "Relogin", "");',
-                ],
                 $this->GetInstallVarProfilesFormItem(),
             ]
         ];
@@ -815,796 +757,79 @@ class BMWConnectedDrive extends IPSModule
         $this->MaintainTimer('UpdateData', $msec);
     }
 
-    private function GetRegion()
+    private function LocalRequestAction($ident, $value)
     {
-        $country = $this->ReadPropertyInteger('country');
-        switch ($country) {
-            case self::$BMW_COUNTRY_USA:
-                $region = 'NorthAmerica';
+        $r = true;
+        switch ($ident) {
+            case 'UpdateData':
+                $this->UpdateData();
+                break;
+            case 'UpdateRemoteServiceStatus':
+                $this->UpdateRemoteServiceStatus();
+                break;
+            case 'GetCarPicture':
+                $this->GetCarPicture($value);
                 break;
             default:
-                $region = 'RestOfWorld';
+                $r = false;
                 break;
         }
-        return $region;
+        return $r;
     }
 
-    private function GetLang()
+    public function RequestAction($ident, $value)
     {
-        $country = $this->ReadPropertyInteger('country');
-        switch ($country) {
-            case self::$BMW_COUNTRY_GERMANY:
-            case self::$BMW_COUNTRY_SWITZERLAND:
-                $lang = 'de';
+        if ($this->LocalRequestAction($ident, $value)) {
+            return;
+        }
+        if ($this->CommonRequestAction($ident, $value)) {
+            return;
+        }
+
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'ident=' . $ident . ', value=' . $value, 0);
+        $r = false;
+        switch ($ident) {
+            case 'TriggerStartClimatisation':
+                $r = $this->StartClimateControl();
+                break;
+            case 'TriggerStopClimatisation':
+                $r = $this->StopClimateControl();
+                break;
+            case 'TriggerLockDoors':
+                $r = $this->LockDoors();
+                break;
+            case 'TriggerUnlockDoors':
+                $r = $this->UnlockDoors();
+                break;
+            case 'TriggerFlashHeadlights':
+                $r = $this->FlashHeadlights();
+                break;
+            case 'TriggerBlowHorn':
+                $r = $this->BlowHorn();
+                break;
+            case 'TriggerChargeNow':
+                $r = $this->ChargeNow();
+                break;
+            case 'TriggerLocateVehicle':
+                $r = $this->LocateVehicle();
+                break;
+            case 'GoogleMapType':
+                $r = $this->SetGoogleMapType($value);
+                break;
+            case 'GoogleMapZoom':
+                $r = $this->SetGoogleMapZoom($value);
                 break;
             default:
-                $lang = 'en';
-                break;
+                $this->SendDebug(__FUNCTION__, 'invalid ident "' . $ident . '"', 0);
         }
-        return $lang;
-    }
-
-    private function GetBrand()
-    {
-        $brand = $this->ReadPropertyInteger('brand');
-        switch ($brand) {
-            case self::$BMW_BRAND_MINI:
-                $brand = 'mini';
-                break;
-            default:
-                $brand = 'bmw';
-                break;
+        if ($r) {
+            $this->SetValue($ident, $value);
         }
-        return $brand;
-    }
-
-    private function Relogin()
-    {
-        $this->WriteAttributeString('ApiSettings', '');
-        $this->WriteAttributeString('ApiRefreshToken', '');
-        $this->SetBuffer('AccessToken', '');
-        $this->GetAccessToken();
-    }
-
-    private function urlsafe_b64encode($string)
-    {
-        $data = base64_encode($string);
-        $data = str_replace(['+', '/'], ['-', '_'], $data);
-        $data = rtrim($data, '=');
-        return $data;
-    }
-
-    private function check_response4error($data)
-    {
-        $result = false;
-        $jdata = json_decode($data, true);
-        if (isset($jdata['error'])) {
-            $result = 'error ' . $jdata['error'] . ' ' . $jdata['description'];
-        }
-        return $result;
-    }
-
-    private function Login()
-    {
-        $this->WriteAttributeString('ApiSettings', '');
-        $this->WriteAttributeString('ApiRefreshToken', '');
-        $this->SetBuffer('AccessToken', '');
-
-        $user = $this->ReadPropertyString('user');
-        $password = $this->ReadPropertyString('password');
-        $region = $this->GetRegion();
-
-        $baseurl = 'https://' . self::$server_urls_eadrax[$region];
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
-        curl_setopt($ch, CURLOPT_MAXREDIRS, 50);
-        curl_setopt($ch, CURLOPT_HTTP09_ALLOWED, true);
-        curl_setopt($ch, CURLOPT_TCP_KEEPALIVE, true);
-        curl_setopt($ch, CURLOPT_COOKIEFILE, '');
-        curl_setopt($ch, CURLOPT_HEADER, true);
-        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
-
-        $this->SendDebug(__FUNCTION__, '*** get config', 0);
-
-        $config_url = $baseurl . self::$oauth_config_endpoint;
-        $header = [
-            'ocp-apim-subscription-key: ' . base64_decode(self::$ocp_apim_key[$region]),
-            'user-agent: ' . self::$user_agent,
-            'x-user-agent: ' . sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
-        ];
-
-        $this->SendDebug(__FUNCTION__, 'http-get, url=' . $config_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-
-        $time_start = microtime(true);
-
-        curl_setopt($ch, CURLOPT_URL, $config_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'GET');
-
-        $response = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
-
-        $statuscode = 0;
-        if ($cerrno) {
-            $statuscode = self::$IS_SERVERERROR;
-            $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        }
-        if ($statuscode == 0) {
-            if ($httpcode == 401) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
-            } elseif ($httpcode == 403) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (forbidden)';
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = self::$IS_SERVERERROR;
-                $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 200) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
-            }
-        }
-        if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
-            $header_size = $curl_info['header_size'];
-            $head = substr($response, 0, $header_size);
-            $body = substr($response, $header_size);
-
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
-        }
-        if ($statuscode == 0) {
-            $err = $this->check_response4error($body);
-            if ($err != false) {
-                $statuscode = self::$IS_APIERROR;
-            }
-        }
-        if ($statuscode == 0) {
-            $oauth_settings = json_decode($body, true);
-            if ($oauth_settings == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'invalid/malformed data';
-            }
-        }
-        if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
-            return false;
-        }
-        $this->SendDebug(__FUNCTION__, ' => oauth_settings=' . print_r($oauth_settings, true), 0);
-        $this->WriteAttributeString('ApiSettings', $body);
-
-        $this->SendDebug(__FUNCTION__, '*** authenticate, step 1', 0);
-
-        # Setting up PKCS data
-        $verifier_bytes = random_bytes(64);
-        $code_verifier = $this->urlsafe_b64encode($verifier_bytes);
-
-        $challenge_bytes = hash('sha256', $code_verifier, true);
-        $code_challenge = $this->urlsafe_b64encode($challenge_bytes);
-
-        $state_bytes = random_bytes(16);
-        $state = $this->urlsafe_b64encode($state_bytes);
-
-        $this->SendDebug(__FUNCTION__, 'code_verifier=' . $code_verifier . ', code_challenge=' . $code_challenge . ', state=' . $state, 0);
-
-        $gcdm_base_url = $oauth_settings['gcdmBaseUrl'];
-        $auth_url = $gcdm_base_url . self::$oauth_authenticate_endpoint;
-
-        $header = [
-            'Content-Type: application/x-www-form-urlencoded',
-        ];
-
-        $oauth_base_values = [
-            'client_id'             => $oauth_settings['clientId'],
-            'response_type'         => 'code',
-            'redirect_uri'          => $oauth_settings['returnUrl'],
-            'state'                 => $state,
-            'nonce'                 => 'login_nonce',
-            'scope'                 => implode(' ', $oauth_settings['scopes']),
-            'code_challenge'        => $code_challenge,
-            'code_challenge_method' => 'S256',
-        ];
-
-        $this->SendDebug(__FUNCTION__, 'oauth_base_values=' . print_r($oauth_base_values, true), 0);
-
-        $postfields = $oauth_base_values;
-        $postfields['grant_type'] = 'authorization_code';
-        $postfields['username'] = $user;
-        $postfields['password'] = $password;
-
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $auth_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
-
-        $time_start = microtime(true);
-
-        curl_setopt($ch, CURLOPT_URL, $auth_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
-
-        $response = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
-
-        $statuscode = 0;
-        if ($cerrno) {
-            $statuscode = self::$IS_SERVERERROR;
-            $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        }
-        if ($statuscode == 0) {
-            if ($httpcode == 401) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
-            } elseif ($httpcode == 403) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (forbidden)';
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = self::$IS_SERVERERROR;
-                $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 200) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
-            }
-        }
-        if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
-            $header_size = $curl_info['header_size'];
-            $head = substr($response, 0, $header_size);
-            $body = substr($response, $header_size);
-            preg_match_all('|Set-Cookie: (.*);|U', $head, $results);
-            $cookies = explode(';', implode(';', $results[1]));
-
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
-            $this->SendDebug(__FUNCTION__, ' => cookies=' . print_r($cookies, true), 0);
-        }
-        if ($statuscode == 0) {
-            $err = $this->check_response4error($body);
-            if ($err != false) {
-                $statuscode = self::$IS_APIERROR;
-            }
-        }
-        if ($statuscode == 0) {
-            $jbody = json_decode($body, true);
-            if ($jbody == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'invalid/malformed data';
-            }
-        }
-        if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => jbody=' . print_r($jbody, true), 0);
-            if (isset($jbody['redirect_to']) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "redirect_to" in "' . $body . '"';
-            }
-        }
-        if ($statuscode == 0) {
-            $redirect_uri = substr($jbody['redirect_to'], strlen('redirect_uri='));
-            $this->SendDebug(__FUNCTION__, ' => redirect_uri=' . $redirect_uri, 0);
-            $redirect_parts = parse_url($redirect_uri);
-            $this->SendDebug(__FUNCTION__, ' => redirect_parts=' . print_r($redirect_parts, true), 0);
-            if (isset($redirect_parts['query']) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "query" in "' . $redirect_uri . '"';
-            }
-        }
-        if ($statuscode == 0) {
-            parse_str($redirect_parts['query'], $redirect_opts);
-            $this->SendDebug(__FUNCTION__, ' => redirect_opts=' . print_r($redirect_opts, true), 0);
-            if (isset($redirect_opts['authorization']) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "authorization" in "' . $redirect_parts['query'] . '"';
-            }
-        }
-        if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
-            return false;
-        }
-        $this->SendDebug(__FUNCTION__, 'authorization="' . $redirect_opts['authorization'] . '"', 0);
-
-        $this->SendDebug(__FUNCTION__, '*** authenticate, step 2', 0);
-
-        $postfields = $oauth_base_values;
-        $postfields['authorization'] = $redirect_opts['authorization'];
-
-        $header = [
-            'Content-Type: application/x-www-form-urlencoded',
-        ];
-        foreach ($cookies as $cookie) {
-            $header[] = 'Cookie: ' . $cookie;
-        }
-
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $auth_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
-
-        $time_start = microtime(true);
-
-        curl_setopt($ch, CURLOPT_URL, $auth_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
-
-        $response = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
-
-        $statuscode = 0;
-        if ($cerrno) {
-            $statuscode = self::$IS_SERVERERROR;
-            $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        }
-        if ($statuscode == 0) {
-            if ($httpcode == 401) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
-            } elseif ($httpcode == 403) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (forbidden)';
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = self::$IS_SERVERERROR;
-                $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 302) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
-            }
-        }
-        if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
-            $header_size = $curl_info['header_size'];
-            $head = substr($response, 0, $header_size);
-            $body = substr($response, $header_size);
-
-            $this->SendDebug(__FUNCTION__, ' => head=' . $head, 0);
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
-            $this->SendDebug(__FUNCTION__, ' => cookies=' . print_r($cookies, true), 0);
-        }
-        if ($statuscode == 0) {
-            $err = $this->check_response4error($body);
-            if ($err != false) {
-                $statuscode = self::$IS_APIERROR;
-            }
-        }
-        if ($statuscode == 0) {
-            preg_match_all('|location: (.*)|', $head, $results);
-            $this->SendDebug(__FUNCTION__, ' => results=' . print_r($results, true), 0);
-            if (isset($results[1][0]) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "location" in "' . $head . '"';
-            }
-        }
-        if ($statuscode == 0) {
-            $location = $results[1][0];
-            $this->SendDebug(__FUNCTION__, ' => location=' . $location, 0);
-            $location_parts = parse_url($location);
-            $this->SendDebug(__FUNCTION__, ' => location_parts=' . print_r($location_parts, true), 0);
-
-            if (isset($location_parts['query']) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "query" in "' . $location . '"';
-            }
-        }
-        if ($statuscode == 0) {
-            parse_str($location_parts['query'], $location_opts);
-            $this->SendDebug(__FUNCTION__, ' => location_opts=' . print_r($location_opts, true), 0);
-            if (isset($location_opts['code']) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "code" in "' . $location_parts['query'] . '"';
-            }
-        }
-        if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
-            return false;
-        }
-        $this->SendDebug(__FUNCTION__, 'code="' . $location_opts['code'] . '"', 0);
-
-        $this->SendDebug(__FUNCTION__, '*** get token', 0);
-
-        $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
-
-        $token_url = $oauth_settings['tokenEndpoint'];
-
-        $header[] = 'Authorization: Basic ' . $oauth_authorization;
-
-        $postfields = [
-            'code'             => $location_opts['code'],
-            'code_verifier'    => $code_verifier,
-            'redirect_uri'     => $oauth_settings['returnUrl'],
-            'grant_type'       => 'authorization_code',
-        ];
-
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $token_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
-
-        $time_start = microtime(true);
-
-        curl_setopt($ch, CURLOPT_URL, $token_url);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
-
-        $response = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
-
-        $statuscode = 0;
-        if ($cerrno) {
-            $statuscode = self::$IS_SERVERERROR;
-            $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        }
-        if ($statuscode == 0) {
-            if ($httpcode == 401) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
-            } elseif ($httpcode == 403) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (forbidden)';
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = self::$IS_SERVERERROR;
-                $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 200) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
-            }
-        }
-        if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
-            $header_size = $curl_info['header_size'];
-            $head = substr($response, 0, $header_size);
-            $body = substr($response, $header_size);
-
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
-        }
-        if ($statuscode == 0) {
-            $err = $this->check_response4error($body);
-            if ($err != false) {
-                $statuscode = self::$IS_APIERROR;
-            }
-        }
-        if ($statuscode == 0) {
-            $jbody = json_decode($body, true);
-            if ($jbody == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'invalid/malformed data';
-            }
-        }
-        if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => jbody=' . print_r($jbody, true), 0);
-            foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
-                if (isset($jbody[$key]) == false) {
-                    $statuscode = self::$IS_INVALIDDATA;
-                    $err = 'missing element "' . $key . '" in "' . $body . '"' . PHP_EOL;
-                    break;
-                }
-            }
-        }
-        if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
-            return false;
-        }
-
-        $this->MaintainStatus(IS_ACTIVE);
-
-        $access_token = $jbody['access_token'];
-        $refresh_token = $jbody['refresh_token'];
-        $expiration = time() + $jbody['expires_in'];
-        $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', refresh_token=' . $refresh_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
-        $jtoken = [
-            'access_token' => $access_token,
-            'expiration'   => $expiration,
-        ];
-        $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
-        $this->SetBuffer('AccessToken', json_encode($jtoken));
-        return $access_token;
-    }
-
-    private function RefreshToken()
-    {
-        $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
-        if ($refresh_token == false) {
-            $access_token = $this->Login();
-            if ($access_token == false) {
-                $this->SendDebug(__FUNCTION__, 'login failed', 0);
-            }
-            return $access_token;
-        }
-        $this->SendDebug(__FUNCTION__, 'refresh_token=' . $refresh_token, 0);
-
-        $oauth_settings = json_decode($this->ReadAttributeString('ApiSettings'), true);
-        if ($oauth_settings == false) {
-            $access_token = $this->Login();
-            if ($access_token == false) {
-                $this->SendDebug(__FUNCTION__, 'login failed', 0);
-            }
-            return $access_token;
-        }
-        $this->SendDebug(__FUNCTION__, 'oauth_settings=' . print_r($oauth_settings, true), 0);
-
-        $region = $this->GetRegion();
-
-        $token_url = $oauth_settings['tokenEndpoint'];
-
-        $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
-        $header = [
-            'Content-Type: application/x-www-form-urlencoded',
-            'Authorization: Basic ' . $oauth_authorization,
-        ];
-
-        $postfields = [
-            'grant_type'    => 'refresh_token',
-            'refresh_token' => $refresh_token,
-        ];
-
-        $token_url = $oauth_settings['tokenEndpoint'];
-
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $token_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
-
-        $time_start = microtime(true);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $token_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-        curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
-        curl_setopt($ch, CURLOPT_HEADER, true);
-
-        $response = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $statuscode = 0;
-        if ($cerrno) {
-            $statuscode = self::$IS_SERVERERROR;
-            $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        }
-        if ($statuscode == 0) {
-            if ($httpcode == 401) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
-            } elseif ($httpcode == 403) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (forbidden)';
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = self::$IS_SERVERERROR;
-                $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 200) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
-            }
-        }
-        if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
-            $header_size = $curl_info['header_size'];
-            $head = substr($response, 0, $header_size);
-            $body = substr($response, $header_size);
-
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
-        }
-        if ($statuscode == 0) {
-            $err = $this->check_response4error($body);
-            if ($err != false) {
-                $statuscode = self::$IS_APIERROR;
-            }
-        }
-        if ($statuscode == 0) {
-            $jbody = json_decode($body, true);
-            if ($jbody == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'invalid/malformed data';
-            }
-        }
-        if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => jbody=' . print_r($jbody, true), 0);
-            foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
-                if (isset($jbody[$key]) == false) {
-                    $statuscode = self::$IS_INVALIDDATA;
-                    $err = 'missing element "' . $key . '" in "' . $body . '"' . PHP_EOL;
-                    break;
-                }
-            }
-        }
-        if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
-
-            $this->WriteAttributeString('ApiRefreshToken', '');
-            $this->SetBuffer('AccessToken', '');
-
-            return false;
-        }
-
-        $this->MaintainStatus(IS_ACTIVE);
-
-        $access_token = $jbody['access_token'];
-        $refresh_token = $jbody['refresh_token'];
-        $expiration = time() + $jbody['expires_in'];
-        $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', refresh_token=' . $refresh_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
-        $jtoken = [
-            'access_token' => $access_token,
-            'expiration'   => $expiration,
-        ];
-        $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
-        $this->SetBuffer('AccessToken', json_encode($jtoken));
-        return $access_token;
-    }
-
-    private function GetAccessToken()
-    {
-        $data = $this->GetBuffer('AccessToken');
-        if ($data != false) {
-            $jtoken = json_decode($data, true);
-            $access_token = isset($jtoken['access_token']) ? $jtoken['access_token'] : '';
-            $expiration = isset($jtoken['expiration']) ? $jtoken['expiration'] : 0;
-            if ($expiration > time()) {
-                $this->SendDebug(__FUNCTION__, 'old access_token=' . $access_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
-                return $access_token;
-            }
-            $this->SendDebug(__FUNCTION__, 'access_token expired', 0);
-        } else {
-            $this->SendDebug(__FUNCTION__, 'no/empty buffer "AccessToken"', 0);
-        }
-        $access_token = $this->RefreshToken();
-        return $access_token;
-    }
-
-    private function CallAPI($endpoint, $postfields, $params, $header_add)
-    {
-        $region = $this->GetRegion();
-
-        $url = 'https://' . self::$server_urls_eadrax[$region] . $endpoint;
-
-        if ($params != '') {
-            $this->SendDebug(__FUNCTION__, 'params=' . print_r($params, true), 0);
-            $n = 0;
-            foreach ($params as $param => $value) {
-                $url .= ($n++ ? '&' : '?') . $param . '=' . rawurlencode(strval($value));
-            }
-        }
-
-        $this->SendDebug(__FUNCTION__, 'url=' . $url, 0);
-
-        $access_token = $this->GetAccessToken();
-        if ($access_token == false) {
-            $this->SendDebug(__FUNCTION__, 'no access_token', 0);
-            return false;
-        }
-
-        $header_base = [
-            'accept'          => 'application/json',
-            'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
-            'Authorization'   => 'Bearer ' . $access_token,
-            'accept-language' => $this->GetLang(),
-        ];
-        if ($header_add != '') {
-            foreach ($header_add as $key => $val) {
-                $header_base[$key] = $val;
-            }
-        }
-        $header = [];
-        foreach ($header_base as $key => $val) {
-            $header[] = $key . ': ' . $val;
-        }
-
-        $mode = $postfields != '' ? 'post' : 'get';
-        $this->SendDebug(__FUNCTION__, 'http-' . $mode . ', url=' . $url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        if ($postfields != '') {
-            $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
-        }
-
-        $time_start = microtime(true);
-
-        $ch = curl_init();
-        curl_setopt($ch, CURLOPT_URL, $url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
-        curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
-        if ($postfields != '') {
-            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
-            if (isset($header_base['Content-Type']) && $header_base['Content-Type'] == 'application/json') {
-                $s = json_encode($postfields);
-            } else {
-                $s = http_build_query($postfields);
-            }
-            curl_setopt($ch, CURLOPT_POSTFIELDS, $s);
-        }
-        curl_setopt($ch, CURLOPT_HEADER, true);
-
-        $response = curl_exec($ch);
-        $cerrno = curl_errno($ch);
-        $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
-        $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
-
-        $statuscode = 0;
-        if ($cerrno) {
-            $statuscode = self::$IS_SERVERERROR;
-            $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
-        }
-        if ($statuscode == 0) {
-            if ($httpcode == 401) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (unauthorized)';
-            } elseif ($httpcode == 403) {
-                $statuscode = self::$IS_UNAUTHORIZED;
-                $err = 'got http-code ' . $httpcode . ' (forbidden)';
-            } elseif ($httpcode >= 500 && $httpcode <= 599) {
-                $statuscode = self::$IS_SERVERERROR;
-                $err = 'got http-code ' . $httpcode . ' (server error)';
-            } elseif ($httpcode != 200 && $httpcode != 201) {
-                $statuscode = self::$IS_HTTPERROR;
-                $err = 'got http-code ' . $httpcode . '(' . $this->HttpCode2Text($httpcode) . ')';
-            }
-        }
-        if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
-            $header_size = $curl_info['header_size'];
-            $head = substr($response, 0, $header_size);
-            $body = substr($response, $header_size);
-
-            if ($body == '' || ctype_print($body)) {
-                $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
-            } else {
-                $this->SendDebug(__FUNCTION__, ' => body potentially contains binary data, size=' . strlen($body), 0);
-            }
-        }
-        if ($statuscode == 0) {
-            $err = $this->check_response4error($body);
-            if ($err != false) {
-                $statuscode = self::$IS_APIERROR;
-            }
-        }
-        if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
-            return false;
-        }
-
-        $jbody = json_decode($body, true);
-        if (isset($jbody['errors'])) {
-            $this->SendDebug(__FUNCTION__, ' => error=' . $jbody['errors'], 0);
-            $body = false;
-        }
-
-        $this->MaintainStatus(IS_ACTIVE);
-
-        return $body;
     }
 
     private function UpdateVehicleData($data)
@@ -1737,9 +962,9 @@ class BMWConnectedDrive extends IPSModule
 
         $model = $this->ReadPropertyInteger('model');
 
-        $hasCombustion = $model != self::$BMW_MODEL_ELECTRIC;
+        $hasCombustion = $model != self::$BMW_DRIVE_TYPE_ELECTRIC;
 
-        if ($model != self::$BMW_MODEL_ELECTRIC) {
+        if ($model != self::$BMW_DRIVE_TYPE_ELECTRIC) {
             if (isset($state['combustionFuelLevel']['remainingFuelLiters'])) {
                 $val = $state['combustionFuelLevel']['remainingFuelLiters'];
                 $this->MaintainStateVariable('TankCapacity', true, 2);
@@ -1759,7 +984,7 @@ class BMWConnectedDrive extends IPSModule
             $this->SaveValue('RemainingCombinedRange', floatval($val), $isChanged);
         }
 
-        if ($model != self::$BMW_MODEL_COMBUSTION) {
+        if ($model != self::$BMW_DRIVE_TYPE_COMBUSTION) {
             $electricChargingState = isset($state['electricChargingState']) ? $state['electricChargingState'] : [];
             $this->SendDebug(__FUNCTION__, 'electricChargingState=' . print_r($electricChargingState, true), 0);
 
@@ -2077,110 +1302,46 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-
         $vin = $this->ReadPropertyString('vin');
 
-        $result = false;
-
-        $params = [
-            'apptimezone'   => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
-            'appDateTime'   => date('U') . date('v'), // Millisekunden
-            'tireGuardMode' => 'ENABLED',
-        ];
-        $url = self::$vehicles_endpoint;
-        $data = $this->CallAPI($url, '', $params, '');
-        if ($data != false) {
-            $jdata = json_decode($data, true);
-            foreach ($jdata as $vehicle) {
-                if ($vehicle['vin'] == $vin) {
-                    $this->SendDebug(__FUNCTION__, 'vehicle=' . print_r($vehicle, true), 0);
-                    $model = $this->GetArrayElem($vehicle, 'attributes.model', '');
-                    $year = $this->GetArrayElem($vehicle, 'attributes.year', '');
-                    $bodyType = $this->GetArrayElem($vehicle, 'attributes.bodyType', '');
-                    $this->SetSummary($model . ' (' . $bodyType . '/' . $year . ')');
-                    break;
+        if ($this->GetBuffer('Summary') == '') {
+            $SendData = [
+                'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+                'CallerID' => $this->InstanceID,
+                'Function' => 'GetVehicles'
+            ];
+            $data = $this->SendDataToParent(json_encode($SendData));
+            $vehicles = @json_decode($data, true);
+            $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+            if ($vehicles != false) {
+                foreach ($vehicles as $vehicle) {
+                    if ($vehicle['vin'] == $vin) {
+                        $this->SendDebug(__FUNCTION__, 'vehicle=' . print_r($vehicle, true), 0);
+                        $model = $this->GetArrayElem($vehicle, 'attributes.model', '');
+                        $year = $this->GetArrayElem($vehicle, 'attributes.year', '');
+                        $bodyType = $this->GetArrayElem($vehicle, 'attributes.bodyType', '');
+                        $summary = $model . ' (' . $bodyType . '/' . $year . ')';
+                        $this->SetSummary($summary);
+                        $this->SetBuffer('Summary', $summary);
+                        break;
+                    }
                 }
             }
         }
 
-        /*
-21.07.2022, 15:25:03 |       GetVehicleData | vehicle=Array
-(
-    [vin] => WBAWY510800E34942
-    [mappingInfo] => Array
-        (
-            [isAssociated] =>
-            [isLmmEnabled] =>
-            [mappingStatus] => CONFIRMED
-            [isPrimaryUser] => 1
-        )
-
-    [appVehicleType] => CONNECTED
-    [attributes] => Array
-        (
-            [lastFetched] => 2022-07-21T13:25:03.374Z
-            [model] => X3 xDrive30d
-            [year] => 2016
-            [color] => 4281545523
-            [brand] => BMW
-            [driveTrain] => COMBUSTION
-            [headUnitType] => NBT_EVO
-            [hmiVersion] => ID5
-            [softwareVersionCurrent] => Array
-                (
-                    [puStep] => Array
-                        (
-                            [month] => 11
-                            [year] => 16
-                        )
-
-                    [iStep] => 502
-                    [seriesCluster] => F025
-                )
-
-            [softwareVersionExFactory] => Array
-                (
-                    [puStep] => Array
-                        (
-                            [month] => 11
-                            [year] => 16
-                        )
-
-                    [iStep] => 502
-                    [seriesCluster] => F025
-                )
-
-            [telematicsUnit] => ATM1
-            [bodyType] => F25
-            [countryOfOrigin] => DE
-            [a4aType] => BLUETOOTH
-            [driverGuideInfo] => Array
-                (
-                    [androidAppScheme] => com.bmwgroup.driversguide.row
-                    [iosAppScheme] => bmwdriversguide:///open
-                    [androidStoreUrl] => https://play.google.com/store/apps/details?id=com.bmwgroup.driversguide.row
-                    [iosStoreUrl] => https://apps.apple.com/de/app/id714042749?mt=8
-                )
-
-        )
-
-)
-
-
-
-
-
-         */
-
-        $url = self::$vehicles_endpoint . '/' . $vin . '/state';
-        $data = $this->CallAPI($url, '', $params, '');
-        if ($data != false) {
-            $jdata = json_decode($data, true);
-            $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'GetVehicleData',
+            'vin'      => $vin,
+        ];
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+        $vehicle = @json_decode($data, true);
+        if ($vehicle != false) {
+            $this->SendDebug(__FUNCTION__, 'vehicle=' . print_r($vehicle, true), 0);
             $this->UpdateVehicleData($data);
         }
-        return $result;
     }
 
     private function GetChargingStatistics()
@@ -2190,25 +1351,21 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-
-        $result = false;
-
         $vin = $this->ReadPropertyString('vin');
 
-        $params = [
-            'vin'           => $vin,
-            'currentDate'   => date('c'),
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'GetChargingStatistics',
+            'vin'      => $vin,
         ];
-
-        $data = $this->CallAPI(self::$charging_statistics_endpoint, '', $params, '');
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
         if ($data != false) {
             $this->SetMultiBuffer('ChargingStatistics', $data);
-            $jdata = json_decode($data, true);
+            $jdata = @json_decode($data, true);
             $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
         }
-
-        return $result;
     }
 
     private function GetCarPicture(string $carView = null)
@@ -2218,31 +1375,23 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-
-        $result = false;
-
         $vin = $this->ReadPropertyString('vin');
-
-        $endpoint = sprintf(self::$vehicle_img_endpoint, $vin);
-
-        $params = [];
-
-        if (is_null($carView) == false) {
-            $params['carView'] = $carView;
+        if (is_null($carView)) {
+            $carView = self::$BMW_CARVIEW_FRONTSIDE;
         }
 
-        $header_add = [
-            'accept' => 'image/png',
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'GetCarPicture',
+            'vin'      => $vin,
+            'carView'  => $carView,
         ];
-
-        $data = $this->CallAPI($endpoint, '', $params, $header_add);
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $this->LimitOutput($data), 0);
         if ($data != false) {
             $this->SetMediaData('Car picture', $data, MEDIATYPE_IMAGE, '.png', false);
-            $result = true;
         }
-
-        return $result;
     }
 
     private function UpdateChargingSessions($data)
@@ -2300,24 +1449,21 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-
         $vin = $this->ReadPropertyString('vin');
 
-        $result = false;
-
-        $params = [
-            'vin'                 => $vin,
-            'maxResults'          => 40,
-            'include_date_picker' => 'true'
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'GetChargingSessions',
+            'vin'      => $vin,
         ];
-        $data = $this->CallAPI(self::$charging_sessions_endpoint, '', $params, '');
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
         if ($data != false) {
-            $jdata = json_decode($data, true);
+            $jdata = @json_decode($data, true);
             $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
             $this->UpdateChargingSessions($data);
         }
-        return $result;
     }
 
     private function GetHomePosition()
@@ -2344,21 +1490,16 @@ class BMWConnectedDrive extends IPSModule
 
         $vin = $this->ReadPropertyString('vin');
 
-        $endpoint = self::$remoteService_endpoint . '/' . $vin . '/' . strtolower(preg_replace('/_/', '-', $service));
-
-        $postfields = [];
-        if ($action != false) {
-            $postfields['action'] = $action;
-        }
-
-        $pos = $this->GetHomePosition();
-        $params = [
-            'deviceTime' => date('Y-m-d\TH:i:s'),
-            'dlat'       => $pos['latitude'],
-            'dlon'       => $pos['longitude'],
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'ExecuteRemoteService',
+            'vin'      => $vin,
+            'service'  => $service,
+            'action'   => $action,
         ];
-        $data = $this->CallAPI($endpoint, $postfields, $params, '');
-        $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action . ', result=' . $data, 0);
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
 
         $ref_tstamp = strtotime('-1 month');
 
@@ -2373,7 +1514,7 @@ class BMWConnectedDrive extends IPSModule
             }
             $new_history[] = $event;
         }
-        $jdata = $data == false ? false : json_decode($data, true);
+        $jdata = @json_decode($data, true);
         if ($jdata == false) {
             $event = [
                 'service'     => $service,
@@ -2503,7 +1644,9 @@ class BMWConnectedDrive extends IPSModule
             return false;
         }
 
-        $jpoi = json_decode($poi, true);
+        $vin = $this->ReadPropertyString('vin');
+
+        $jpoi = @json_decode($poi, true);
         if (!isset($jpoi['latitude']) || !isset($jpoi['longitude'])) {
             $this->SendDebug(__FUNCTION__, 'missing coordinates (latitude/longitude) in ' . print_r($jpoi, true), 0);
             return false;
@@ -2512,40 +1655,15 @@ class BMWConnectedDrive extends IPSModule
             $jpoi['name'] = '(' . $jpoi['latitude'] . ', ' . $jpoi['longitude'] . ')';
         }
 
-        $vin = $this->ReadPropertyString('vin');
-
-        $endpoint = self::$vehicle_poi_endpoint;
-
-        $postfields = [
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'SendPOI',
             'vin'      => $vin,
-            'location' => [
-                'type'            => 'SHARED_DESTINATION_FROM_EXTERNAL_APP',
-                'name'            => $this->GetArrayElem($jpoi, 'name', ''),
-                'coordinates'     => [
-                    'latitude'  => number_format((float) $jpoi['latitude'], 6, '.', ''),
-                    'longitude' => number_format((float) $jpoi['longitude'], 6, '.', ''),
-                ],
-                'locationAddress' => [
-                    'street'     => $this->GetArrayElem($jpoi, 'street', ''),
-                    'postalCode' => $this->GetArrayElem($jpoi, 'postalCode', ''),
-                    'city'       => $this->GetArrayElem($jpoi, 'city', ''),
-                    'country'    => $this->GetArrayElem($jpoi, 'country', ''),
-                ],
-            ],
+            'poi'      => json_encode($jpoi),
         ];
-
-        $header_add = [
-            'Content-Type' => 'application/json',
-        ];
-
-        $pos = $this->GetHomePosition();
-        $params = [
-            'deviceTime' => date('Y-m-d\TH:i:s'),
-            'dlat'       => $pos['latitude'],
-            'dlon'       => $pos['longitude'],
-        ];
-        $data = $this->CallAPI($endpoint, $postfields, $params, $header_add);
-        $this->SendDebug(__FUNCTION__, 'poi=' . print_r($poi, true) . ', result=' . $data, 0);
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
         return $data;
     }
 
@@ -2567,11 +1685,15 @@ class BMWConnectedDrive extends IPSModule
                 continue;
             }
             if ($event['eventStatus'] == 'PENDING' && $event['modstamp'] < $refresh_tstamp) {
-                $params = [
-                    'eventId' => $event['eventId'],
+                $SendData = [
+                    'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+                    'CallerID' => $this->InstanceID,
+                    'Function' => 'GetRemoteServiceStatus',
+                    'eventId'  => $eventId,
                 ];
-                $data = $this->CallAPI(self::$remoteServiceStatus_endpoint, [], $params, '');
-                $jdata = json_decode($data, true);
+                $data = $this->SendDataToParent(json_encode($SendData));
+                $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+                $jdata = @json_decode($data, true);
                 if ($jdata == false) {
                     continue;
                 }
@@ -2584,13 +1706,15 @@ class BMWConnectedDrive extends IPSModule
                     $this->SendDebug(__FUNCTION__, 'status set to FAILED: event=' . print_r($event, true), 0);
                 }
                 if ($event['service'] == 'VEHICLE_FINDER' && $event['eventStatus'] == 'EXECUTED') {
-                    $pos = $this->GetHomePosition();
-                    $header_add = [
-                        'latitude'  => $pos['latitude'],
-                        'longitude' => $pos['longitude'],
+                    $SendData = [
+                        'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+                        'CallerID' => $this->InstanceID,
+                        'Function' => 'GetRemoteServicePosition',
+                        'eventId'  => $eventId,
                     ];
-                    $data = $this->CallAPI(self::$remoteServicePosition_endpoint, [], $params, $header_add);
-                    $jdata = json_decode($data, true);
+                    $data = $this->SendDataToParent(json_encode($SendData));
+                    $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+                    $jdata = @json_decode($data, true);
                     if ($jdata != false) {
                         $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
                         $status = $this->GetArrayElem($jdata, 'positionData.status', '');
@@ -2679,12 +1803,16 @@ class BMWConnectedDrive extends IPSModule
             return;
         }
 
-        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-
         $vin = $this->ReadPropertyString('vin');
-        $endpoint = self::$remoteServiceHistory_endpoint . '/' . $vin;
 
-        $data = $this->CallAPI($endpoint, '', '', '');
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'GetRemoteServiceHistory',
+            'vin'      => $vin,
+        ];
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
         if ($data == false) {
             return;
         }
@@ -2698,7 +1826,7 @@ class BMWConnectedDrive extends IPSModule
         if ($history == false) {
             $history = [];
         }
-        $this->SendDebug(__FUNCTION__, 'history=' . print_r($history, true), 0);
+        $this->SendDebug(__FUNCTION__, 'save service history=' . print_r($history, true), 0);
 
         $tbl = '';
         foreach ($jdata as $e) {
@@ -2791,7 +1919,7 @@ class BMWConnectedDrive extends IPSModule
         $this->GetVehicleData();
 
         $model = $this->ReadPropertyInteger('model');
-        if ($model != self::$BMW_MODEL_COMBUSTION) {
+        if ($model != self::$BMW_DRIVE_TYPE_COMBUSTION) {
             $this->GetChargingStatistics();
             $this->GetChargingSessions();
         }
@@ -2802,84 +1930,6 @@ class BMWConnectedDrive extends IPSModule
         $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
 
         $this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
-    }
-
-    private function LocalRequestAction($ident, $value)
-    {
-        $r = true;
-        switch ($ident) {
-            case 'UpdateData':
-                $this->UpdateData();
-                break;
-            case 'UpdateRemoteServiceStatus':
-                $this->UpdateRemoteServiceStatus();
-                break;
-            case 'Relogin':
-                $this->Relogin();
-                break;
-            case 'GetCarPicture':
-                $this->GetCarPicture($value);
-                break;
-            default:
-                $r = false;
-                break;
-        }
-        return $r;
-    }
-
-    public function RequestAction($ident, $value)
-    {
-        if ($this->LocalRequestAction($ident, $value)) {
-            return;
-        }
-        if ($this->CommonRequestAction($ident, $value)) {
-            return;
-        }
-
-        if ($this->CheckStatus() == self::$STATUS_INVALID) {
-            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
-        }
-
-        $this->SendDebug(__FUNCTION__, 'ident=' . $ident . ', value=' . $value, 0);
-        $r = false;
-        switch ($ident) {
-            case 'TriggerStartClimatisation':
-                $r = $this->StartClimateControl();
-                break;
-            case 'TriggerStopClimatisation':
-                $r = $this->StopClimateControl();
-                break;
-            case 'TriggerLockDoors':
-                $r = $this->LockDoors();
-                break;
-            case 'TriggerUnlockDoors':
-                $r = $this->UnlockDoors();
-                break;
-            case 'TriggerFlashHeadlights':
-                $r = $this->FlashHeadlights();
-                break;
-            case 'TriggerBlowHorn':
-                $r = $this->BlowHorn();
-                break;
-            case 'TriggerChargeNow':
-                $r = $this->ChargeNow();
-                break;
-            case 'TriggerLocateVehicle':
-                $r = $this->LocateVehicle();
-                break;
-            case 'GoogleMapType':
-                $r = $this->SetGoogleMapType($value);
-                break;
-            case 'GoogleMapZoom':
-                $r = $this->SetGoogleMapZoom($value);
-                break;
-            default:
-                $this->SendDebug(__FUNCTION__, 'invalid ident "' . $ident . '"', 0);
-        }
-        if ($r) {
-            $this->SetValue($ident, $value);
-        }
     }
 
     private function SetGoogleMap($maptype, $zoom)

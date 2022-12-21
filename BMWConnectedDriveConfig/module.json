@@ -1,0 +1,18 @@
+{
+	"id": "{BC548547-2497-00C5-1C33-33754EA50AE3}",
+	"name": "BMWConnectedDriveConfig",
+	"type": 4,
+	"vendor": "BMW",
+	"aliases": [
+		"BMW ConnectedDrive Konfigurator"
+	],
+	"parentRequirements": [
+		"{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}"
+	],
+	"childRequirements": [],
+	"implemented": [
+		"{7D93F416-125A-4CAE-B707-0DB2A2361013}"
+	],
+	"prefix": "BMW",
+	"url": "https://github.com/demel42/IPSymconBMWConnectedDrive/blob/master/README.md"
+}

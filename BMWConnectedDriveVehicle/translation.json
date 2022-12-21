@@ -6,20 +6,17 @@
 			"__function__": "CheckUpdate",
 			"Delete old variables and variableprofiles": "Alte Variablen und Variablenprofile löschen",
 			"Delete old variables": "Alte Variablen löschen",
+			"Generate a I/O instance": "Erzeugen einer I/O-Instanz",
 
 			"__function__": "CheckConfiguration",
-			"User and password of the BMW-account are required and and a registered VIN": "Benutzer und Passwort des BMW-Kontos werden benötigt und eine registrierte VIN",
+			"A registered VIN is required": "Eine registrierte VIN wird benötigt",
 			"Show position in Map need saving position": "Position in der Karte anzeigen erfordert die Übernahme der Position",
 			"Show position in GoogleMap need the API-Key": "Position in GoogleMap anzeigen benötigt den API-Key",
 
 			"__elements__": "",
 			"Disable instance": "Instanz deaktivieren",
 
-			"Account data": "Zugangsdaten",
-			"User": "Benutzer",
-			"Password": "Passwort",
-			"Country": "Land",
-			"Vehicle-brand": "Fahrzeug-Marke",
+			"Vehicle data": "Fahrzeugdaten",
 			"VIN": "Fahrgestellnummer",
 			"mode of driving": "Antriebsart",
 
@@ -42,22 +39,6 @@
 			" ... size of the map": "Größe der Karte",
 			" ... horizontal": " ... horizontal",
 			" ... vertical": " ... vertikal",
-
-			"__options__": "brand",
-			"BMW": "BMW",
-			"Mini": "Mini",
-
-			"__options__": "country",
-			"Germany": "Deutschland",
-			"Switzerland": "Schweiz",
-			"Europe": "Europa",
-			"USA": "USA",
-			"Rest of the World": "Rest der Welt",
-
-			"__options__": "model",
-			"electric": "Elektrisch",
-			"hybrid": "Hybrid",
-			"combustion": "Verbrenner",
 
 			"__variables__": "",
 			"blow horn": "Hupe auslösen",
@@ -201,8 +182,6 @@
 			"Load picture": "Bild laden",
 
 			"Update data": "Fahrzeugdaten aktualisieren",
-
-			"Relogin": "erneut anmelden",
 
 			"__end__": ""
 		}

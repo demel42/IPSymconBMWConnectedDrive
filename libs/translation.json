@@ -75,6 +75,25 @@
 			"intermediate": "Zwischenposition",
 			"closed": "geschlossen",
 
+			"__options__": "brand",
+			"BMW": "BMW",
+			"Mini": "Mini",
+			"Unknown brand": "unbekannte Marke",
+
+			"__options__": "country",
+			"Germany": "Deutschland",
+			"Switzerland": "Schweiz",
+			"Europe": "Europa",
+			"USA": "USA",
+			"Rest of the World": "Rest der Welt",
+			"Unknown country": "unbekanntes Land",
+
+			"__options__": "driveType",
+			"electric": "Elektrisch",
+			"hybrid": "Hybrid",
+			"combustion": "Verbrenner",
+			"Unknown drive type": "unbekannte Antriebsart",
+
 			"__status__": "",
 			"Instance is inactive (unauthorized)": "Instanz ist inaktiv (Authorisierung fehlerhaft)",
 			"Instance is inactive (forbidden)": "Instanz ist inaktiv (fehlende Berechtigung)",

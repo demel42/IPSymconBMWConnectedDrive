@@ -58,8 +58,9 @@ als URL muss `https://github.com/demel42/IPSymconBMWConnectedDrive` angegeben we
 
 ### b. Einrichtung in IP-Symcon
 
-In IP-Symcon nun _Instanz hinzufügen_ (_Rechtsklick -> Objekt hinzufügen -> Instanz_) auswählen unter der Kategorie, unter der man die BMW Instanz hinzufügen will, und _BMW_ auswählen.
-Im Konfigurationsformular ist der _BMW Connected Drive User_,  das _BMW Connected Drive Passwort_ sowie die _VIN_ (Fahrgestellnummer) zu ergänzen und das Modell einzustellen.
+In IP-Symcon nun unterhalb von _I/O Instanzen_ die Funktion _Instanz hinzufügen_ auswählen und als Hersteller _BMW_ angeben und _BMW ConnectedDrive I/O_ auswählen.
+Instanz parametrieren.
+Dann unterhalb von _Konfigurator Instanzen_ ein _BMW ConnectedDrive Konfigurator_ angeleg und hierüber den/die _BMW ConnectedDrive Vehicle_ anlegen.
 
 ## 4. Funktionsreferenz
 
@@ -121,16 +122,21 @@ BMW_SendPOI(<InstanceID>, json_encode($poi));
 
 ## 5. Konfiguration:
 
-### Variablen
+### Variablen (BMWConnectedDriveIO)
 
 | Eigenschaft              | Typ     | Standardwert | Funktion |
 | :----------------------- | :------ | :----------- | :------- |
 | user                     | string  |              | Benutzerkennung |
 | password                 | string  |              | Passwort |
 | country                  | integer | 1            | Land |
+| brand                    | integer | 1            | Marke (BMW, Mini) |
+
+### Variablen (BMWConnectedDriveVehicle)
+
+| Eigenschaft              | Typ     | Standardwert | Funktion |
+| :----------------------- | :------ | :----------- | :------- |
 | vin                      | string  |              | Fahrgestellnummer |
 | model                    | integer | 1            | Modell (Elektisch, Hybrid, Verbrenner) |
-| brand                    | integer | 1            | Marke (BMW, Mini) |
 |                          |         |              | |
 | active_climate           | boolean | false        | Klimatisierung auslösen |
 | active_lock              | boolean | false        | Türverschluss auslösen |
@@ -186,7 +192,12 @@ GUIDs
 
 - Modul: `{3BEBDFE5-9DAF-3373-BFA9-A80038D3FE63}`
 - Instanzen:
-  - BMWConnectedDrive: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
+  - BMWConnectedDriveIO: `{2B3E3F00-33AC-4A54-8E20-F8B57241913D}`
+  - BMWConnectedDriveConfig: `{BC548547-2497-00C5-1C33-33754EA50AE3}`
+  - BMWConnectedDriveVehicle: `{8FD2A163-E07A-A2A2-58CC-974155FAEE33}`
+- Nachrichten:
+    - `{7D93F416-125A-4CAE-B707-0DB2A2361013}`: an BMWConnectedDriveConfig, BMWConnectedDriveDevice
+    - `{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}`: an BMWConnectedDriveIO
 
 Quellen / Referenzen
 
@@ -194,6 +205,13 @@ Quellen / Referenzen
 - [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
+
+- 3.0 @ 21.12.2022 09:55
+  - Neu: Kommunikation über ein I/O-Modul (wird beim Update angelegt)
+  - Neu: Konfigurator
+  - Neu: Führen einer Statistik der API-Calls, Anzeige als Popup im Experten-Bereich
+  - Neu: zur Vermeidung von Problemen wird nur noch ein API-Call/Sekunde ausgeführt
+  - update submodule CommonStubs
 
 - 2.11 @ 19.10.2022 09:31
   - Fix: MessageSink() angepasst, um Warnungen aufgrund zu langer Laufzeit von KR_READY zu vermeiden

@@ -1,0 +1,19 @@
+{
+	"translations": {
+		"de": {
+			"BMW configurator": "BMW Konfigurator",
+
+			"__elements__": "",
+			"category for BMW vehicles to be created": "Kategorie für anzulegende BMW Fahrzeuge",
+
+			"Name": "Bezeichnung",
+			"VIN": "VIN",
+			"Model": "Modell",
+			"Body type": "Karosserie",
+			"Year": "Jahr",
+			"Drive type": "Antriebsart",
+
+			"__end__": ""
+		}
+	}
+}

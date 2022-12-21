@@ -52,9 +52,10 @@ trait BMWConnectedDriveLocalLib
     }
 
     // Model
-    private static $BMW_MODEL_ELECTRIC = 1;
-    private static $BMW_MODEL_HYBRID = 2;
-    private static $BMW_MODEL_COMBUSTION = 3;
+    private static $BMW_DRIVE_TYPE_UNKNOWN = 0;
+    private static $BMW_DRIVE_TYPE_ELECTRIC = 1;
+    private static $BMW_DRIVE_TYPE_HYBRID = 2;
+    private static $BMW_DRIVE_TYPE_COMBUSTION = 3;
 
     // Ladekabel/Stecker
     private static $BMW_CONNECTOR_STATE_UNKNOWN = -1;
@@ -241,5 +242,170 @@ trait BMWConnectedDriveLocalLib
         $this->CreateVarProfile('BMW.BatteryCapacity', VARIABLETYPE_FLOAT, ' kWh', 0, 0, 0, 1, '', '', $reInstall);
         $this->CreateVarProfile('BMW.Location', VARIABLETYPE_FLOAT, ' °', 0, 0, 0, 5, 'Car', '', $reInstall);
         $this->CreateVarProfile('BMW.TirePressure', VARIABLETYPE_FLOAT, ' bar', 0, 0, 0, 1, '', '', $reInstall);
+    }
+
+    private function DriveTypeMapping()
+    {
+        return [
+            self::$BMW_DRIVE_TYPE_ELECTRIC => [
+                'caption' => 'electric',
+            ],
+            self::$BMW_DRIVE_TYPE_HYBRID => [
+                'caption' => 'hybrid',
+            ],
+            self::$BMW_DRIVE_TYPE_COMBUSTION => [
+                'caption' => 'combustion',
+            ],
+        ];
+    }
+
+    private function DriveTypeAsOptions()
+    {
+        $maps = $this->DriveTypeMapping();
+        $opts = [];
+        foreach ($maps as $u => $e) {
+            $opts[] = [
+                'caption' => $e['caption'],
+                'value'   => $u,
+            ];
+        }
+        return $opts;
+    }
+
+    private function DriveType2String($driveType)
+    {
+        $maps = $this->DriveTypeMapping();
+        if (isset($maps[$driveType])) {
+            $ret = $this->Translate($maps[$driveType]['caption']);
+        } else {
+            $ret = $this->Translate('Unknown drive type') . ' ' . $driveType;
+        }
+        return $ret;
+    }
+
+    private function BrandMapping()
+    {
+        return [
+            self::$BMW_BRAND_BMW => [
+                'caption' => 'BMW',
+                'code'    => 'bmw',
+            ],
+            self::$BMW_BRAND_MINI => [
+                'caption' => 'Mini',
+                'code'    => 'mini',
+            ],
+        ];
+    }
+
+    private function BrandAsOptions()
+    {
+        $maps = $this->BrandMapping();
+        $opts = [];
+        foreach ($maps as $u => $e) {
+            $opts[] = [
+                'caption' => $e['caption'],
+                'value'   => $u,
+            ];
+        }
+        return $opts;
+    }
+
+    private function Brand2String($brand)
+    {
+        $maps = $this->BrandMapping();
+        if (isset($maps[$brand])) {
+            $ret = $this->Translate($maps[$brand]['caption']);
+        } else {
+            $ret = $this->Translate('Unknown brand') . ' ' . $brand;
+        }
+        return $ret;
+    }
+
+    private function Brand2Code($brand)
+    {
+        $maps = $this->BrandMapping();
+        if (isset($maps[$brand])) {
+            $ret = $maps[$brand]['code'];
+        } else {
+            $ret = 'bmw';
+        }
+        return $ret;
+    }
+
+    private function CountryMapping()
+    {
+        return [
+            self::$BMW_COUNTRY_GERMANY => [
+                'caption' => 'Germany',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'de',
+            ],
+            self::$BMW_COUNTRY_SWITZERLAND => [
+                'caption' => 'Switzerland',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'de',
+            ],
+            self::$BMW_COUNTRY_EUROPE => [
+                'caption' => 'Europe',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'en',
+            ],
+            self::$BMW_COUNTRY_USA => [
+                'caption' => 'USA',
+                'region'  => 'NorthAmerica',
+                'lang'    => 'en',
+            ],
+            self::$BMW_COUNTRY_OTHER => [
+                'caption' => 'Rest of the World',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'en',
+            ]
+        ];
+    }
+
+    private function CountryAsOptions()
+    {
+        $maps = $this->CountryMapping();
+        $opts = [];
+        foreach ($maps as $u => $e) {
+            $opts[] = [
+                'caption' => $e['caption'],
+                'value'   => $u,
+            ];
+        }
+        return $opts;
+    }
+
+    private function Country2String($country)
+    {
+        $maps = $this->CountryMapping();
+        if (isset($maps[$country])) {
+            $ret = $this->Translate($maps[$country]['caption']);
+        } else {
+            $ret = $this->Translate('Unknown country') . ' ' . $country;
+        }
+        return $ret;
+    }
+
+    private function Country2Region($country)
+    {
+        $maps = $this->CountryMapping();
+        if (isset($maps[$country])) {
+            $ret = $maps[$country]['region'];
+        } else {
+            $ret = 'RestOfWorld';
+        }
+        return $ret;
+    }
+
+    private function Country2Lang($country)
+    {
+        $maps = $this->CountryMapping();
+        if (isset($maps[$country])) {
+            $ret = $maps[$country]['lang'];
+        } else {
+            $ret = 'en';
+        }
+        return $ret;
     }
 }
