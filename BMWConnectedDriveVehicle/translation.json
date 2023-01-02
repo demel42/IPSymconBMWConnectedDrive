@@ -121,7 +121,7 @@
 			"Tire wear front": "Reifenverschleiß vorne",
 			"Break fluid": "Bremsflüssigkeit",
 			"Emission check": "Abgasuntersuchung",
-			"Legal inspection": "gesetzliche Kontrolle",
+			"Legal inspection": "nächster TÜV",
 			"Unknown type": "Unbekannter Typ",
 
 			"__function__": "UpdateVehicleData / CheckControlMessages",
