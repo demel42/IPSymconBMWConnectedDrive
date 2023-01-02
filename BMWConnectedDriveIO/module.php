@@ -1244,7 +1244,7 @@ class BMWConnectedDriveIO extends IPSModule
         ];
 
         $data = $this->CallAPI($endpoint, '', $params, $header_add);
-        return $data;
+        return base64_encode($data);
     }
 
     private function GetChargingSessions($vin)

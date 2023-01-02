@@ -704,6 +704,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                             'label' => $this->Translate('Diagonal from front'),
                             'value' => self::$BMW_CARVIEW_FRONTSIDE
                         ],
+                        /*
                         [
                             'label' => $this->Translate('From the front'),
                             'value' => self::$BMW_CARVIEW_FRONT
@@ -712,6 +713,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                             'label' => $this->Translate('From the side'),
                             'value' => self::$BMW_CARVIEW_SIDE
                         ],
+                         */
                     ],
                 ],
                 [
@@ -1390,7 +1392,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         $data = $this->SendDataToParent(json_encode($SendData));
         $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $this->LimitOutput($data), 0);
         if ($data != false) {
-            $this->SetMediaData('Car picture', $data, MEDIATYPE_IMAGE, '.png', false);
+            $this->SetMediaData('Car picture', base64_decode($data), MEDIATYPE_IMAGE, '.png', false);
         }
     }
 
