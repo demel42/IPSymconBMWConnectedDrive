@@ -206,6 +206,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.0.1 @ 02.01.2023 09:41
+  - Fix: RemoteServices konnten nicht mehr aufgerufen werden
+
 - 3.0 @ 21.12.2022 09:55
   - Neu: Kommunikation über ein I/O-Modul (wird beim Update angelegt)
   - Neu: Konfigurator

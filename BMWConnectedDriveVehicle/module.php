@@ -1689,7 +1689,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                     'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
                     'CallerID' => $this->InstanceID,
                     'Function' => 'GetRemoteServiceStatus',
-                    'eventId'  => $eventId,
+                    'eventId'  => $event['eventId'],
                 ];
                 $data = $this->SendDataToParent(json_encode($SendData));
                 $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
@@ -1710,7 +1710,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                         'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
                         'CallerID' => $this->InstanceID,
                         'Function' => 'GetRemoteServicePosition',
-                        'eventId'  => $eventId,
+                        'eventId'  => $event['eventId'],
                     ];
                     $data = $this->SendDataToParent(json_encode($SendData));
                     $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);

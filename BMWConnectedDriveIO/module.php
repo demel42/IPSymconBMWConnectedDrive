@@ -1379,7 +1379,7 @@ class BMWConnectedDriveIO extends IPSModule
 
         $endpoint = self::$remoteServiceStatus_endpoint;
         $params = [
-            'eventId' => $event['eventId'],
+            'eventId' => $eventId,
         ];
         $data = $this->CallAPI($endpoint, [], $params, '');
         return $data;
@@ -1395,7 +1395,7 @@ class BMWConnectedDriveIO extends IPSModule
         $endpoint = self::$remoteServicePosition_endpoint;
 
         $params = [
-            'eventId' => $event['eventId'],
+            'eventId' => $eventId,
         ];
 
         $pos = $this->GetHomePosition();
