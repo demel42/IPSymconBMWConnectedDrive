@@ -207,7 +207,8 @@ Quellen / Referenzen
 ## 7. Versions-Historie
 
 - 3.0.2 @ 02.01.2023 11:09
-  - Fix: GetCarPicture funktioniert wieder, aber weiterhin nur mit "Schräg von vorne"
+  - Fix: GetCarPicture funktioniert wieder, 
+    Es wird nur noch die Ansicht "Schräg von vorne" angeboten
 
 - 3.0.1 @ 02.01.2023 09:41
   - Fix: RemoteServices konnten nicht mehr aufgerufen werden
