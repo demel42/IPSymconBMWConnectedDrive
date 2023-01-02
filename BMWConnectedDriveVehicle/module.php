@@ -1211,6 +1211,9 @@ class BMWConnectedDriveVehicle extends IPSModule
                         case 'EMISSION_CHECK':
                             $type = $this->Translate('Emission check');
                             break;
+                        case 'VEHICLE_TUV':
+                            $type = $this->Translate('Legal inspection');
+                            break;
                         default:
                             $type = $this->Translate('Unknown type') . ' ˝' . $type . '"';
                             break;

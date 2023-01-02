@@ -206,6 +206,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.0.3 @ 02.01.2023 13:55
+  - Fix: ServiceMessages ergänzt
+
 - 3.0.2 @ 02.01.2023 11:09
   - Fix: GetCarPicture funktioniert wieder, 
     Es wird nur noch die Ansicht "Schräg von vorne" angeboten
