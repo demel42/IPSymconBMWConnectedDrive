@@ -133,10 +133,9 @@ trait BMWConnectedDriveLocalLib
     private static $BMW_BRAND_MINI = 1;
 
     // Ansicht des Fahrzeugbilds
-    // extrem komische Werte, sind aber so
-    private static $BMW_CARVIEW_FRONTSIDE = 'VehicleStatus';
-    private static $BMW_CARVIEW_FRONT = 'VehicleInfo';
-    private static $BMW_CARVIEW_SIDE = 'ChargingHistory';
+    private static $BMW_CARVIEW_FRONTSIDE = 'AngleSideViewForty'; // VehicleStatus
+    private static $BMW_CARVIEW_FRONT = 'FrontView';
+    private static $BMW_CARVIEW_SIDE = 'SideViewLeft';
 
     private function InstallVarProfiles(bool $reInstall = false)
     {

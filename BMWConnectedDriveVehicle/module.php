@@ -704,7 +704,6 @@ class BMWConnectedDriveVehicle extends IPSModule
                             'label' => $this->Translate('Diagonal from front'),
                             'value' => self::$BMW_CARVIEW_FRONTSIDE
                         ],
-                        /*
                         [
                             'label' => $this->Translate('From the front'),
                             'value' => self::$BMW_CARVIEW_FRONT
@@ -713,7 +712,6 @@ class BMWConnectedDriveVehicle extends IPSModule
                             'label' => $this->Translate('From the side'),
                             'value' => self::$BMW_CARVIEW_SIDE
                         ],
-                         */
                     ],
                 ],
                 [

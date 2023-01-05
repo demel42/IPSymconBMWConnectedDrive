@@ -206,6 +206,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.0.4 @ 05.01.2023 08:27
+  - Fix: Bilder vom ∀harzeug gibt es nun wieder in der 3 Ansichten: von schräg vorne, von vorne, von der Seite
+
 - 3.0.3 @ 02.01.2023 13:55
   - Fix: ServiceMessages ergänzt
 
