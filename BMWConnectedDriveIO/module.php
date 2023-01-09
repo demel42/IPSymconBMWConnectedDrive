@@ -28,18 +28,16 @@ class BMWConnectedDriveIO extends IPSModule
         'RestOfWorld'  => 'NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh',
     ];
 
-    private static $x_user_agent_fmt = 'android(SP1A.210812.016.C1);%s;2.5.2(14945);%s';
-    private static $user_agent = 'Dart/2.14 (dart:io)';
+    private static $x_user_agent_fmt = 'android(SP1A.210812.016.C1);%s;2.12.0(19883);%s';
+    private static $user_agent = 'Dart/2.16 (dart:io)';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
     private static $oauth_token_endpoint = '/gcdm/oauth/token';
 
-    private static $vehicles_endpoint = '/eadrax-vcs/v2/vehicles';
+    private static $vehicles_endpoint = '/eadrax-vcs/v4/vehicles';
 
-    private static $remoteService_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands';
-    private static $remoteServiceStatus_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventStatus';
-    private static $remoteServicePosition_endpoint = '/eadrax-vrccs/v2/presentation/remote-commands/eventPosition';
+    private static $remoteService_endpoint = '/eadrax-vrccs/v3/presentation/remote-commands';
     private static $remoteServiceHistory_endpoint = '/eadrax-vrccs/v2/presentation/remote-history';
 
     private static $vehicle_img_endpoint = '/eadrax-ics/v3/presentation/vehicles/%s/images';
@@ -1196,7 +1194,7 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$vehicles_endpoint . '/' . $vin . '/state';
+        $endpoint = self::$vehicles_endpoint . '/state';
 
         $params = [
             'apptimezone'   => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
@@ -1204,7 +1202,11 @@ class BMWConnectedDriveIO extends IPSModule
             'tireGuardMode' => 'ENABLED',
         ];
 
-        $data = $this->CallAPI($endpoint, '', $params, '');
+        $header_add = [
+            'bmw-vin' => $vin,
+        ];
+
+        $data = $this->CallAPI($endpoint, '', $params, $header_add);
         return $data;
     }
 
@@ -1377,10 +1379,12 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$remoteServiceStatus_endpoint;
+        $endpoint = self::$remoteService_endpoint . '/eventStatus';
+
         $params = [
             'eventId' => $eventId,
         ];
+
         $data = $this->CallAPI($endpoint, [], $params, '');
         return $data;
     }
@@ -1392,7 +1396,7 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$remoteServicePosition_endpoint;
+        $endpoint = self::$remoteService_endpoint . '/eventPosition';
 
         $params = [
             'eventId' => $eventId,

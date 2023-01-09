@@ -202,9 +202,12 @@ GUIDs
 Quellen / Referenzen
 
 - [Bimmer Connected](https://github.com/bimmerconnected/bimmer_connected)
-- [BMW-i-Remote](https://github.com/edent/BMW-i-Remote "BMW-i-Remote")
 
 ## 7. Versions-Historie
+
+- 3.1 @ 06.01.2023 11:22
+  - Neu: API aktualisiert (MyBMW 2.12.0)
+    Erhofft wird ein verringertes Auftreten von HTTP-Error 403(Forbidden)/Quota Exceeded
 
 - 3.0.4 @ 05.01.2023 08:27
   - Fix: Bilder vom Fahrzeug gibt es nun wieder in 3 Ansichten: von schräg vorne, von vorne, von der Seite
