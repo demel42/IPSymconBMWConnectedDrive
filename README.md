@@ -205,6 +205,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.1.1 @ 11.01.2023 15:38
+  - Fix: Handling des Datencache abgesichert
+  - update submodule CommonStubs
+
 - 3.1 @ 06.01.2023 11:22
   - Neu: API aktualisiert (MyBMW 2.12.0)
     Erhofft wird ein verringertes Auftreten von HTTP-Error 403(Forbidden)/Quota Exceeded

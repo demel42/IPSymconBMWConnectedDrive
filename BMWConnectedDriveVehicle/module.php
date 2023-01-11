@@ -330,6 +330,8 @@ class BMWConnectedDriveVehicle extends IPSModule
             }
 
             if ($u_connectionID == 0) {
+                // Mail vom 11.01.2023 mit Freigabe durch Dr. Niels hierzu
+                // ... Allerdings überschreibst du die Konfiguration der I/O-Instanz selbst dann ...
                 if ($connectionID != 0 && IPS_GetProperty($connectionID, 'user') == '') {
                     $u_connectionID = $connectionID;
                 } else {
