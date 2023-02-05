@@ -205,6 +205,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.1.2 @ 05.02.2023 10:05
+ - Fix: URL zur Dokumentation war falsch
+
 - 3.1.1 @ 11.01.2023 15:38
   - Fix: Handling des Datencache abgesichert
   - update submodule CommonStubs
