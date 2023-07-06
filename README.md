@@ -205,6 +205,12 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.2 @ 06.07.2023 09:41
+  - Vorbereitung auf IPS 7 / PHP 8.2
+  - Neu: Schalter, um die Meldung eines inaktiven Gateway zu steuern
+  - update submodule CommonStubs
+    - Absicherung bei Zugriff auf Objekte und Inhalte
+
 - 3.1.2 @ 05.02.2023 10:05
  - Fix: URL zur Dokumentation war falsch
 
