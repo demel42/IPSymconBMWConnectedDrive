@@ -6,8 +6,6 @@ require_once __DIR__ . '/../libs/common.php';
 require_once __DIR__ . '/../libs/local.php';
 require_once __DIR__ . '/../libs/images.php';
 
-// define('CHARGE_NOW', true);
-
 class BMWConnectedDriveVehicle extends IPSModule
 {
     use BMWConnectedDrive\StubsCommonLib;
@@ -451,14 +449,17 @@ class BMWConnectedDriveVehicle extends IPSModule
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
-        if (defined('CHARGE_NOW')) {
-            $this->MaintainVariable('TriggerChargeNow', $this->Translate('charge now'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
-            if ($isElectric) {
-                $this->MaintainAction('TriggerChargeNow', true);
-            }
-        } else {
-            $this->UnregisterVariable('TriggerChargeNow');
+        /*
+        $this->MaintainVariable('TriggerStartCharging', $this->Translate('start charging'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
+        if ($isElectric) {
+            $this->MaintainAction('TriggerStartCharging', true);
         }
+
+        $this->MaintainVariable('TriggerStopCharging', $this->Translate('stop charging'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
+        if ($isElectric) {
+            $this->MaintainAction('TriggerStopCharging', true);
+        }
+         */
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
@@ -1024,6 +1025,14 @@ class BMWConnectedDriveVehicle extends IPSModule
                 $html .= '<tr>' . PHP_EOL;
                 $html .= '<td>' . $this->Translate('Charging target') . '</td>' . PHP_EOL;
                 $html .= '<td>' . $targetSoc . '%</td>' . PHP_EOL;
+                $html .= '</tr>' . PHP_EOL;
+            }
+
+            $acCurrentLimit = $this->GetArrayElem($chargingProfile, 'chargingSettings.acCurrentLimit', '');
+            if ($acCurrentLimit != '') {
+                $html .= '<tr>' . PHP_EOL;
+                $html .= '<td>' . $this->Translate('Charging current limit') . '</td>' . PHP_EOL;
+                $html .= '<td>' . $acCurrentLimit . '%</td>' . PHP_EOL;
                 $html .= '</tr>' . PHP_EOL;
             }
 
@@ -1630,7 +1639,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         return true;
     }
 
-    public function ChargeNow()
+    public function StartCharging()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -1638,8 +1647,86 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
 
         $this->SendDebug(__FUNCTION__, 'call api ...', 0);
-        $result = $this->ExecuteRemoteService('CHARGE_NOW', '');
+        $result = $this->ExecuteRemoteService('START_CHARGING', '');
         return true;
+    }
+
+    public function StopCharging()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return false;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'call api ...', 0);
+        $result = $this->ExecuteRemoteService('STOP_CHARGING', '');
+        return true;
+    }
+
+    /*
+
+    VEHICLE_CHARGING_BASE_URL = "/eadrax-crccs/v1/vehicles/{vin}"
+    VEHICLE_CHARGING_START_STOP_URL = VEHICLE_CHARGING_BASE_URL + "/{service_type}"
+
+    trigger_charging_settings_update(target_soc, ac_limit)
+
+            if target_soc and (
+            not isinstance(target_soc, int) or target_soc < 20 or target_soc > 100 or target_soc % 5 != 0
+
+
+        return await self.trigger_remote_service(
+            Services.CHARGING_SETTINGS,
+            data=ChargingSettings(chargingTarget=target_soc, acLimitValue=ac_limit),
+            refresh=True,
+
+
+        CHARGING_SETTINGS
+
+        VEHICLE_CHARGING_SETTINGS_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-settings"
+     */
+
+    public function SetChargingSettings(int $targetSoC, int $acCurrentLimit)
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return false;
+        }
+
+        $vin = $this->ReadPropertyString('vin');
+
+        $settings = [];
+
+        if ($targetSoC > 0) {
+            $targetSoC = ceil($targetSoC / 5) * 5;
+            if ($targetSoC < 20) {
+                $targetSoC = 20;
+            }
+            if ($targetSoC > 100) {
+                $targetSoC = 200;
+            }
+            $settings['chargingTarget'] = $targetSoC;
+        }
+
+        if ($acCurrentLimit > 0) {
+            if ($acCurrentLimit < 6) {
+                $acCurrentLimit = 6;
+            }
+            if ($acCurrentLimit > 32) {
+                $acCurrentLimit = 32;
+            }
+            $settings['acLimitValue'] = $acCurrentLimit;
+        }
+
+        $SendData = [
+            'DataID'        => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID'      => $this->InstanceID,
+            'Function'      => 'SetChargingSettings',
+            'vin'           => $vin,
+            'settings'      => json_encode($settings),
+        ];
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+        return $data;
     }
 
     public function SendPOI(string $poi)
@@ -1785,6 +1872,8 @@ class BMWConnectedDriveVehicle extends IPSModule
             'HORN_BLOW'          => 'horn blow',
             'VEHICLE_FINDER'     => 'find vehicle',
             'CHARGE_NOW'         => 'charge now',
+            'CHARGE_START'       => 'start charging',
+            'CHARGE_STOP'        => 'stop charging',
             'CHARGING_CONTROL'   => 'charging control',
             'CHARGING_PROFILE'   => 'charge preferences',
             'CHARGE_PREFERENCE'  => 'charge preferences',

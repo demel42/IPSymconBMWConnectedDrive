@@ -46,6 +46,8 @@ class BMWConnectedDriveIO extends IPSModule
     private static $charging_statistics_endpoint = '/eadrax-chs/v1/charging-statistics';
     private static $charging_sessions_endpoint = '/eadrax-chs/v1/charging-sessions';
 
+    private static $charging_endpoint = '/eadrax-crccs/v1/vehicles';
+
     private static $semaphoreTM = 5 * 1000;
 
     private $ModuleDir;
@@ -1156,6 +1158,9 @@ class BMWConnectedDriveIO extends IPSModule
                 case 'GetRemoteServicePosition':
                     $ret = $this->GetRemoteServicePosition($jdata['eventId']);
                     break;
+                case 'SetChargingSettings':
+                    $ret = $this->SetChargingSettings($jdata['vin'], $jdata['settings']);
+                    break;
                 default:
                     $this->SendDebug(__FUNCTION__, 'unknown function "' . $jdata['Function'] . '"', 0);
                     break;
@@ -1288,6 +1293,11 @@ class BMWConnectedDriveIO extends IPSModule
 
     private function ExecuteRemoteService(string $vin, string $service, string $action)
     {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return false;
+        }
+
         $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action, 0);
 
         $endpoint = self::$remoteService_endpoint . '/' . $vin . '/' . strtolower(preg_replace('/_/', '-', $service));
@@ -1409,6 +1419,56 @@ class BMWConnectedDriveIO extends IPSModule
         ];
 
         $data = $this->CallAPI($endpoint, [], $params, $header_add);
+        return $data;
+    }
+
+    /*
+    VEHICLE_CHARGING_PROFILE_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-profile"
+
+
+    MAP_CHARGING_MODE_TO_REMOTE_SERVICE = {
+        ChargingMode.IMMEDIATE_CHARGING: "CHARGING_IMMEDIATELY",
+        ChargingMode.DELAYED_CHARGING: "TIME_SLOT",
+
+    CHARGING_MODE_TO_CHARGING_PREFERENCE = {
+        ChargingMode.IMMEDIATE_CHARGING: "NO_PRESELECTION"
+        ChargingMode.DELAYED_CHARGING: "CHARGING_WINDOW"
+
+        if charging_mode and not charging_mode == ChargingMode.UNKNOWN:
+            target_charging_profile["chargingMode"]["type"] = MAP_CHARGING_MODE_TO_REMOTE_SERVICE[charging_mode]
+            target_charging_profile["chargingMode"]["chargingPreference"] = CHARGING_MODE_TO_CHARGING_PREFERENCE[
+                charging_mode
+            ].value
+
+        if precondition_climate:
+            target_charging_profile["isPreconditionForDepartureActive"] = precondition_climate
+
+     */
+
+    private function SetChargingSettings(string $vin, string $settings)
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $endpoint = self::$charging_endpoint . '/' . $vin . '/charging-settings';
+
+        $jsettings = json_decode($settings, true);
+
+        $postfields = [];
+        if (isset($jsettings['chargingTarget'])) {
+            $postfields['chargingTarget'] = $jsettings['chargingTarget'];
+        }
+        if (isset($jsettings['acLimitValue'])) {
+            $postfields['acLimitValue'] = $jsettings['acLimitValue'];
+        }
+
+        $header_add = [
+            'Content-Type' => 'application/json',
+        ];
+
+        $data = $this->CallAPI($endpoint, $postfields, [], $header_add);
         return $data;
     }
 }

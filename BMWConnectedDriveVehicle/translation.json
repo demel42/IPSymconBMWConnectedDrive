@@ -107,6 +107,7 @@
 			"saturday": "Sa",
 			"sunday": "So",
 			"Charging target": "Ladeziel",
+			"Charging current limit": "Ladestrom-Begrenzung",
 			"Air conditioning departure time": "Klimatisierung zur Abfahrtszeit",
 
 			"__function__": "UpdateVehicleData / ServiceMessages",

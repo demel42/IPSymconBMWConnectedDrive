@@ -120,6 +120,15 @@ $poi = [
 BMW_SendPOI(<InstanceID>, json_encode($poi));
 ```
 
+`BMW_StartCharging(integer $InstanceID)`<br>
+Startet den Ladevorgang
+
+`BMW_StopCharging(integer $InstanceID)`<br>
+Beendet den Ladevorgang
+
+`BMW_SetChargingSettings(integer $InstanceID, int $TargetSoC, int $AcCurrentLimit)`<br>
+Setze Lade-Einstellungen
+
 ## 5. Konfiguration:
 
 ### Variablen (BMWConnectedDriveIO)
@@ -204,6 +213,9 @@ Quellen / Referenzen
 - [Bimmer Connected](https://github.com/bimmerconnected/bimmer_connected)
 
 ## 7. Versions-Historie
+
+- 3.3 @ 17.07.2023 12:50
+  - Neu: Start/Stop des Ladevorgangs, Setzen von Ladeziel/Stromstärke
 
 - 3.2 @ 06.07.2023 09:41
   - Vorbereitung auf IPS 7 / PHP 8.2
