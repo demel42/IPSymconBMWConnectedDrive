@@ -1,0 +1,46 @@
+{
+	"id": "{5167BC9C-68C0-C936-705E-FADCE8BE1DDF}",
+	"caption": "Set charging settings",
+	"form": [
+		{
+			"type": "NumberSpinner",
+			"digits": 0,
+			"min": 20,
+			"max": 100,
+			"suffix": "%",
+			"name": "TARGETSOC",
+			"caption": "Target SoC"
+		},
+		{
+			"type": "NumberSpinner",
+			"digits": 0,
+			"min": 6,
+			"max": 32,
+			"suffix": "A",
+			"name": "ACCURRENTLIMIT",
+			"caption": "Current limit"
+		}
+	],
+	"action": "BMW_SetChargingSettings($_IPS['TARGET'], $_IPS['TARGETSOC'], $_IPS['ACCURRENTLIMIT']);",
+	"restrictions": {
+		"objectType": [
+			1
+		],
+		"moduleID": [
+			"{8FD2A163-E07A-A2A2-58CC-974155FAEE33}"
+		],
+		"includeEnvironments": [
+			"TestCommands",
+			"Default"
+		]
+	},
+	"priority": 10,
+	"category": "target",
+	"locale": {
+		"de": {
+			"Set charging settings": "Setze Lade-Einstellungen",
+			"Target SoC": "Ladeziel",
+			"Current limit": "Ladestrom-Begrenzung"
+		}
+	}
+}

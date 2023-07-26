@@ -214,7 +214,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 3.3 @ 17.07.2023 12:50
+- 3.3 @ 26.07.2023 11:14 
   - Neu: Start/Stop des Ladevorgangs, Setzen von Ladeziel/Stromstärke
 
 - 3.2 @ 06.07.2023 09:41

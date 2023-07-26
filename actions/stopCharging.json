@@ -1,0 +1,25 @@
+{
+	"id": "{44229138-8263-E333-BC6B-41F71009C63B}",
+	"caption": "Stop charging",
+	"form": [],
+	"action": "BMW_StopCharging($_IPS['TARGET']);",
+	"restrictions": {
+		"objectType": [
+			1
+		],
+		"moduleID": [
+			"{8FD2A163-E07A-A2A2-58CC-974155FAEE33}"
+		],
+		"includeEnvironments": [
+			"TestCommands",
+			"Default"
+		]
+	},
+	"priority": 10,
+	"category": "target",
+	"locale": {
+		"de": {
+			"Stop charging": "Ladevorgang stoppen"
+		}
+	}
+}

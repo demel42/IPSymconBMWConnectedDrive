@@ -1663,28 +1663,6 @@ class BMWConnectedDriveVehicle extends IPSModule
         return true;
     }
 
-    /*
-
-    VEHICLE_CHARGING_BASE_URL = "/eadrax-crccs/v1/vehicles/{vin}"
-    VEHICLE_CHARGING_START_STOP_URL = VEHICLE_CHARGING_BASE_URL + "/{service_type}"
-
-    trigger_charging_settings_update(target_soc, ac_limit)
-
-            if target_soc and (
-            not isinstance(target_soc, int) or target_soc < 20 or target_soc > 100 or target_soc % 5 != 0
-
-
-        return await self.trigger_remote_service(
-            Services.CHARGING_SETTINGS,
-            data=ChargingSettings(chargingTarget=target_soc, acLimitValue=ac_limit),
-            refresh=True,
-
-
-        CHARGING_SETTINGS
-
-        VEHICLE_CHARGING_SETTINGS_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-settings"
-     */
-
     public function SetChargingSettings(int $targetSoC, int $acCurrentLimit)
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
@@ -1862,22 +1840,22 @@ class BMWConnectedDriveVehicle extends IPSModule
     private function GetRemoteServiceHistory()
     {
         $service2text = [
-            'CLIMATE_NOW'        => 'climate now',
-            'CLIMATE_STOP'       => 'stop climate',
-            'CLIMATE_LATER'      => 'climate later',
-            'CLIMATE_CONTROL'    => 'climate control',
-            'DOOR_LOCK'          => 'door lock',
-            'DOOR_UNLOCK'        => 'door unlock',
-            'LIGHT_FLASH'        => 'light flash',
-            'HORN_BLOW'          => 'horn blow',
-            'VEHICLE_FINDER'     => 'find vehicle',
             'CHARGE_NOW'         => 'charge now',
-            'CHARGE_START'       => 'start charging',
+            'CHARGE_PREFERENCE'  => 'charge preferences',
             'CHARGE_STOP'        => 'stop charging',
             'CHARGING_CONTROL'   => 'charging control',
             'CHARGING_PROFILE'   => 'charge preferences',
-            'CHARGE_PREFERENCE'  => 'charge preferences',
+            'CLIMATE_CONTROL'    => 'climate control',
+            'CLIMATE_LATER'      => 'climate later',
+            'CLIMATE_NOW'        => 'climate now',
+            'CLIMATE_STOP'       => 'stop climate',
+            'DOOR_LOCK'          => 'door lock',
+            'DOOR_UNLOCK'        => 'door unlock',
+            'HORN_BLOW'          => 'horn blow',
+            'LIGHT_FLASH'        => 'light flash',
             'REMOTE360'          => 'Remote 3D View',
+            'REMOTE_CHARGING'    => 'charging',
+            'VEHICLE_FINDER'     => 'find vehicle',
         ];
         $status2text = [
             'SUCCESS'       => 'success',
@@ -1938,6 +1916,20 @@ class BMWConnectedDriveVehicle extends IPSModule
                         $event_action = $this->GetArrayElem($event, 'action', '');
                         if ($event_ts == $ts && $event_service == 'CLIMATE_NOW' && $event_action == 'STOP') {
                             $service = 'CLIMATE_STOP';
+                            break;
+                        }
+                    }
+                    break;
+                case 'REMOTE_CHARGING':
+                    $service = 'REMOTE_CHARGING';
+                    foreach ($history as $event) {
+                        $event_ts = $this->GetArrayElem($event, 'creationTime', '');
+                        $event_service = $this->GetArrayElem($event, 'service', '');
+                        if ($event_ts == $ts && $event_service == 'STOP_CHARGING') {
+                            $service = 'CHARGE_STOP';
+                        }
+                        if ($event_ts == $ts && $event_service == 'START_CHARGING') {
+                            $service = 'CHARGE_NOW';
                             break;
                         }
                     }
