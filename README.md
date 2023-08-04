@@ -214,6 +214,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.3.1 @ 04.08.2023 17:04
+  - Fix: "Ladestrom-Begrenzung" wird in Ampere angegeben, nicht in %
+  - Fix: Lademodus korrigiert
+
 - 3.3 @ 26.07.2023 11:14 
   - Neu: Start/Stop des Ladevorgangs, Setzen von Ladeziel/Stromstärke
 

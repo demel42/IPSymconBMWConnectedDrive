@@ -1032,13 +1032,13 @@ class BMWConnectedDriveVehicle extends IPSModule
             if ($acCurrentLimit != '') {
                 $html .= '<tr>' . PHP_EOL;
                 $html .= '<td>' . $this->Translate('Charging current limit') . '</td>' . PHP_EOL;
-                $html .= '<td>' . $acCurrentLimit . '%</td>' . PHP_EOL;
+                $html .= '<td>' . $acCurrentLimit . 'A</td>' . PHP_EOL;
                 $html .= '</tr>' . PHP_EOL;
             }
 
             $chargingMode = $this->GetArrayElem($chargingProfile, 'chargingMode', '');
             switch ($chargingMode) {
-                case 'delayedCharging':
+                case 'DELAYED_CHARGING':
                     $s = $this->Translate('time window') . sprintf(
                         ' (%02d:%02d - %02d:%02d)',
                         $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.start.hour', 0),
@@ -1047,7 +1047,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                         $this->GetArrayElem($chargingProfile, 'reductionOfChargeCurrent.end.minute', 0),
                     );
                     break;
-                case 'immediateCharging':
+                case 'IMMEDIATE_CHARGING':
                     $s = $this->Translate('immediately');
                     break;
                 default:
