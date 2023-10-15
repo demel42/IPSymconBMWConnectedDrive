@@ -214,6 +214,11 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.4 @ 15.10.2023 13:51
+  - Neu: Ermittlung von Speicherbedarf und Laufzeit (aktuell und für 31 Tage) und Anzeige im Panel "Information"
+  - Fix: ApiCalls werden nicht mehr nach uri sondern nur noch host+cmd differenzieren
+  - update submodule CommonStubs
+
 - 3.3.1 @ 04.08.2023 17:04
   - Fix: "Ladestrom-Begrenzung" wird in Ampere angegeben, nicht in %
   - Fix: "Lademodus" korrigiert
