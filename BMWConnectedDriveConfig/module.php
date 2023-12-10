@@ -28,7 +28,9 @@ class BMWConnectedDriveConfig extends IPSModule
     {
         parent::Create();
 
-        $this->RegisterPropertyInteger('ImportCategoryID', 0);
+        if (IPS_GetKernelVersion() < 7.0) {
+            $this->RegisterPropertyInteger('ImportCategoryID', 0);
+        }
 
         $this->RegisterAttributeString('UpdateInfo', json_encode([]));
         $this->RegisterAttributeString('ModuleStats', json_encode([]));
@@ -43,7 +45,10 @@ class BMWConnectedDriveConfig extends IPSModule
     {
         parent::ApplyChanges();
 
-        $propertyNames = ['ImportCategoryID'];
+        $propertyNames = [];
+        if (IPS_GetKernelVersion() < 7.0) {
+            $propertyNames[] = 'ImportCategoryID';
+        }
         $this->MaintainReferences($propertyNames);
 
         if ($this->CheckPrerequisites() != false) {
@@ -80,7 +85,12 @@ class BMWConnectedDriveConfig extends IPSModule
             return $entries;
         }
 
-        $catID = $this->ReadPropertyInteger('ImportCategoryID');
+        if (IPS_GetKernelVersion() < 7.0) {
+            $catID = $this->ReadPropertyInteger('ImportCategoryID');
+            $location = $this->GetConfiguratorLocation($catID);
+        } else {
+            $location = '';
+        }
 
         $dataCache = $this->ReadDataCache();
         if (isset($dataCache['data']['vehicles'])) {
@@ -153,7 +163,7 @@ class BMWConnectedDriveConfig extends IPSModule
                     'driveType'   => $this->DriveType2String($driveType),
                     'create'      => [
                         'moduleID'      => $guid,
-                        'location'      => $this->GetConfiguratorLocation($catID),
+                        'location'      => $location,
                         'info'          => $model . ' (' . $bodyType . '/' . $year . ')',
                         'configuration' => [
                             'vin'   => $vin,
@@ -210,11 +220,13 @@ class BMWConnectedDriveConfig extends IPSModule
             return $formElements;
         }
 
-        $formElements[] = [
-            'type'    => 'SelectCategory',
-            'name'    => 'ImportCategoryID',
-            'caption' => 'category for BMW vehicles to be created'
-        ];
+        if (IPS_GetKernelVersion() < 7.0) {
+            $formElements[] = [
+                'type'    => 'SelectCategory',
+                'name'    => 'ImportCategoryID',
+                'caption' => 'category for BMW vehicles to be created'
+            ];
+        }
 
         $entries = $this->getConfiguratorValues();
         $formElements[] = [
