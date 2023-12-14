@@ -28,8 +28,8 @@ class BMWConnectedDriveIO extends IPSModule
         'RestOfWorld'  => 'NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh',
     ];
 
-    private static $x_user_agent_fmt = 'android(SP1A.210812.016.C1);%s;2.12.0(19883);%s';
-    private static $user_agent = 'Dart/2.16 (dart:io)';
+    private static $x_user_agent_fmt = 'android(TQ2A.230405.003.B2);%s;3.9.0(27760);%s';
+    private static $user_agent = 'Dart/2.19 (dart:io)';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
@@ -989,11 +989,13 @@ class BMWConnectedDriveIO extends IPSModule
         }
 
         $header_base = [
-            'accept'          => 'application/json',
-            'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
-            'Authorization'   => 'Bearer ' . $access_token,
-            'accept-language' => $this->GetLang(),
+            'accept'                => 'application/json',
+            'accept-language'       => $this->GetLang(),
+            'user-agent'            => self::$user_agent,
+            'x-user-agent'          => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'Authorization'         => 'Bearer ' . $access_token,
+            'bmw-units-preferences' => 'd=KM;v=L',
+            '24-hour-format'        => 'true',
         ];
         if ($header_add != '') {
             foreach ($header_add as $key => $val) {
@@ -1190,7 +1192,6 @@ class BMWConnectedDriveIO extends IPSModule
         $params = [
             'apptimezone'   => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
             'appDateTime'   => date('U') . date('v'), // Millisekunden
-            'tireGuardMode' => 'ENABLED',
         ];
 
         $data = $this->CallAPI($endpoint, '', $params, '');
@@ -1209,7 +1210,6 @@ class BMWConnectedDriveIO extends IPSModule
         $params = [
             'apptimezone'   => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
             'appDateTime'   => date('U') . date('v'), // Millisekunden
-            'tireGuardMode' => 'ENABLED',
         ];
 
         $header_add = [

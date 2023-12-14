@@ -214,6 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.6 @ 14.12.2023 11:11
+  - Fix: neue Version der BMW-API
+
 - 3.5 @ 09.12.2023 17:19
   - Neu: ab IPS-Version 7 ist im Konfigurator die Angabe einer Import-Kategorie integriert, daher entfällt die bisher vorhandene separate Einstellmöglichkeit
 
