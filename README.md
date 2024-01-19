@@ -70,7 +70,7 @@ Es gibt hierzu auch zwei Aktionen (Setzen und Zurücksetzen).
 
 `BMW_GetRawData(integer $InstanceID, string $Name)`<br>
 Liefert die Daten, die mit den entsprecheden HTTP-Aufrufen gewonnen werden. Sind die gleichen Daten, die früher in den gleichnamigen Variablen abgelegt wurden.
-Verfügbar sind z.Zt. *VehicleData*, *RemoteServiceHistory* sowie *ChargingStatistics*, *ChargingSessions*.
+Verfügbar sind z.Zt. *VehicleData*, *RemoteServiceHistory* sowie *ChargingSessions*.
 
 `BMW_StartClimateControl(integer $InstanceID)`<br>
 Startet die Klimatisierung
@@ -213,6 +213,12 @@ Quellen / Referenzen
 - [Bimmer Connected](https://github.com/bimmerconnected/bimmer_connected)
 
 ## 7. Versions-Historie
+
+- 3.7 @ 19.01.2024 14:20
+  - Fix: Versuche, den http-error 403 "Out of call volume quota." abzufangen.
+  - Neu: Schalter, um Daten zu API-Aufrufen zu sammeln
+    Die API-Aufruf-Daten stehen nun in einem Medienobjekt zur Verfügung
+  - submodule CommonStubs aktualisiert
 
 - 3.6 @ 14.12.2023 11:11
   - Fix: neue Version der BMW-API

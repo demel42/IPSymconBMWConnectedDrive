@@ -70,7 +70,6 @@ class BMWConnectedDriveVehicle extends IPSModule
 
         $this->SetBuffer('Summary', '');
         $this->SetMultiBuffer('VehicleData', '');
-        $this->SetMultiBuffer('ChargingStatistics', '');
         $this->SetMultiBuffer('ChargingSessions', '');
         $this->SetMultiBuffer('RemoteServiceHistory', '');
 
@@ -1362,30 +1361,6 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
     }
 
-    private function GetChargingStatistics()
-    {
-        if ($this->CheckStatus() == self::$STATUS_INVALID) {
-            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
-            return;
-        }
-
-        $vin = $this->ReadPropertyString('vin');
-
-        $SendData = [
-            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
-            'CallerID' => $this->InstanceID,
-            'Function' => 'GetChargingStatistics',
-            'vin'      => $vin,
-        ];
-        $data = $this->SendDataToParent(json_encode($SendData));
-        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
-        if ($data != false) {
-            $this->SetMultiBuffer('ChargingStatistics', $data);
-            $jdata = @json_decode($data, true);
-            $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
-        }
-    }
-
     private function GetCarPicture(string $carView = null)
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
@@ -2010,7 +1985,6 @@ class BMWConnectedDriveVehicle extends IPSModule
 
         $model = $this->ReadPropertyInteger('model');
         if ($model != self::$BMW_DRIVE_TYPE_COMBUSTION) {
-            $this->GetChargingStatistics();
             $this->GetChargingSessions();
         }
 
