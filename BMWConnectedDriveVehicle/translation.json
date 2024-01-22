@@ -21,6 +21,9 @@
 			"mode of driving": "Antriebsart",
 
 			"Update interval": "Aktualisierungsintervall",
+			"Update vehicle data interval": "Aktualisierungsintervall der Fahrzeugdaten",
+			"Update remote service history interval": "Aktualisierungsintervall des Remote-Verlaufs",
+			"Update charging sessions interval": "Aktualisierungsintervall der Ladehistorie",
 			"minutes": "Minuten",
 
 			"options": "Optionen",
@@ -185,7 +188,9 @@
 			"From the side": "von der Seite",
 			"Load picture": "Bild laden",
 
-			"Update data": "Fahrzeugdaten aktualisieren",
+			"Update vehicle data": "Fahrzeugdaten aktualisieren",
+			"Update remote service history": "Remote-Verlauf aktualisieren",
+			"Update charging sessions": "Ladehistorie aktualisieren",
 
 			"__end__": ""
 		}

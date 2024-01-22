@@ -24,6 +24,7 @@
 			"__function__": "TestAccess",
 			"invalid account-data": "Ungültige Zugangsdaten",
 			"valid account-data": "Gültige Zugangsdaten",
+			"unable to retrieve vehicle list": "Liste der Fahrzeuge kann nicht abgerufen werden",
 			"registered vehicles found": "registrierte Fahrzeuge gefunden",
 
 			"__end__": ""

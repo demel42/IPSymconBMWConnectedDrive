@@ -29,18 +29,20 @@ class BMWConnectedDriveIO extends IPSModule
     ];
 
     private static $x_user_agent_fmt = 'android(TQ2A.230405.003.B2);%s;3.9.0(27760);%s';
-    private static $user_agent = 'Dart/2.19 (dart:io)';
+    private static $user_agent = 'Dart/3.0 (dart:io)';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
     private static $oauth_token_endpoint = '/gcdm/oauth/token';
 
+    // private static $vehicles_endpoint = '/eadrax-vcs/v5/vehicle-list';
     private static $vehicles_endpoint = '/eadrax-vcs/v4/vehicles';
+    private static $vehicle_state_endpoint = '/eadrax-vcs/v4/vehicles/state';
 
     private static $remoteService_endpoint = '/eadrax-vrccs/v3/presentation/remote-commands';
     private static $remoteServiceHistory_endpoint = '/eadrax-vrccs/v3/presentation/remote-history';
 
-    private static $vehicle_img_endpoint = '/eadrax-ics/v3/presentation/vehicles/%s/images';
+    private static $vehicle_img_endpoint = '/eadrax-ics/v5/presentation/vehicles/images';
     private static $vehicle_poi_endpoint = '/eadrax-dcs/v1/send-to-car/send-to-car';
 
     private static $charging_statistics_endpoint = '/eadrax-chs/v1/charging-statistics';
@@ -49,6 +51,7 @@ class BMWConnectedDriveIO extends IPSModule
     private static $charging_endpoint = '/eadrax-crccs/v1/vehicles';
 
     private static $semaphoreTM = 5 * 1000;
+    private static $activity_size = 100;
 
     private $SemaphoreID;
 
@@ -86,7 +89,10 @@ class BMWConnectedDriveIO extends IPSModule
 
         $this->InstallVarProfiles(false);
 
+        $this->SetBuffer('AccessToken', '');
         $this->SetBuffer('LastApiCall', 0);
+        $this->SetBuffer('Cookies', '');
+        $this->SetBuffer('Quota', '');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
     }
@@ -207,6 +213,7 @@ class BMWConnectedDriveIO extends IPSModule
 
             $formActions[] = $this->GetInformationFormAction();
             $formActions[] = $this->GetReferencesFormAction();
+            $formActions[] = $this->GetModuleActivityFormAction();
 
             return $formActions;
         }
@@ -239,6 +246,7 @@ class BMWConnectedDriveIO extends IPSModule
 
         $formActions[] = $this->GetInformationFormAction();
         $formActions[] = $this->GetReferencesFormAction();
+        $formActions[] = $this->GetModuleActivityFormAction();
 
         return $formActions;
     }
@@ -311,18 +319,21 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $this->clear_wait_time();
-        $this->clear_wait_time();
         $txt = '';
-        $r = $this->GetVehicles();
-        if ($r == false) {
+        $access_token = $this->GetAccessToken();
+        if ($access_token == false) {
             $txt .= $this->Translate('invalid account-data') . PHP_EOL;
             $txt .= PHP_EOL;
         } else {
             $txt = $this->Translate('valid account-data') . PHP_EOL;
-            $vehicles = json_decode($r, true);
-            $n_vehicles = count($vehicles);
-            $txt .= $n_vehicles . ' ' . $this->Translate('registered vehicles found');
+            $r = $this->GetVehicles();
+            if ($r == false) {
+                $txt = $this->Translate('unable to retrieve vehicle list');
+            } else {
+                $vehicles = json_decode($r, true);
+                $n_vehicles = count($vehicles);
+                $txt .= $n_vehicles . ' ' . $this->Translate('registered vehicles found');
+            }
         }
         $this->SendDebug(__FUNCTION__, 'txt=' . $txt, 0);
         $this->PopupMessage($txt);
@@ -383,11 +394,14 @@ class BMWConnectedDriveIO extends IPSModule
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 
-        $this->SendDebug(__FUNCTION__, '*** get config', 0);
+        $pre = 'config';
+        $this->SendDebug(__FUNCTION__, '*** ' . $pre, 0);
 
         $session_id = $this->uuid_v4();
 
         $config_url = $baseurl . self::$oauth_config_endpoint;
+
+        $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_config_endpoint) . '"  => ';
 
         $correlation_id = $this->uuid_v4();
         $config_header_values = [
@@ -406,8 +420,8 @@ class BMWConnectedDriveIO extends IPSModule
             $header[] = $key . ': ' . $val;
         }
 
-        $this->SendDebug(__FUNCTION__, 'http-get, url=' . $config_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' http-get, url=' . $config_url, 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... header=' . print_r($header, true), 0);
 
         $time_start = microtime(true);
 
@@ -421,7 +435,7 @@ class BMWConnectedDriveIO extends IPSModule
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
 
         $statuscode = 0;
         $err = '';
@@ -435,7 +449,8 @@ class BMWConnectedDriveIO extends IPSModule
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
 
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => head=' . $head, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => body=' . $body, 0);
         }
         if ($statuscode == 0) {
             if ($httpcode == 401) {
@@ -466,19 +481,26 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->SendDebug(__FUNCTION__, ' => response=' . $response, 0);
+            curl_close($ch);
+            $this->SendDebug(__FUNCTION__, $pre . '  => statuscode=' . $statuscode . ', err=' . $err, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => response=' . $response, 0);
             $this->MaintainStatus($statuscode);
+            $this->AddModuleActivity($callerMSG . 'failed (' . $this->GetStatusText() . ')', self::$activity_size);
             return false;
         }
-        $this->SendDebug(__FUNCTION__, ' => oauth_settings=' . print_r($oauth_settings, true), 0);
+
+        $this->SendDebug(__FUNCTION__, $pre . '  => oauth_settings=' . print_r($oauth_settings, true), 0);
         $this->WriteAttributeString('ApiSettings', $body);
+
         $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
         if ($collectApiCallStats) {
             $this->ApiCallCollect($config_url, $err, $statuscode);
         }
 
-        $this->SendDebug(__FUNCTION__, '*** authenticate, step 1', 0);
+        $this->AddModuleActivity($callerMSG . 'succeded (login::' . $pre . ')', self::$activity_size);
+
+        $pre = 'auth#1';
+        $this->SendDebug(__FUNCTION__, '*** ' . $pre, 0);
 
         # Setting up PKCS data
         $verifier_bytes = random_bytes(64);
@@ -487,13 +509,17 @@ class BMWConnectedDriveIO extends IPSModule
         $challenge_bytes = hash('sha256', $code_verifier, true);
         $code_challenge = $this->urlsafe_b64encode($challenge_bytes);
 
-        $state_bytes = random_bytes(16);
+        $state_bytes = random_bytes(22);
         $state = $this->urlsafe_b64encode($state_bytes);
+        $nonce_bytes = random_bytes(22);
+        $nonce = $this->urlsafe_b64encode($nonce_bytes);
 
-        $this->SendDebug(__FUNCTION__, 'code_verifier=' . $code_verifier . ', code_challenge=' . $code_challenge . ', state=' . $state, 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' code_verifier=' . $code_verifier . ', code_challenge=' . $code_challenge . ', state=' . $state . ', nonce=' . $nonce, 0);
 
         $gcdm_base_url = $oauth_settings['gcdmBaseUrl'];
         $auth_url = $gcdm_base_url . self::$oauth_authenticate_endpoint;
+
+        $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_authenticate_endpoint) . '" => ';
 
         $auth_header_values = [
             'accept'          => 'application/json',
@@ -511,22 +537,22 @@ class BMWConnectedDriveIO extends IPSModule
             'response_type'         => 'code',
             'redirect_uri'          => $oauth_settings['returnUrl'],
             'state'                 => $state,
-            'nonce'                 => 'login_nonce',
+            'nonce'                 => $nonce,
             'scope'                 => implode(' ', $oauth_settings['scopes']),
             'code_challenge'        => $code_challenge,
             'code_challenge_method' => 'S256',
         ];
 
-        $this->SendDebug(__FUNCTION__, 'oauth_base_values=' . print_r($oauth_base_values, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' oauth_base_values=' . print_r($oauth_base_values, true), 0);
 
         $postfields = $oauth_base_values;
         $postfields['grant_type'] = 'authorization_code';
         $postfields['username'] = $user;
         $postfields['password'] = $password;
 
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $auth_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' http-post, url=' . $auth_url, 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... postfields=' . print_r($postfields, true), 0);
 
         $time_start = microtime(true);
 
@@ -541,7 +567,7 @@ class BMWConnectedDriveIO extends IPSModule
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -554,7 +580,17 @@ class BMWConnectedDriveIO extends IPSModule
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
 
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => head=' . $head, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => body=' . $body, 0);
+        }
+        if ($statuscode == 0) {
+            if (preg_match_all('|Set-Cookie: (.*);|Ui', $head, $matches)) {
+                $cookies = implode('; ', $matches[1]);
+            } else {
+                $cookies = '';
+            }
+            $this->SetBuffer('Cookies', $cookies);
+            $this->SendDebug(__FUNCTION__, $pre . ' save cookies=' . $cookies, 0);
         }
         if ($statuscode == 0) {
             if ($httpcode == 401) {
@@ -572,12 +608,6 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode == 0) {
-            preg_match_all('|Set-Cookie: (.*);|U', $head, $results);
-            $cookies = explode(';', implode(';', $results[1]));
-
-            $this->SendDebug(__FUNCTION__, ' => cookies=' . print_r($cookies, true), 0);
-        }
-        if ($statuscode == 0) {
             $err = $this->check_response4error($body);
             if ($err != false) {
                 $statuscode = self::$IS_APIERROR;
@@ -591,7 +621,7 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => jbody=' . print_r($jbody, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => jbody=' . print_r($jbody, true), 0);
             if (isset($jbody['redirect_to']) == false) {
                 $statuscode = self::$IS_INVALIDDATA;
                 $err = 'missing element "redirect_to" in "' . $body . '"';
@@ -599,9 +629,9 @@ class BMWConnectedDriveIO extends IPSModule
         }
         if ($statuscode == 0) {
             $redirect_uri = substr($jbody['redirect_to'], strlen('redirect_uri='));
-            $this->SendDebug(__FUNCTION__, ' => redirect_uri=' . $redirect_uri, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => redirect_uri=' . $redirect_uri, 0);
             $redirect_parts = parse_url($redirect_uri);
-            $this->SendDebug(__FUNCTION__, ' => redirect_parts=' . print_r($redirect_parts, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => redirect_parts=' . print_r($redirect_parts, true), 0);
             if (isset($redirect_parts['query']) == false) {
                 $statuscode = self::$IS_INVALIDDATA;
                 $err = 'missing element "query" in "' . $redirect_uri . '"';
@@ -609,27 +639,35 @@ class BMWConnectedDriveIO extends IPSModule
         }
         if ($statuscode == 0) {
             parse_str($redirect_parts['query'], $redirect_opts);
-            $this->SendDebug(__FUNCTION__, ' => redirect_opts=' . print_r($redirect_opts, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => redirect_opts=' . print_r($redirect_opts, true), 0);
             if (isset($redirect_opts['authorization']) == false) {
                 $statuscode = self::$IS_INVALIDDATA;
                 $err = 'missing element "authorization" in "' . $redirect_parts['query'] . '"';
             }
         }
         if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
+            curl_close($ch);
+            $this->SendDebug(__FUNCTION__, $pre . '  => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->MaintainStatus($statuscode);
+            $this->AddModuleActivity($callerMSG . 'failed (' . $this->GetStatusText() . ')', self::$activity_size);
             return false;
         }
-        $this->SendDebug(__FUNCTION__, 'authorization="' . $redirect_opts['authorization'] . '"', 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' authorization="' . $redirect_opts['authorization'] . '"', 0);
+
         $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
         if ($collectApiCallStats) {
             $this->ApiCallCollect($auth_url, $err, $statuscode);
         }
 
-        $this->SendDebug(__FUNCTION__, '*** authenticate, step 2', 0);
+        $this->AddModuleActivity($callerMSG . 'succeded (login::' . $pre . ')', self::$activity_size);
+
+        $pre = 'auth#2';
+        $this->SendDebug(__FUNCTION__, '*** ' . $pre, 0);
 
         $gcdm_base_url = $oauth_settings['gcdmBaseUrl'];
         $auth_url = $gcdm_base_url . self::$oauth_authenticate_endpoint;
+
+        $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_authenticate_endpoint) . '" => ';
 
         $params = [
             'interaction-id' => $this->uuid_v4(),
@@ -653,15 +691,10 @@ class BMWConnectedDriveIO extends IPSModule
         foreach ($auth_header_values as $key => $val) {
             $header[] = $key . ': ' . $val;
         }
-        /*
-        foreach ($cookies as $cookie) {
-            $header[] = 'Cookie: ' . $cookie;
-        }
-         */
 
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $auth_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' http-post, url=' . $auth_url, 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... postfields=' . print_r($postfields, true), 0);
 
         $time_start = microtime(true);
 
@@ -675,7 +708,7 @@ class BMWConnectedDriveIO extends IPSModule
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -688,8 +721,8 @@ class BMWConnectedDriveIO extends IPSModule
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
 
-            $this->SendDebug(__FUNCTION__, ' => head=' . $head, 0);
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => head=' . $head, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => body=' . $body, 0);
         }
         if ($statuscode == 0) {
             if ($httpcode == 401) {
@@ -713,21 +746,19 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => cookies=' . print_r($cookies, true), 0);
-        }
-        if ($statuscode == 0) {
-            preg_match_all('|location: (.*)|', $head, $results);
-            $this->SendDebug(__FUNCTION__, ' => results=' . print_r($results, true), 0);
-            if (isset($results[1][0]) == false) {
-                $statuscode = self::$IS_INVALIDDATA;
-                $err = 'missing element "location" in "' . $head . '"';
+            if (preg_match_all('|location: (.*)|', $head, $matches)) {
+                $this->SendDebug(__FUNCTION__, $pre . '  => matches=' . print_r($matches, true), 0);
+                if (isset($matches[1][0]) == false) {
+                    $statuscode = self::$IS_INVALIDDATA;
+                    $err = 'missing element "location" in "' . $head . '"';
+                }
             }
         }
         if ($statuscode == 0) {
-            $location = $results[1][0];
-            $this->SendDebug(__FUNCTION__, ' => location=' . $location, 0);
+            $location = $matches[1][0];
+            $this->SendDebug(__FUNCTION__, $pre . '  => location=' . $location, 0);
             $location_parts = parse_url($location);
-            $this->SendDebug(__FUNCTION__, ' => location_parts=' . print_r($location_parts, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => location_parts=' . print_r($location_parts, true), 0);
 
             if (isset($location_parts['query']) == false) {
                 $statuscode = self::$IS_INVALIDDATA;
@@ -736,26 +767,34 @@ class BMWConnectedDriveIO extends IPSModule
         }
         if ($statuscode == 0) {
             parse_str($location_parts['query'], $location_opts);
-            $this->SendDebug(__FUNCTION__, ' => location_opts=' . print_r($location_opts, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => location_opts=' . print_r($location_opts, true), 0);
             if (isset($location_opts['code']) == false) {
                 $statuscode = self::$IS_INVALIDDATA;
                 $err = 'missing element "code" in "' . $location_parts['query'] . '"';
             }
         }
         if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
+            curl_close($ch);
+            $this->SendDebug(__FUNCTION__, $pre . '  => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->MaintainStatus($statuscode);
+            $this->AddModuleActivity($callerMSG . 'failed (' . $this->GetStatusText() . ')', self::$activity_size);
             return false;
         }
-        $this->SendDebug(__FUNCTION__, 'code="' . $location_opts['code'] . '"', 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' code="' . $location_opts['code'] . '"', 0);
+
         $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
         if ($collectApiCallStats) {
             $this->ApiCallCollect($auth_url, $err, $statuscode);
         }
 
-        $this->SendDebug(__FUNCTION__, '*** get token', 0);
+        $this->AddModuleActivity($callerMSG . 'succeded (login::' . $pre . ')', self::$activity_size);
+
+        $pre = 'token';
+        $this->SendDebug(__FUNCTION__, '*** ' . $pre, 0);
 
         $token_url = $oauth_settings['tokenEndpoint'];
+
+        $callerMSG = 'endpoint "' . $this->extract_endpoint($token_url) . '" => ';
 
         $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
         $token_header_values = [
@@ -777,9 +816,9 @@ class BMWConnectedDriveIO extends IPSModule
             'grant_type'    => 'authorization_code',
         ];
 
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $token_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' http-post, url=' . $token_url, 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... postfields=' . print_r($postfields, true), 0);
 
         $time_start = microtime(true);
 
@@ -793,7 +832,7 @@ class BMWConnectedDriveIO extends IPSModule
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
         $duration = round(microtime(true) - $time_start, 2);
-        $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -806,7 +845,8 @@ class BMWConnectedDriveIO extends IPSModule
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
 
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => head=' . $head, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => body=' . $body, 0);
         }
         if ($statuscode == 0) {
             if ($httpcode == 401) {
@@ -837,7 +877,7 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => jbody=' . print_r($jbody, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => jbody=' . print_r($jbody, true), 0);
             foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
                 if (isset($jbody[$key]) == false) {
                     $statuscode = self::$IS_INVALIDDATA;
@@ -847,20 +887,21 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
+            curl_close($ch);
+            $this->SendDebug(__FUNCTION__, $pre . '  => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->MaintainStatus($statuscode);
+            $this->AddModuleActivity($callerMSG . 'failed (' . $this->GetStatusText() . ')', self::$activity_size);
             return false;
         }
+
         $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
         if ($collectApiCallStats) {
             $this->ApiCallCollect($token_url, $err, $statuscode);
         }
 
-        $this->MaintainStatus(IS_ACTIVE);
-
         $access_token = $jbody['access_token'];
         $refresh_token = $jbody['refresh_token'];
-        $expiration = time() + $jbody['expires_in'];
+        $expiration = time() + $jbody['expires_in'] - 60; // Ablauf um 60s früher
         $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', refresh_token=' . $refresh_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
         $jtoken = [
             'access_token' => $access_token,
@@ -869,6 +910,10 @@ class BMWConnectedDriveIO extends IPSModule
         $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
         $this->SetBuffer('AccessToken', json_encode($jtoken));
 
+        $this->MaintainStatus(IS_ACTIVE);
+        $this->AddModuleActivity($callerMSG . 'succeded (login::' . $pre . ')', self::$activity_size);
+
+        curl_close($ch);
         return $access_token;
     }
 
@@ -894,9 +939,35 @@ class BMWConnectedDriveIO extends IPSModule
         }
         $this->SendDebug(__FUNCTION__, 'oauth_settings=' . print_r($oauth_settings, true), 0);
 
+        $callerID = isset($_IPS['CallerID']) ? $_IPS['CallerID'] : $this->InstanceID;
+
+        $cookies = $this->GetBuffer('Cookies');
+        $this->SendDebug(__FUNCTION__, 'use cookies=' . $cookies, 0);
+
         $region = $this->GetRegion();
+        $baseurl = 'https://' . self::$server_urls_eadrax[$region];
+
+        $ch = curl_init();
+        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
+        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
+        curl_setopt($ch, CURLOPT_MAXREDIRS, 50);
+        curl_setopt($ch, CURLOPT_HTTP09_ALLOWED, true);
+        curl_setopt($ch, CURLOPT_TCP_KEEPALIVE, true);
+        curl_setopt($ch, CURLOPT_COOKIEFILE, '');
+        curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
+        curl_setopt($ch, CURLOPT_COOKIE, $cookies);
+
+        $oauth_settings = json_decode($this->ReadAttributeString('ApiSettings'), true);
+
+        $pre = 'refresh';
+        $this->SendDebug(__FUNCTION__, '*** ' . $pre, 0);
 
         $token_url = $oauth_settings['tokenEndpoint'];
+
+        $callerMSG = 'endpoint "' . $this->extract_endpoint($token_url) . '" => ';
 
         $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
         $token_header_values = [
@@ -912,34 +983,31 @@ class BMWConnectedDriveIO extends IPSModule
         }
 
         $postfields = [
+            'scope'         => implode(' ', $oauth_settings['scopes']),
+            'redirect_uri'  => $oauth_settings['returnUrl'],
             'grant_type'    => 'refresh_token',
             'refresh_token' => $refresh_token,
         ];
 
-        $this->SendDebug(__FUNCTION__, 'http-post, url=' . $token_url, 0);
-        $this->SendDebug(__FUNCTION__, '... header=' . print_r($header, true), 0);
-        $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' http-post, url=' . $token_url, 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... header=' . print_r($header, true), 0);
+        $this->SendDebug(__FUNCTION__, $pre . ' ... postfields=' . print_r($postfields, true), 0);
 
         $time_start = microtime(true);
 
-        $ch = curl_init();
         curl_setopt($ch, CURLOPT_URL, $token_url);
-        curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
-        curl_setopt($ch, CURLOPT_TIMEOUT, 30);
         curl_setopt($ch, CURLOPT_HTTPHEADER, $header);
-        curl_setopt($ch, CURLOPT_SSL_VERIFYPEER, true);
-        curl_setopt($ch, CURLOPT_HTTP_VERSION, CURL_HTTP_VERSION_2TLS);
-        curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
         curl_setopt($ch, CURLOPT_POSTFIELDS, http_build_query($postfields));
-        curl_setopt($ch, CURLOPT_HEADER, true);
 
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
         $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
 
+        $duration = round(microtime(true) - $time_start, 2);
+        $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+
         $statuscode = 0;
-        $err = '';
         if ($cerrno) {
             $statuscode = self::$IS_SERVERERROR;
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
@@ -950,7 +1018,8 @@ class BMWConnectedDriveIO extends IPSModule
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
 
-            $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => head=' . $head, 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => body=' . $body, 0);
         }
         if ($statuscode == 0) {
             if ($httpcode == 401) {
@@ -981,7 +1050,7 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode == 0) {
-            $this->SendDebug(__FUNCTION__, ' => jbody=' . print_r($jbody, true), 0);
+            $this->SendDebug(__FUNCTION__, $pre . '  => jbody=' . print_r($jbody, true), 0);
             foreach (['access_token', 'refresh_token', 'expires_in'] as $key) {
                 if (isset($jbody[$key]) == false) {
                     $statuscode = self::$IS_INVALIDDATA;
@@ -991,10 +1060,12 @@ class BMWConnectedDriveIO extends IPSModule
             }
         }
         if ($statuscode) {
-            $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
-            $this->MaintainStatus($statuscode);
+            curl_close($ch);
+            $this->SendDebug(__FUNCTION__, $pre . '  => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->WriteAttributeString('ApiRefreshToken', '');
             $this->SetBuffer('AccessToken', '');
+            $this->MaintainStatus($statuscode);
+            $this->AddModuleActivity($callerMSG . 'failed (' . $this->GetStatusText() . ')', self::$activity_size);
             return false;
         }
 
@@ -1003,11 +1074,9 @@ class BMWConnectedDriveIO extends IPSModule
             $this->ApiCallCollect($token_url, $err, $statuscode);
         }
 
-        $this->MaintainStatus(IS_ACTIVE);
-
         $access_token = $jbody['access_token'];
         $refresh_token = $jbody['refresh_token'];
-        $expiration = time() + $jbody['expires_in'];
+        $expiration = time() + $jbody['expires_in'] - 60; // Ablauf um 60s früher
         $this->SendDebug(__FUNCTION__, 'new access_token=' . $access_token . ', refresh_token=' . $refresh_token . ', valid until ' . date('d.m.y H:i:s', $expiration), 0);
         $jtoken = [
             'access_token' => $access_token,
@@ -1015,6 +1084,11 @@ class BMWConnectedDriveIO extends IPSModule
         ];
         $this->WriteAttributeString('ApiRefreshToken', $refresh_token);
         $this->SetBuffer('AccessToken', json_encode($jtoken));
+
+        curl_close($ch);
+
+        $this->MaintainStatus(IS_ACTIVE);
+        $this->AddModuleActivity($callerMSG . 'succeded (refresh token)', self::$activity_size);
         return $access_token;
     }
 
@@ -1172,28 +1246,27 @@ class BMWConnectedDriveIO extends IPSModule
         $this->SetBuffer('Quota', json_encode($jquota));
     }
 
+    private function extract_endpoint($url)
+    {
+        $endpoint = preg_replace(['#^http[s]*://#', '#^[^/]+/#', '#^[/]*eadrax-[a-z]+/v[0-9]+/#', '#^/#', '#\?.*$#'], '', $url);
+        return $endpoint;
+    }
+
     private function CallAPI($endpoint, $postfields, $params, $header_add)
     {
+        $callerID = isset($_IPS['CallerID']) ? $_IPS['CallerID'] : $this->InstanceID;
+        $callerName = $callerID . '(' . IPS_GetName($callerID) . ')';
+        $callerMSG = 'endpoint "' . $this->extract_endpoint($endpoint) . '" for ' . $callerName . ' => ';
+
         $next_try = $this->get_wait_tstamp();
         if ($next_try > time()) {
             $this->SendDebug(__FUNCTION__, 'quota exceeded, allowed again from=' . date('d.m.Y H:i:s', $next_try), 0);
+            $this->AddModuleActivity($callerMSG . 'skipped (quota exceeded)', self::$activity_size);
             return false;
         }
         $this->clear_wait_time();
 
-        $ts = intval($this->GetBuffer('LastApiCall'));
-        $this->SendDebug(__FUNCTION__, 'last api call=' . date('d.m.Y H:i:s', $ts), 0);
-        $ts += 5;
-        if ($ts >= time()) {
-            $this->SendDebug(__FUNCTION__, 'calls too fast, wait up to 5s', 0);
-            while ($ts >= time()) {
-                IPS_Sleep(100);
-            }
-        }
-        $this->SetBuffer('LastApiCall', time());
-
         $region = $this->GetRegion();
-
         $url = 'https://' . self::$server_urls_eadrax[$region] . $endpoint;
 
         if ($params != '') {
@@ -1209,13 +1282,27 @@ class BMWConnectedDriveIO extends IPSModule
         $access_token = $this->GetAccessToken();
         if ($access_token == false) {
             $this->SendDebug(__FUNCTION__, 'no access_token', 0);
+            $this->AddModuleActivity($callerMSG . 'failed (no access_token)', self::$activity_size);
             return false;
         }
 
         if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
             $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
+            $this->AddModuleActivity($callerMSG . 'failed (unable to lock)', self::$activity_size);
             return false;
         }
+
+        $ts = intval($this->GetBuffer('LastApiCall'));
+        $this->SendDebug(__FUNCTION__, 'last api call=' . date('d.m.Y H:i:s', $ts), 0);
+        $ts += 5; // aus Sicherheitsgründen nur 1 call/5s
+        if ($ts >= time()) {
+            $w = $ts - time();
+            $this->SendDebug(__FUNCTION__, 'calls too fast, wait ' . $w . 's', 0);
+            while ($ts >= time()) {
+                IPS_Sleep(250);
+            }
+        }
+        $this->SetBuffer('LastApiCall', time());
 
         $correlation_id = $this->uuid_v4();
         $header_base = [
@@ -1227,7 +1314,7 @@ class BMWConnectedDriveIO extends IPSModule
             'x-identity-provider'   => 'gcdm',
             'x-correlation-id'      => $correlation_id,
             'bmw-correlation-id'    => $correlation_id,
-            'bmw-units-preferences' => 'd=KM;v=L',
+            'bmw-units-preferences' => 'd=KM;v=L;p=B;ec=KWH100KM;fc=L100KM;em=GKM;',
             '24-hour-format'        => (string) 'true',
         ];
         if ($header_add != '') {
@@ -1246,6 +1333,9 @@ class BMWConnectedDriveIO extends IPSModule
         if ($postfields != '') {
             $this->SendDebug(__FUNCTION__, '... postfields=' . print_r($postfields, true), 0);
         }
+
+        $cookies = $this->GetBuffer('Cookies');
+        $this->SendDebug(__FUNCTION__, 'use cookies=' . $cookies, 0);
 
         $time_start = microtime(true);
 
@@ -1266,6 +1356,7 @@ class BMWConnectedDriveIO extends IPSModule
             curl_setopt($ch, CURLOPT_POSTFIELDS, $s);
         }
         curl_setopt($ch, CURLOPT_HEADER, true);
+        curl_setopt($ch, CURLOPT_COOKIE, $cookies);
 
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
@@ -1287,6 +1378,8 @@ class BMWConnectedDriveIO extends IPSModule
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
+
+            $this->SendDebug(__FUNCTION__, ' => head=' . $head, 0);
             if ($body == '' || ctype_print($body)) {
                 $this->SendDebug(__FUNCTION__, ' => body=' . $body, 0);
             } else {
@@ -1322,7 +1415,6 @@ class BMWConnectedDriveIO extends IPSModule
                 $statuscode = self::$IS_APIERROR;
             }
         }
-
         if ($statuscode == self::$IS_UNAUTHORIZED) {
             $this->SetBuffer('AccessToken', '');
         }
@@ -1335,24 +1427,33 @@ class BMWConnectedDriveIO extends IPSModule
         IPS_SemaphoreLeave($this->SemaphoreID);
 
         if ($wait_time) {
+            curl_close($ch);
             $this->MaintainStatus(IS_ACTIVE);
+            $this->AddModuleActivity($callerMSG . 'failed (quota exceeded)', self::$activity_size);
             return false;
         }
 
         if ($statuscode) {
+            curl_close($ch);
             $this->SendDebug(__FUNCTION__, ' => statuscode=' . $statuscode . ', err=' . $err, 0);
             $this->SendDebug(__FUNCTION__, ' => response=' . $response, 0);
             $this->MaintainStatus($statuscode);
+            $this->AddModuleActivity($callerMSG . 'failed (' . $this->GetStatusText() . ')', self::$activity_size);
             return false;
         }
 
         $jbody = json_decode($body, true);
         if (isset($jbody['errors'])) {
+            curl_close($ch);
             $this->SendDebug(__FUNCTION__, ' => error=' . $jbody['errors'], 0);
-            $body = false;
+            $this->MaintainStatus(IS_ACTIVE);
+            $this->AddModuleActivity($callerMSG . 'done with error (' . $jbody['errors'] . ')', self::$activity_size);
+            return false;
         }
 
+        curl_close($ch);
         $this->MaintainStatus(IS_ACTIVE);
+        $this->AddModuleActivity($callerMSG . 'succeded', self::$activity_size);
         return $body;
     }
 
@@ -1449,7 +1550,7 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$vehicles_endpoint . '/state';
+        $endpoint = self::$vehicle_state_endpoint;
 
         $params = [
             'apptimezone' => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
@@ -1471,18 +1572,21 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = sprintf(self::$vehicle_img_endpoint, $vin);
+        $endpoint = self::$vehicle_img_endpoint;
 
         $params = [
             'carView' => $carView,
+            'toCrop'  => (string) 'true',
         ];
 
         $header_add = [
-            'accept' => 'image/png',
+            'accept'               => 'image/png',
+            'bmw-vin'              => $vin,
+            'bmw-app-vehicle-type' => 'connected',
         ];
 
         $data = $this->CallAPI($endpoint, '', $params, $header_add);
-        return base64_encode($data);
+        return $data !== false ? base64_encode($data) : false;
     }
 
     private function GetChargingSessions($vin)
@@ -1652,29 +1756,6 @@ class BMWConnectedDriveIO extends IPSModule
         $data = $this->CallAPI($endpoint, [], $params, $header_add);
         return $data;
     }
-
-    /*
-    VEHICLE_CHARGING_PROFILE_SET_URL = VEHICLE_CHARGING_BASE_URL + "/charging-profile"
-
-
-    MAP_CHARGING_MODE_TO_REMOTE_SERVICE = {
-        ChargingMode.IMMEDIATE_CHARGING: "CHARGING_IMMEDIATELY",
-        ChargingMode.DELAYED_CHARGING: "TIME_SLOT",
-
-    CHARGING_MODE_TO_CHARGING_PREFERENCE = {
-        ChargingMode.IMMEDIATE_CHARGING: "NO_PRESELECTION"
-        ChargingMode.DELAYED_CHARGING: "CHARGING_WINDOW"
-
-        if charging_mode and not charging_mode == ChargingMode.UNKNOWN:
-            target_charging_profile["chargingMode"]["type"] = MAP_CHARGING_MODE_TO_REMOTE_SERVICE[charging_mode]
-            target_charging_profile["chargingMode"]["chargingPreference"] = CHARGING_MODE_TO_CHARGING_PREFERENCE[
-                charging_mode
-            ].value
-
-        if precondition_climate:
-            target_charging_profile["isPreconditionForDepartureActive"] = precondition_climate
-
-     */
 
     private function SetChargingSettings(string $vin, string $settings)
     {

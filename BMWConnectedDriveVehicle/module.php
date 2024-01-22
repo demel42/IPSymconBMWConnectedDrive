@@ -12,7 +12,8 @@ class BMWConnectedDriveVehicle extends IPSModule
     use BMWConnectedDriveLocalLib;
     use BMWConnectedDriveImagesLib;
 
-    private static $UpdateRemoteHistoryInterval = 5;
+    private static $RefreshRemoteHistoryInterval = 5;
+    private static $RefreshChargingSessionInterval = 5;
 
     public function __construct(string $InstanceID)
     {
@@ -59,7 +60,9 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->RegisterPropertyInteger('horizontal_mapsize', 600);
         $this->RegisterPropertyInteger('vertical_mapsize', 400);
 
-        $this->RegisterPropertyInteger('UpdateInterval', 10);
+        $this->RegisterPropertyInteger('UpdateVehicleDataInterval', 10);
+        $this->RegisterPropertyInteger('UpdateRemoteServiceHistoryInterval', 60);
+        $this->RegisterPropertyInteger('UpdateChargingSessionsInterval', 6 * 60);
 
         $this->RegisterAttributeString('RemoteServiceHistory', '');
 
@@ -73,8 +76,10 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->SetMultiBuffer('ChargingSessions', '');
         $this->SetMultiBuffer('RemoteServiceHistory', '');
 
-        $this->RegisterTimer('UpdateData', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");');
+        $this->RegisterTimer('UpdateVehicleData', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateVehicleData", "");');
+        $this->RegisterTimer('UpdateRemoteServiceHistory', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateRemoteServiceHistory", "");');
         $this->RegisterTimer('UpdateRemoteServiceStatus', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateRemoteServiceStatus", "");');
+        $this->RegisterTimer('UpdateChargingSessions', 0, 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateChargingSessions", "");');
 
         $this->RegisterMessage(0, IPS_KERNELMESSAGE);
 
@@ -365,22 +370,28 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->MaintainReferences();
 
         if ($this->CheckPrerequisites() != false) {
-            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateVehicleData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceHistory', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateChargingSessions', 0);
             $this->MaintainStatus(self::$IS_INVALIDPREREQUISITES);
             return;
         }
 
         if ($this->CheckUpdate() != false) {
-            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateVehicleData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceHistory', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateChargingSessions', 0);
             $this->MaintainStatus(self::$IS_UPDATEUNCOMPLETED);
             return;
         }
 
         if ($this->CheckConfiguration() != false) {
-            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateVehicleData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceHistory', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateChargingSessions', 0);
             $this->MaintainStatus(self::$IS_INVALIDCONFIG);
             return;
         }
@@ -517,8 +528,10 @@ class BMWConnectedDriveVehicle extends IPSModule
 
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {
-            $this->MaintainTimer('UpdateData', 0);
+            $this->MaintainTimer('UpdateVehicleData', 0);
+            $this->MaintainTimer('UpdateRemoteServiceHistory', 0);
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->MaintainTimer('UpdateChargingSessions', 0);
             $this->MaintainStatus(IS_INACTIVE);
             return;
         }
@@ -526,8 +539,10 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->MaintainStatus(IS_ACTIVE);
 
         if (IPS_GetKernelRunlevel() == KR_READY) {
-            $this->SetUpdateInterval();
-            $this->MaintainTimer('UpdateRemoteServiceStatus', 1000);
+            $this->SetUpdateVehicleDataInterval();
+            $this->SetUpdateRemoteServiceHistoryInterval();
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->SetUpdateChargingSessionsInterval();
         }
     }
 
@@ -536,8 +551,10 @@ class BMWConnectedDriveVehicle extends IPSModule
         parent::MessageSink($TimeStamp, $SenderID, $Message, $Data);
 
         if ($Message == IPS_KERNELMESSAGE && $Data[0] == KR_READY) {
-            $this->SetUpdateInterval();
-            $this->MaintainTimer('UpdateRemoteServiceStatus', 1000);
+            $this->SetUpdateVehicleDataInterval();
+            $this->SetUpdateRemoteServiceHistoryInterval();
+            $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->SetUpdateChargingSessionsInterval();
         }
     }
 
@@ -573,18 +590,38 @@ class BMWConnectedDriveVehicle extends IPSModule
             'caption' => 'Vehicle data',
         ];
 
+        $items = [
+            [
+                'name'    => 'UpdateVehicleDataInterval',
+                'type'    => 'NumberSpinner',
+                'minimum' => 0,
+                'suffix'  => 'minutes',
+                'caption' => 'Update vehicle data interval'
+            ],
+            [
+                'name'    => 'UpdateRemoteServiceHistoryInterval',
+                'type'    => 'NumberSpinner',
+                'minimum' => 0,
+                'suffix'  => 'minutes',
+                'caption' => 'Update remote service history interval'
+            ],
+        ];
+
+        $model = $this->ReadPropertyInteger('model');
+        if ($model != self::$BMW_DRIVE_TYPE_COMBUSTION) {
+            $items[] = [
+                'name'    => 'UpdateChargingSessionsInterval',
+                'type'    => 'NumberSpinner',
+                'minimum' => 0,
+                'suffix'  => 'minutes',
+                'caption' => 'Update charging sessions interval'
+            ];
+        }
+
         $formElements[] = [
             'type'    => 'ExpansionPanel',
             'caption' => 'Update interval',
-            'items'   => [
-                [
-                    'name'    => 'UpdateInterval',
-                    'type'    => 'NumberSpinner',
-                    'minimum' => 0,
-                    'suffix'  => 'minutes',
-                    'caption' => 'Update interval'
-                ],
-            ],
+            'items'   => $items,
         ];
 
         $formElements[] = [
@@ -692,10 +729,30 @@ class BMWConnectedDriveVehicle extends IPSModule
             return $formActions;
         }
 
+        $items = [
+            [
+                'type'    => 'Button',
+                'label'   => 'Update vehicle data',
+                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateVehicleData", "");',
+            ],
+            [
+                'type'    => 'Button',
+                'label'   => 'Update remote service history',
+                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateRemoteServiceHistory", "");',
+            ],
+        ];
+        $model = $this->ReadPropertyInteger('model');
+        if ($model != self::$BMW_DRIVE_TYPE_COMBUSTION) {
+            $items[] = [
+                'type'    => 'Button',
+                'label'   => 'Update charging sessions',
+                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateChargingSessions", "");',
+            ];
+        }
+
         $formActions[] = [
-            'type'    => 'Button',
-            'label'   => 'Update data',
-            'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "UpdateData", "");',
+            'type'    => 'RowLayout',
+            'items'   => $items,
         ];
 
         $formActions[] = [
@@ -754,21 +811,45 @@ class BMWConnectedDriveVehicle extends IPSModule
         return $formActions;
     }
 
-    public function SetUpdateInterval(int $min = null)
+    public function SetUpdateVehicleDataInterval(int $min = null)
     {
         if (is_null($min)) {
-            $min = $this->ReadPropertyInteger('UpdateInterval');
+            $min = $this->ReadPropertyInteger('UpdateVehicleDataInterval');
         }
         $msec = $min * 60 * 1000;
-        $this->MaintainTimer('UpdateData', $msec);
+        $this->MaintainTimer('UpdateVehicleData', $msec);
+    }
+
+    public function SetUpdateRemoteServiceHistoryInterval(int $min = null)
+    {
+        if (is_null($min)) {
+            $min = $this->ReadPropertyInteger('UpdateRemoteServiceHistoryInterval');
+        }
+        $msec = $min * 60 * 1000;
+        $this->MaintainTimer('UpdateRemoteServiceHistory', $msec);
+    }
+
+    public function SetUpdateChargingSessionsInterval(int $min = null)
+    {
+        if (is_null($min)) {
+            $min = $this->ReadPropertyInteger('UpdateChargingSessionsInterval');
+        }
+        $msec = $min * 60 * 1000;
+        $this->MaintainTimer('UpdateChargingSessions', $msec);
     }
 
     private function LocalRequestAction($ident, $value)
     {
         $r = true;
         switch ($ident) {
-            case 'UpdateData':
-                $this->UpdateData();
+            case 'UpdateVehicleData':
+                $this->UpdateVehicleData();
+                break;
+            case 'UpdateChargingSessions':
+                $this->UpdateChargingSessions();
+                break;
+            case 'UpdateRemoteServiceHistory':
+                $this->UpdateRemoteServiceHistory();
                 break;
             case 'UpdateRemoteServiceStatus':
                 $this->UpdateRemoteServiceStatus();
@@ -838,7 +919,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
     }
 
-    private function UpdateVehicleData($data)
+    private function DecodeVehicleData($data)
     {
         $this->SetMultiBuffer('VehicleData', $data);
         $jdata = json_decode($data, true);
@@ -1008,12 +1089,17 @@ class BMWConnectedDriveVehicle extends IPSModule
             }
             $this->SaveValue('ChargingConnectorStatus', $connector_status, $isChanged);
 
+            $old_chargingStatus = $this->GetValue('ChargingStatus');
             $val = $this->GetArrayElem($electricChargingState, 'chargingStatus', '');
             $chargingStatus = $this->MapChargingState($val);
             if ($connector_status == self::$BMW_CONNECTOR_STATE_DISCONNECTED && $chargingStatus == self::$BMW_CHARGING_STATE_INVALID) {
                 $chargingStatus = self::$BMW_CHARGING_STATE_NOT;
             }
             $this->SaveValue('ChargingStatus', $chargingStatus, $isChanged);
+
+            if ($chargingStatus != self::$BMW_CHARGING_STATE_ACTIVE && $old_chargingStatus == self::$BMW_CHARGING_STATE_ACTIVE) {
+                $this->MaintainTimer('UpdateChargingSessions', self::$RefreshChargingSessionInterval * 1000);
+            }
 
             $chargingProfile = $this->GetArrayElem($state, 'chargingProfile', '');
             $this->SendDebug(__FUNCTION__, 'chargingProfile=' . print_r($chargingProfile, true), 0);
@@ -1357,7 +1443,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         $vehicle = @json_decode($data, true);
         if ($vehicle != false) {
             $this->SendDebug(__FUNCTION__, 'vehicle=' . print_r($vehicle, true), 0);
-            $this->UpdateVehicleData($data);
+            $this->DecodeVehicleData($data);
         }
     }
 
@@ -1387,7 +1473,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
     }
 
-    private function UpdateChargingSessions($data)
+    private function DecodeChargingSessions($data)
     {
         $this->SetMultiBuffer('ChargingSessions', $data);
         $jdata = json_decode($data, true);
@@ -1455,7 +1541,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         if ($data != false) {
             $jdata = @json_decode($data, true);
             $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($jdata, true), 0);
-            $this->UpdateChargingSessions($data);
+            $this->DecodeChargingSessions($data);
         }
     }
 
@@ -1720,7 +1806,7 @@ class BMWConnectedDriveVehicle extends IPSModule
     {
         $delete_tstamp = strtotime('-1 month');
         $time2failed = 2 * 60;
-        $refresh_interval = self::$UpdateRemoteHistoryInterval;
+        $refresh_interval = self::$RefreshRemoteHistoryInterval;
         $refresh_tstamp = time() - $refresh_interval;
 
         $history = json_decode($this->ReadAttributeString('RemoteServiceHistory'), true);
@@ -1819,34 +1905,34 @@ class BMWConnectedDriveVehicle extends IPSModule
     private function GetRemoteServiceHistory()
     {
         $service2text = [
-            'CHARGE_NOW'         => 'charge now',
-            'CHARGE_PREFERENCE'  => 'charge preferences',
-            'CHARGE_STOP'        => 'stop charging',
-            'CHARGING_CONTROL'   => 'charging control',
-            'CHARGING_PROFILE'   => 'charge preferences',
-            'CLIMATE_CONTROL'    => 'climate control',
-            'CLIMATE_LATER'      => 'climate later',
-            'CLIMATE_NOW'        => 'climate now',
-            'CLIMATE_STOP'       => 'stop climate',
-            'DOOR_LOCK'          => 'door lock',
-            'DOOR_UNLOCK'        => 'door unlock',
-            'HORN_BLOW'          => 'horn blow',
-            'LIGHT_FLASH'        => 'light flash',
-            'REMOTE360'          => 'Remote 3D View',
-            'REMOTE_CHARGING'    => 'charging',
-            'VEHICLE_FINDER'     => 'find vehicle',
+            'CHARGE_NOW'        => 'charge now',
+            'CHARGE_PREFERENCE' => 'charge preferences',
+            'CHARGE_STOP'       => 'stop charging',
+            'CHARGING_CONTROL'  => 'charging control',
+            'CHARGING_PROFILE'  => 'charge preferences',
+            'CLIMATE_CONTROL'   => 'climate control',
+            'CLIMATE_LATER'     => 'climate later',
+            'CLIMATE_NOW'       => 'climate now',
+            'CLIMATE_STOP'      => 'stop climate',
+            'DOOR_LOCK'         => 'door lock',
+            'DOOR_UNLOCK'       => 'door unlock',
+            'HORN_BLOW'         => 'horn blow',
+            'LIGHT_FLASH'       => 'light flash',
+            'REMOTE360'         => 'Remote 3D View',
+            'REMOTE_CHARGING'   => 'charging',
+            'VEHICLE_FINDER'    => 'find vehicle',
         ];
         $status2text = [
-            'SUCCESS'       => 'success',
-            'PENDING'       => 'pending',
-            'IN_PROGRESS'   => 'pending',
-            'INITIATED'     => 'initiated',
-            'FAILED'        => 'failed',
-            'FAILURE'       => 'failed',
-            'ERROR'         => 'error',
-            'CANCELLED'     => 'cancelled',
-            'EXECUTED'      => 'executed',
-            'NOT_EXECUTED'  => 'not_executed',
+            'SUCCESS'      => 'success',
+            'PENDING'      => 'pending',
+            'IN_PROGRESS'  => 'pending',
+            'INITIATED'    => 'initiated',
+            'FAILED'       => 'failed',
+            'FAILURE'      => 'failed',
+            'ERROR'        => 'error',
+            'CANCELLED'    => 'cancelled',
+            'EXECUTED'     => 'executed',
+            'NOT_EXECUTED' => 'not_executed',
         ];
 
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
@@ -1970,7 +2056,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->SetValue('RemoteServiceHistory', $html);
     }
 
-    private function UpdateData()
+    private function UpdateVehicleData()
     {
         if ($this->CheckStatus() == self::$STATUS_INVALID) {
             $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
@@ -1978,22 +2064,56 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
 
         $this->SendDebug(__FUNCTION__, 'start ...', 0);
-
         $time_start = microtime(true);
 
         $this->GetVehicleData();
 
-        $model = $this->ReadPropertyInteger('model');
-        if ($model != self::$BMW_DRIVE_TYPE_COMBUSTION) {
-            $this->GetChargingSessions();
+        $duration = round(microtime(true) - $time_start, 2);
+        $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
+
+        $this->SetUpdateVehicleDataInterval();
+    }
+
+    private function UpdateRemoteServiceHistory()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
         }
+
+        $this->SendDebug(__FUNCTION__, 'start ...', 0);
+        $time_start = microtime(true);
 
         $this->GetRemoteServiceHistory();
 
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
 
-        $this->SendDebug(__FUNCTION__, $this->PrintTimer('UpdateData'), 0);
+        $this->SetUpdateRemoteServiceHistoryInterval();
+    }
+
+    private function UpdateChargingSessions()
+    {
+        if ($this->CheckStatus() == self::$STATUS_INVALID) {
+            $this->SendDebug(__FUNCTION__, $this->GetStatusText() . ' => skip', 0);
+            return;
+        }
+
+        $model = $this->ReadPropertyInteger('model');
+        if ($model == self::$BMW_DRIVE_TYPE_COMBUSTION) {
+            $this->SendDebug(__FUNCTION__, 'not for ' . $this->DriveType2String(), 0);
+            return;
+        }
+
+        $this->SendDebug(__FUNCTION__, 'start ...', 0);
+        $time_start = microtime(true);
+
+        $this->GetChargingSessions();
+
+        $duration = round(microtime(true) - $time_start, 2);
+        $this->SendDebug(__FUNCTION__, '... finished in ' . $duration . 's', 0);
+
+        $this->SetUpdateChargingSessionsInterval();
     }
 
     private function SetGoogleMap($maptype, $zoom)
