@@ -20,7 +20,7 @@
 			"__actions__": "",
 			"Test access": "Zugang prüfen",
 			"Clear token": "Token löschen",
-			"Ignore quota": "Quota ignorieren",
+			"Reset quota handling": "Quota-Behandlung zurücksetzen",
 
 			"__function__": "TestAccess",
 			"invalid account-data": "Ungültige Zugangsdaten",

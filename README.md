@@ -214,7 +214,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 3.7 @ 19.01.2024 14:20
+- 3.7 @ 22.01.2024 09:58
   - Fix: Versuche, den http-error 403 "Out of call volume quota." abzufangen.
   - Neu: Schalter, um Daten zu API-Aufrufen zu sammeln
     Die API-Aufruf-Daten stehen nun in einem Medienobjekt zur Verfügung
