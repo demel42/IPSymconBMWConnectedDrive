@@ -214,8 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 3.7 @ 22.01.2024 09:58
+- 3.7 @ 22.01.2024 17:28
   - Fix: Versuche, den http-error 403 "Out of call volume quota." abzufangen.
+  - Fix: neue Version der BMW-API
   - Neu: Schalter, um Daten zu API-Aufrufen zu sammeln
     Die API-Aufruf-Daten stehen nun in einem Medienobjekt zur Verfügung
   - submodule CommonStubs aktualisiert
