@@ -231,6 +231,11 @@ class BMWConnectedDriveIO extends IPSModule
                 'caption' => 'Clear token',
                 'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
             ],
+            [
+                'type'    => 'Button',
+                'caption' => 'Ignore quota',
+                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "IgnoreQuota", "");',
+            ],
         ];
         $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
         if ($collectApiCallStats) {
@@ -281,6 +286,9 @@ class BMWConnectedDriveIO extends IPSModule
                 break;
             case 'ClearToken':
                 $this->ClearToken();
+                break;
+            case 'IgnoreQuota':
+                $this->IgnoreQuota();
                 break;
             default:
                 $r = false;
@@ -349,6 +357,16 @@ class BMWConnectedDriveIO extends IPSModule
         $this->WriteAttributeString('ApiSettings', '');
         $this->WriteAttributeString('ApiRefreshToken', '');
         $this->SetBuffer('AccessToken', '');
+        IPS_SemaphoreLeave($this->SemaphoreID);
+    }
+
+    private function IgnoreQuota()
+    {
+        if (IPS_SemaphoreEnter($this->SemaphoreID, self::$semaphoreTM) == false) {
+            $this->SendDebug(__FUNCTION__, 'unable to lock sempahore ' . $this->SemaphoreID, 0);
+            return false;
+        }
+        $this->clear_wait_time();
         IPS_SemaphoreLeave($this->SemaphoreID);
     }
 
