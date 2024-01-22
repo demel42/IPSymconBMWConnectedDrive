@@ -227,14 +227,19 @@ class BMWConnectedDriveIO extends IPSModule
         $items = [
             $this->GetInstallVarProfilesFormItem(),
             [
-                'type'    => 'Button',
-                'caption' => 'Clear token',
-                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
-            ],
-            [
-                'type'    => 'Button',
-                'caption' => 'Reset quota handling',
-                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearQuota", "");',
+                'type'    => 'RowLayout',
+                'items'   => [
+                    [
+                        'type'    => 'Button',
+                        'caption' => 'Clear token',
+                        'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearToken", "");',
+                    ],
+                    [
+                        'type'    => 'Button',
+                        'caption' => 'Reset quota handling',
+                        'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ClearQuota", "");',
+                    ],
+                ],
             ],
         ];
         $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
