@@ -127,6 +127,10 @@ trait BMWConnectedDriveLocalLib
     private static $BMW_COUNTRY_SWITZERLAND = 2;
     private static $BMW_COUNTRY_EUROPE = 3;
     private static $BMW_COUNTRY_USA = 4;
+    private static $BMW_COUNTRY_AUSTRIA = 5;
+    private static $BMW_COUNTRY_LUXEMBOURG = 6;
+    private static $BMW_COUNTRY_NETHERLANDS = 7;
+    private static $BMW_COUNTRY_FRANCE = 8;
 
     // Marken
     private static $BMW_BRAND_BMW = 0;
@@ -337,27 +341,47 @@ trait BMWConnectedDriveLocalLib
             self::$BMW_COUNTRY_GERMANY => [
                 'caption' => 'Germany',
                 'region'  => 'RestOfWorld',
-                'lang'    => 'de',
+                'lang'    => 'de-DE',
             ],
             self::$BMW_COUNTRY_SWITZERLAND => [
                 'caption' => 'Switzerland',
                 'region'  => 'RestOfWorld',
-                'lang'    => 'de',
+                'lang'    => 'de-CH',
+            ],
+            self::$BMW_COUNTRY_AUSTRIA => [
+                'caption' => 'Austria',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'de-AT',
+            ],
+            self::$BMW_COUNTRY_LUXEMBOURG => [
+                'caption' => 'Luxembourg',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'de-LU',
+            ],
+            self::$BMW_COUNTRY_NETHERLANDS => [
+                'caption' => 'Netherlands',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'nl-NL',
+            ],
+            self::$BMW_COUNTRY_FRANCE => [
+                'caption' => 'France',
+                'region'  => 'RestOfWorld',
+                'lang'    => 'fr-FR',
             ],
             self::$BMW_COUNTRY_EUROPE => [
                 'caption' => 'Europe',
                 'region'  => 'RestOfWorld',
-                'lang'    => 'en',
+                'lang'    => 'en-GB',
             ],
             self::$BMW_COUNTRY_USA => [
                 'caption' => 'USA',
                 'region'  => 'NorthAmerica',
-                'lang'    => 'en',
+                'lang'    => 'en-US',
             ],
             self::$BMW_COUNTRY_OTHER => [
                 'caption' => 'Rest of the World',
                 'region'  => 'RestOfWorld',
-                'lang'    => 'en',
+                'lang'    => 'en-US',
             ]
         ];
     }

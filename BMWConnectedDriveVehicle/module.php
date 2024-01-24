@@ -463,7 +463,6 @@ class BMWConnectedDriveVehicle extends IPSModule
             $this->MaintainAction('TriggerLocateVehicle', true);
         }
 
-        /*
         $this->MaintainVariable('TriggerStartCharging', $this->Translate('start charging'), VARIABLETYPE_INTEGER, 'BMW.TriggerRemoteService', $vpos++, $isElectric);
         if ($isElectric) {
             $this->MaintainAction('TriggerStartCharging', true);
@@ -473,7 +472,6 @@ class BMWConnectedDriveVehicle extends IPSModule
         if ($isElectric) {
             $this->MaintainAction('TriggerStopCharging', true);
         }
-         */
 
         $this->MaintainVariable('RemoteServiceHistory', $this->Translate('remote service history'), VARIABLETYPE_STRING, '~HTMLBox', $vpos++, true);
 
@@ -899,8 +897,11 @@ class BMWConnectedDriveVehicle extends IPSModule
             case 'TriggerBlowHorn':
                 $r = $this->BlowHorn();
                 break;
-            case 'TriggerChargeNow':
-                $r = $this->ChargeNow();
+            case 'TriggerStartCharging':
+                $r = $this->StartCharging();
+                break;
+            case 'TriggerStopCharging':
+                $r = $this->StopCharging();
                 break;
             case 'TriggerLocateVehicle':
                 $r = $this->LocateVehicle();

@@ -420,12 +420,11 @@ class BMWConnectedDriveIO extends IPSModule
         $pre = 'config';
         $this->SendDebug(__FUNCTION__, '*** ' . $pre, 0);
 
-        $session_id = $this->uuid_v4();
-
         $config_url = $baseurl . self::$oauth_config_endpoint;
 
         $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_config_endpoint) . '"  => ';
 
+        $session_id = $this->uuid_v4();
         $correlation_id = $this->uuid_v4();
         $config_header_values = [
             'accept'                    => 'application/json',
@@ -455,10 +454,11 @@ class BMWConnectedDriveIO extends IPSModule
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $curl_info = curl_getinfo($ch);
+        $httpcode = $curl_info['http_code'];
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => curl_info=' . print_r($curl_info, true), 0);
 
         $statuscode = 0;
         $err = '';
@@ -467,7 +467,6 @@ class BMWConnectedDriveIO extends IPSModule
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         }
         if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
@@ -545,10 +544,15 @@ class BMWConnectedDriveIO extends IPSModule
         $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_authenticate_endpoint) . '" => ';
 
         $auth_header_values = [
-            'accept'          => 'application/json',
-            'accept-language' => $this->GetLang(),
-            'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'accept'                    => 'application/json',
+            'accept-language'           => $this->GetLang(),
+            'user-agent'                => self::$user_agent,
+            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
+            'bmw-session-id'            => $session_id,
+            'x-identity-provider'       => 'gcdm',
+            'x-correlation-id'          => $correlation_id,
+            'bmw-correlation-id'        => $correlation_id,
         ];
         $header = [];
         foreach ($auth_header_values as $key => $val) {
@@ -587,10 +591,11 @@ class BMWConnectedDriveIO extends IPSModule
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $curl_info = curl_getinfo($ch);
+        $httpcode = $curl_info['http_code'];
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => curl_info=' . print_r($curl_info, true), 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -598,7 +603,6 @@ class BMWConnectedDriveIO extends IPSModule
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         }
         if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
@@ -705,10 +709,15 @@ class BMWConnectedDriveIO extends IPSModule
         $postfields['authorization'] = $redirect_opts['authorization'];
 
         $auth_header_values = [
-            'accept'          => 'application/json',
-            'accept-language' => $this->GetLang(),
-            'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'accept'                    => 'application/json',
+            'accept-language'           => $this->GetLang(),
+            'user-agent'                => self::$user_agent,
+            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
+            'bmw-session-id'            => $session_id,
+            'x-identity-provider'       => 'gcdm',
+            'x-correlation-id'          => $correlation_id,
+            'bmw-correlation-id'        => $correlation_id,
         ];
         $header = [];
         foreach ($auth_header_values as $key => $val) {
@@ -728,10 +737,11 @@ class BMWConnectedDriveIO extends IPSModule
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $curl_info = curl_getinfo($ch);
+        $httpcode = $curl_info['http_code'];
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => curl_info=' . print_r($curl_info, true), 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -739,7 +749,6 @@ class BMWConnectedDriveIO extends IPSModule
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         }
         if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
@@ -770,7 +779,6 @@ class BMWConnectedDriveIO extends IPSModule
         }
         if ($statuscode == 0) {
             if (preg_match_all('|location: (.*)|', $head, $matches)) {
-                $this->SendDebug(__FUNCTION__, $pre . '  => matches=' . print_r($matches, true), 0);
                 if (isset($matches[1][0]) == false) {
                     $statuscode = self::$IS_INVALIDDATA;
                     $err = 'missing element "location" in "' . $head . '"';
@@ -821,11 +829,16 @@ class BMWConnectedDriveIO extends IPSModule
 
         $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
         $token_header_values = [
-            'accept'          => 'application/json',
-            'accept-language' => $this->GetLang(),
-            'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
-            'authorization'   => 'Basic ' . $oauth_authorization,
+            'accept'                    => 'application/json',
+            'accept-language'           => $this->GetLang(),
+            'user-agent'                => self::$user_agent,
+            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'authorization'             => 'Basic ' . $oauth_authorization,
+            'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
+            'bmw-session-id'            => $session_id,
+            'x-identity-provider'       => 'gcdm',
+            'x-correlation-id'          => $correlation_id,
+            'bmw-correlation-id'        => $correlation_id,
         ];
         $header = [];
         foreach ($token_header_values as $key => $val) {
@@ -852,10 +865,11 @@ class BMWConnectedDriveIO extends IPSModule
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $curl_info = curl_getinfo($ch);
+        $httpcode = $curl_info['http_code'];
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => curl_info=' . print_r($curl_info, true), 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -863,7 +877,6 @@ class BMWConnectedDriveIO extends IPSModule
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         }
         if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
@@ -992,13 +1005,19 @@ class BMWConnectedDriveIO extends IPSModule
 
         $callerMSG = 'endpoint "' . $this->extract_endpoint($token_url) . '" => ';
 
+        $session_id = $this->uuid_v4();
+        $correlation_id = $this->uuid_v4();
         $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
         $token_header_values = [
-            'accept'          => 'application/json',
-            'accept-language' => $this->GetLang(),
-            'user-agent'      => self::$user_agent,
-            'x-user-agent'    => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
-            'authorization'   => 'Basic ' . $oauth_authorization,
+            'accept'              => 'application/json',
+            'accept-language'     => $this->GetLang(),
+            'user-agent'          => self::$user_agent,
+            'x-user-agent'        => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'authorization'       => 'Basic ' . $oauth_authorization,
+            'bmw-session-id'      => $session_id,
+            'x-identity-provider' => 'gcdm',
+            'x-correlation-id'    => $correlation_id,
+            'bmw-correlation-id'  => $correlation_id,
         ];
         $header = [];
         foreach ($token_header_values as $key => $val) {
@@ -1025,10 +1044,11 @@ class BMWConnectedDriveIO extends IPSModule
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $curl_info = curl_getinfo($ch);
+        $httpcode = $curl_info['http_code'];
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, $pre . '  => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, $pre . '  => curl_info=' . print_r($curl_info, true), 0);
 
         $statuscode = 0;
         if ($cerrno) {
@@ -1036,7 +1056,6 @@ class BMWConnectedDriveIO extends IPSModule
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         }
         if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
@@ -1380,14 +1399,16 @@ class BMWConnectedDriveIO extends IPSModule
         }
         curl_setopt($ch, CURLOPT_HEADER, true);
         curl_setopt($ch, CURLOPT_COOKIE, $cookies);
+        curl_setopt($ch, CURLINFO_HEADER_OUT, true);
 
         $response = curl_exec($ch);
         $cerrno = curl_errno($ch);
         $cerror = $cerrno ? curl_error($ch) : '';
-        $httpcode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
-
+        $curl_info = curl_getinfo($ch);
+        $httpcode = $curl_info['http_code'];
         $duration = round(microtime(true) - $time_start, 2);
         $this->SendDebug(__FUNCTION__, ' => errno=' . $cerrno . ', httpcode=' . $httpcode . ', duration=' . $duration . 's', 0);
+        $this->SendDebug(__FUNCTION__, ' => curl_info=' . print_r($curl_info, true), 0);
 
         $statuscode = 0;
         $err = '';
@@ -1397,7 +1418,6 @@ class BMWConnectedDriveIO extends IPSModule
             $err = 'got curl-errno ' . $cerrno . ' (' . $cerror . ')';
         }
         if ($statuscode == 0) {
-            $curl_info = curl_getinfo($ch);
             $header_size = $curl_info['header_size'];
             $head = substr($response, 0, $header_size);
             $body = substr($response, $header_size);
