@@ -111,6 +111,44 @@ class BMWConnectedDriveIO extends IPSModule
         return $r;
     }
 
+    private function CheckModuleUpdate(array $oldInfo, array $newInfo)
+    {
+        $r = [];
+
+        if ($this->version2num($oldInfo) < $this->version2num('3.8')) {
+            $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
+            if ($collectApiCallStats) {
+                $r[] = $this->Translate('Set ident of media objects');
+            }
+        }
+
+        return $r;
+    }
+
+    private function CompleteModuleUpdate(array $oldInfo, array $newInfo)
+    {
+        $r = '';
+
+        if ($this->version2num($oldInfo) < $this->version2num('3.8')) {
+            $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
+            if ($collectApiCallStats) {
+                $m = [
+                    'ApiCallStats' => '.txt',
+                ];
+
+                foreach ($m as $ident => $extension) {
+                    $filename = 'media' . DIRECTORY_SEPARATOR . $this->InstanceID . '-' . $ident . $extension;
+                    @$mediaID = IPS_GetMediaIDByFile($filename);
+                    if ($mediaID != false) {
+                        IPS_SetIdent($mediaID, $ident);
+                    }
+                }
+            }
+        }
+
+        return $r;
+    }
+
     public function ApplyChanges()
     {
         parent::ApplyChanges();
@@ -131,6 +169,11 @@ class BMWConnectedDriveIO extends IPSModule
             $this->MaintainStatus(self::$IS_INVALIDCONFIG);
             return;
         }
+
+        $vpos = 1000;
+
+        $collectApiCallStats = $this->ReadPropertyBoolean('collectApiCallStats');
+        $this->MaintainMedia('ApiCallStats', $this->Translate('API call statistics'), MEDIATYPE_DOCUMENT, '.txt', false, $vpos++, $collectApiCallStats);
 
         $module_disable = $this->ReadPropertyBoolean('module_disable');
         if ($module_disable) {

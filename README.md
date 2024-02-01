@@ -214,6 +214,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.8 @ 29.01.2024 10:14
+  - Änderung: Medien-Objekte haben zur eindeutigen Identifizierung jetzt ebenfalls ein Ident
+  - update submodule CommonStubs
+
 - 3.7 @ 24.01.2024 08:10
   - Fix: Versuche, den http-error 403 "Out of call volume quota." abzufangen.
   - Fix: neue Version der BMW-API

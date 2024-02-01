@@ -45,7 +45,6 @@
 
 			"__variables__": "",
 			"blow horn": "Hupe auslösen",
-			"Car picture": "Bild des Fahrzeugs",
 			"charging end": "Ladezyklus-Ende",
 			"charging info": "Lade-Information",
 			"charging preferences": "Ladepräferenzen",
@@ -92,6 +91,9 @@
 			"window driver rear": "Fenster Fahrer hinten",
 			"window passenger front": "Fenster Beifahrer vorne",
 			"window passenger rear": "Fenster Beifahrer hinten",
+
+			"__media__": "",
+			"Car picture": "Bild des Fahrzeugs",
 
 			"__function__": "UpdateVehicleData / ChargingPreferences",
 			"Charging mode": "Lademodus",

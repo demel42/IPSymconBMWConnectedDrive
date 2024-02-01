@@ -1469,8 +1469,9 @@ class BMWConnectedDriveVehicle extends IPSModule
         ];
         $data = $this->SendDataToParent(json_encode($SendData));
         $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $this->LimitOutput($data), 0);
+        $this->MaintainMedia('CarPicture', $this->Translate('Car picture'), MEDIATYPE_IMAGE, '.png', false, 1000, ($data != false));
         if ($data != false) {
-            $this->SetMediaData('Car picture', base64_decode($data), MEDIATYPE_IMAGE, '.png', false);
+            $this->SetMediaContent('CarPicture', base64_decode($data));
         }
     }
 

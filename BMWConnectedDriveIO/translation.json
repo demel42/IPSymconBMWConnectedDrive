@@ -6,6 +6,9 @@
 			"__function__": "CheckConfiguration",
 			"User and password of the BMW-account are required": "Benutzer und Passwort des BMW-Kontos werden benötigt",
 
+			"__function__": "CheckUpdate",
+			"Set ident of media objects": "Ident der Media-Objekte setzen",
+
 			"__elements__": "",
 			"Disable instance": "Instanz deaktivieren",
 
@@ -27,6 +30,9 @@
 			"valid account-data": "Gültige Zugangsdaten",
 			"unable to retrieve vehicle list": "Liste der Fahrzeuge kann nicht abgerufen werden",
 			"registered vehicles found": "registrierte Fahrzeuge gefunden",
+
+			"__media__": "",
+			"API call statistics": "API-Aufruf-Statistkdaten",
 
 			"__end__": ""
 		}
