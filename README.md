@@ -214,6 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.8.1 @ 05.02.2024 16:23
+  - Fix: Problem mit Verbrennern bei Version 3.8
+
 - 3.8 @ 29.01.2024 10:14
   - Änderung: Medien-Objekte haben zur eindeutigen Identifizierung jetzt ebenfalls ein Ident
   - update submodule CommonStubs

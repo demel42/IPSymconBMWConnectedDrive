@@ -1049,7 +1049,6 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->SaveValue('LastUpdateFromVehicle', strtotime($val), $isChanged);
 
         $model = $this->ReadPropertyInteger('model');
-
         $hasCombustion = $model != self::$BMW_DRIVE_TYPE_ELECTRIC;
 
         if ($model != self::$BMW_DRIVE_TYPE_ELECTRIC) {
@@ -2103,7 +2102,7 @@ class BMWConnectedDriveVehicle extends IPSModule
 
         $model = $this->ReadPropertyInteger('model');
         if ($model == self::$BMW_DRIVE_TYPE_COMBUSTION) {
-            $this->SendDebug(__FUNCTION__, 'not for ' . $this->DriveType2String(), 0);
+            $this->SendDebug(__FUNCTION__, 'not for ' . $this->DriveType2String($model), 0);
             return;
         }
 
