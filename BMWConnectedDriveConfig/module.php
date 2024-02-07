@@ -141,7 +141,7 @@ class BMWConnectedDriveConfig extends IPSModule
                 $instanceID = 0;
                 $vehicleName = '';
                 foreach ($instIDs as $instID) {
-                    if ($vin == IPS_GetProperty($instID, 'vin')) {
+                    if (@IPS_GetProperty($instID, 'vin') == $vin) {
                         $this->SendDebug(__FUNCTION__, 'vehicle found: ' . IPS_GetName($instID) . ' (' . $instID . ')', 0);
                         $instanceID = $instID;
                         $vehicleName = IPS_GetName($instID);
@@ -150,7 +150,7 @@ class BMWConnectedDriveConfig extends IPSModule
                 }
 
                 if ($instanceID && IPS_GetInstance($instanceID)['ConnectionID'] != IPS_GetInstance($this->InstanceID)['ConnectionID']) {
-                    // continue;
+                    continue;
                 }
 
                 $entry = [
@@ -171,8 +171,8 @@ class BMWConnectedDriveConfig extends IPSModule
                         ]
                     ]
                 ];
-
                 $entries[] = $entry;
+                $this->SendDebug(__FUNCTION__, 'instanceID=' . $instanceID . ', entry=' . print_r($entry, true), 0);
             }
         }
 
@@ -193,8 +193,8 @@ class BMWConnectedDriveConfig extends IPSModule
             }
 
             $vehicleName = IPS_GetName($instID);
-            $vin = IPS_GetProperty($instID, 'vin');
-            $driveType = IPS_GetProperty($instID, 'model');
+            @$vin = IPS_GetProperty($instID, 'vin');
+            @$driveType = IPS_GetProperty($instID, 'model');
 
             $entry = [
                 'instanceID'  => $instID,
@@ -206,7 +206,7 @@ class BMWConnectedDriveConfig extends IPSModule
                 'driveType'   => $this->DriveType2String($driveType),
             ];
             $entries[] = $entry;
-            $this->SendDebug(__FUNCTION__, 'missing entry=' . print_r($entry, true), 0);
+            $this->SendDebug(__FUNCTION__, 'lost: instanceID=' . $instID . ', entry=' . print_r($entry, true), 0);
         }
 
         return $entries;

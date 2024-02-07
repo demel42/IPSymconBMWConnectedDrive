@@ -214,6 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.9 @ 07.02.2024 17:34
+  - Fix: Absicherung von Zugriffen auf andere Instanzen in Konfiguratoren
+
 - 3.8.1 @ 05.02.2024 16:23
   - Fix: Problem mit Verbrennern bei Version 3.8
 
