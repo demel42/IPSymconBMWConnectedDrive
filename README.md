@@ -214,6 +214,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 3.10 @ 15.02.2024 09:01
+  - Neu: nach dem Setzen der Ladepräferenzen wird der "RemoteServiceStatus" abgefragt, bis das Kommando quittiert wurde
+  - Verbesserung: wenn keine anhängenden RemoteServices mehr vorliegen, werden die Fahrzeugdaten aktualisiert
+
 - 3.9 @ 07.02.2024 17:34
   - Fix: Absicherung von Zugriffen auf andere Instanzen in Konfiguratoren
 

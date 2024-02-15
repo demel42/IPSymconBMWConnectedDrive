@@ -78,7 +78,9 @@
 			"roof": "Schiebedach",
 			"Service messages": "Servicemeldungen",
 			"start air conditioner": "Klimaanlage starten",
+			"start charging": "Ladevorgang starten",
 			"stop air conditioner": "Klimaanlage stoppen",
+			"stop charging": "Ladevorgang stoppen",
 			"tank capacity": "Tankinhalt",
 			"tank level": "Tankfüllstand",
 			"tire pressure front left": "Reifendruck vorne links",
@@ -168,7 +170,7 @@
 			"horn blow": "Hupe",
 			"light flash": "Lichthupe",
 			"Remote 3D View": "Remote 3D View",
-            "stop charging": "Ladevorgang stoppen",
+			"stop charging": "Ladevorgang stoppen",
 			"stop climate": "Klimatisierung stoppen",
 			"unknown service": "unbekannter Dienst",
 

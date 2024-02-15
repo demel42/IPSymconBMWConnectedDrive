@@ -1564,23 +1564,8 @@ class BMWConnectedDriveVehicle extends IPSModule
         return $pos;
     }
 
-    protected function ExecuteRemoteService($service, $action)
+    private function AddRemoteServiceEntry($service, $action, $jdata)
     {
-        $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action, 0);
-
-        $vin = $this->ReadPropertyString('vin');
-
-        $SendData = [
-            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
-            'CallerID' => $this->InstanceID,
-            'Function' => 'ExecuteRemoteService',
-            'vin'      => $vin,
-            'service'  => $service,
-            'action'   => $action,
-        ];
-        $data = $this->SendDataToParent(json_encode($SendData));
-        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
-
         $ref_tstamp = strtotime('-1 month');
 
         $history = json_decode($this->ReadAttributeString('RemoteServiceHistory'), true);
@@ -1594,7 +1579,6 @@ class BMWConnectedDriveVehicle extends IPSModule
             }
             $new_history[] = $event;
         }
-        $jdata = @json_decode($data, true);
         if ($jdata == false) {
             $event = [
                 'service'     => $service,
@@ -1615,7 +1599,27 @@ class BMWConnectedDriveVehicle extends IPSModule
         $new_history[] = $event;
         $this->SendDebug(__FUNCTION__, 'remote service history=' . print_r($new_history, true), 0);
         $this->WriteAttributeString('RemoteServiceHistory', json_encode($new_history));
+    }
 
+    private function ExecuteRemoteService($service, $action)
+    {
+        $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action, 0);
+
+        $vin = $this->ReadPropertyString('vin');
+
+        $SendData = [
+            'DataID'   => '{67B1E7E9-97C7-43AC-BB2E-723FFE2444FF}', // an BMWConnectedDriveIO
+            'CallerID' => $this->InstanceID,
+            'Function' => 'ExecuteRemoteService',
+            'vin'      => $vin,
+            'service'  => $service,
+            'action'   => $action,
+        ];
+        $data = $this->SendDataToParent(json_encode($SendData));
+        $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+        $jdata = @json_decode($data, true);
+
+        $this->AddRemoteServiceEntry($service, $action, $jdata);
         $this->UpdateRemoteServiceStatus();
 
         return $data;
@@ -1770,6 +1774,11 @@ class BMWConnectedDriveVehicle extends IPSModule
         ];
         $data = $this->SendDataToParent(json_encode($SendData));
         $this->SendDebug(__FUNCTION__, 'SendData=' . json_encode($SendData) . ', data=' . $data, 0);
+        $jdata = @json_decode($data, true);
+
+        $this->AddRemoteServiceEntry('CHARGE_PREFERENCE', '', $jdata);
+        $this->UpdateRemoteServiceStatus();
+
         return $data;
     }
 
@@ -1894,12 +1903,12 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
         $this->WriteAttributeString('RemoteServiceHistory', json_encode($new_history));
 
-        $this->GetRemoteServiceHistory();
-
         if ($n_pending) {
             $this->MaintainTimer('UpdateRemoteServiceStatus', $refresh_interval * 1000);
         } else {
             $this->MaintainTimer('UpdateRemoteServiceStatus', 0);
+            $this->UpdateRemoteServiceHistory();
+            $this->UpdateVehicleData();
         }
     }
 
