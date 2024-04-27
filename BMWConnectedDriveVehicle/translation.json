@@ -146,7 +146,8 @@
 
 			"__function__": "UpdateChargingSessions",
 			"Moment": "Zeitpunkt",
-			"Information": "Information",
+			"Location": "Ort",
+			"Duration": "Dauer",
 			"Energy": "Energie",
 			"there are no charging sessions present": "es liegen keine Ladevorgänge vor",
 

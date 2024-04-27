@@ -214,8 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 3.11 @ 27.04.2024 15:37
+- 3.11 @ 27.04.2024 16:19
   - Fix: API-Änderung für Lade-Historie nachgeführt
+  - Änderung: Darstellung der Ladehistorie verbessert
   - update submodule CommonStubs
 
 - 3.10 @ 15.02.2024 09:01

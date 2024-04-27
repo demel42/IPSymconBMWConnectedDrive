@@ -1493,13 +1493,17 @@ class BMWConnectedDriveVehicle extends IPSModule
                     $tstamp = $session['title'];
                 }
                 $subtitle = $session['subtitle'];
-                $energyCharged = $session['energyCharged'];
-                $sessionStatus = $session['sessionStatus'];
+                $r = explode(' • ', $subtitle);
+                $location = isset($r[0]) ? $r[0] : '';
+                $duration = isset($r[1]) ? $r[1] : '';
+                $costs = isset($r[2]) ? preg_replace('/^~ /', '', $r[2]) : '';
+                $energy = preg_replace('/^~ /', '', $session['energyCharged']);
 
                 $tbl .= '<tr>' . PHP_EOL;
                 $tbl .= '<td>' . $tstamp . '</td>' . PHP_EOL;
-                $tbl .= '<td>' . $subtitle . '</td>' . PHP_EOL;
-                $tbl .= '<td>' . $energyCharged . '</td>' . PHP_EOL;
+                $tbl .= '<td>' . $location . '</td>' . PHP_EOL;
+                $tbl .= '<td>' . $duration . '</td>' . PHP_EOL;
+                $tbl .= '<td>' . $energy . '</td>' . PHP_EOL;
                 $tbl .= '</tr>' . PHP_EOL;
             }
         }
@@ -1510,7 +1514,8 @@ class BMWConnectedDriveVehicle extends IPSModule
             $html .= '<table>' . PHP_EOL;
             $html .= '<tr>' . PHP_EOL;
             $html .= '<th>' . $this->Translate('Moment') . '</th>' . PHP_EOL;
-            $html .= '<th>' . $this->Translate('Information') . '</th>' . PHP_EOL;
+            $html .= '<th>' . $this->Translate('Location') . '</th>' . PHP_EOL;
+            $html .= '<th>' . $this->Translate('Duration') . '</th>' . PHP_EOL;
             $html .= '<th>' . $this->Translate('Energy') . '</th>' . PHP_EOL;
             $html .= '</tr>' . PHP_EOL;
             $html .= $tbl;
