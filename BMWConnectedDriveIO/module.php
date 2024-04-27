@@ -46,7 +46,7 @@ class BMWConnectedDriveIO extends IPSModule
     private static $vehicle_poi_endpoint = '/eadrax-dcs/v1/send-to-car/send-to-car';
 
     private static $charging_statistics_endpoint = '/eadrax-chs/v1/charging-statistics';
-    private static $charging_sessions_endpoint = '/eadrax-chs/v1/charging-sessions';
+    private static $charging_sessions_endpoint = '/eadrax-chs/v2/charging-sessions';
 
     private static $charging_endpoint = '/eadrax-crccs/v1/vehicles';
 
@@ -1619,13 +1619,7 @@ class BMWConnectedDriveIO extends IPSModule
 
         $endpoint = self::$vehicles_endpoint;
 
-        $params = [
-            'apptimezone' => strval(round(intval(date('Z')) / 60)), // TZ-Differenz in Minuten
-            'appDateTime' => date('U') . date('v'), // Millisekunden
-        ];
-        $params = [];
-
-        $data = $this->CallAPI($endpoint, '', $params, '');
+        $data = $this->CallAPI($endpoint, '', '', '');
         return $data;
     }
 
@@ -1690,7 +1684,11 @@ class BMWConnectedDriveIO extends IPSModule
             'include_date_picker' => 'true'
         ];
 
-        $data = $this->CallAPI($endpoint, '', $params, '');
+        $header_add = [
+            'bmw-vin' => $vin,
+        ];
+
+        $data = $this->CallAPI($endpoint, '', $params, $header_add);
         return $data;
     }
 
