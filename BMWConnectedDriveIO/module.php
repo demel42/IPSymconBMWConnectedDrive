@@ -59,7 +59,7 @@ class BMWConnectedDriveIO extends IPSModule
     {
         parent::__construct($InstanceID);
 
-        $this->CommonContruct(__DIR__);
+        $this->CommonConstruct(__DIR__);
         $this->SemaphoreID = __CLASS__ . '_' . $InstanceID;
     }
 
@@ -267,6 +267,48 @@ class BMWConnectedDriveIO extends IPSModule
             'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "TestAccess", "");',
         ];
 
+        $region = $this->GetRegion();
+        switch ($region) {
+            case 'NorthAmerica':
+                $captcha_url = 'https://bimmer-connected.readthedocs.io/en/stable/captcha/north_america.html';
+                break;
+            case 'RestOfWorld':
+                $captcha_url = 'https://bimmer-connected.readthedocs.io/en/stable/captcha/rest_of_world.html';
+                break;
+            default:
+                $captcha_url = 'https://bimmer-connected.readthedocs.io/en/stable/captcha.html';
+                break;
+        }
+
+        $formActions[] = [
+            'type'    => 'PopupButton',
+            'caption' => 'Process login with captcha',
+            'popup'   => [
+                'caption' => 'Process login with captcha',
+                'items'   => [
+                    [
+                        'type'    => 'Label',
+                        'caption' => 'Generate and copy captcha on url ' . $captcha_url,
+                    ],
+                    [
+                        'type'  => 'RowLayout',
+                        'items' => [
+                            [
+                                'type'    => 'ValidationTextBox',
+                                'name'    => 'captcha_token',
+                                'caption' => 'Copied captcha'
+                            ],
+                            [
+                                'type'    => 'Button',
+                                'caption' => 'Process login',
+                                'onClick' => 'IPS_RequestAction(' . $this->InstanceID . ', "ProcessLogin", json_encode(["captcha_token" => $captcha_token]));',
+                            ],
+                        ],
+                    ],
+                ],
+            ],
+        ];
+
         $items = [
             $this->GetInstallVarProfilesFormItem(),
             [
@@ -329,6 +371,9 @@ class BMWConnectedDriveIO extends IPSModule
     {
         $r = true;
         switch ($ident) {
+            case 'ProcessLogin':
+                $this->ProcessLogin($value);
+                break;
             case 'TestAccess':
                 $this->TestAccess();
                 break;
@@ -436,8 +481,17 @@ class BMWConnectedDriveIO extends IPSModule
         return $result;
     }
 
-    private function ProcessLogin()
+    private function ProcessLogin(string $params)
     {
+        $jparams = json_decode($params, true);
+        $captcha_token = isset($jparams['captcha_token']) ? $jparams['captcha_token'] : '';
+        if ($captcha_token == '') {
+            $this->SendDebug(__FUNCTION__, 'no captcha_token', 0);
+            $this->MaintainStatus(self::$IS_NOCAPTCHA);
+            return false;
+        }
+        $this->SendDebug(__FUNCTION__, 'captcha_token=' . $captcha_token, 0);
+
         $this->WriteAttributeString('ApiSettings', '');
         $this->WriteAttributeString('ApiRefreshToken', '');
         $this->SetBuffer('AccessToken', '');
@@ -596,6 +650,7 @@ class BMWConnectedDriveIO extends IPSModule
             'x-identity-provider'       => 'gcdm',
             'x-correlation-id'          => $correlation_id,
             'bmw-correlation-id'        => $correlation_id,
+            'hcaptchatoken'             => $captcha_token,
         ];
         $header = [];
         foreach ($auth_header_values as $key => $val) {
@@ -1000,21 +1055,21 @@ class BMWConnectedDriveIO extends IPSModule
     {
         $refresh_token = $this->ReadAttributeString('ApiRefreshToken');
         if ($refresh_token == false) {
-            $access_token = $this->ProcessLogin();
-            if ($access_token == false) {
-                $this->SendDebug(__FUNCTION__, 'login failed', 0);
-            }
-            return $access_token;
+            $this->WriteAttributeString('ApiRefreshToken', '');
+            $this->SetBuffer('AccessToken', '');
+            $this->MaintainStatus(self::$IS_NOTLOGGEDON);
+            $this->AddModuleActivity('no refresh token => (' . $this->GetStatusText() . ')', self::$activity_size);
+            return false;
         }
         $this->SendDebug(__FUNCTION__, 'refresh_token=' . $refresh_token, 0);
 
         $oauth_settings = json_decode($this->ReadAttributeString('ApiSettings'), true);
         if ($oauth_settings == false) {
-            $access_token = $this->ProcessLogin();
-            if ($access_token == false) {
-                $this->SendDebug(__FUNCTION__, 'login failed', 0);
-            }
-            return $access_token;
+            $this->WriteAttributeString('ApiRefreshToken', '');
+            $this->SetBuffer('AccessToken', '');
+            $this->MaintainStatus(self::$IS_NOTLOGGEDON);
+            $this->AddModuleActivity('no oauth settings => (' . $this->GetStatusText() . ')', self::$activity_size);
+            return false;
         }
         $this->SendDebug(__FUNCTION__, 'oauth_settings=' . print_r($oauth_settings, true), 0);
 
@@ -1866,5 +1921,31 @@ class BMWConnectedDriveIO extends IPSModule
 
         $data = $this->CallAPI($endpoint, $postfields, [], $header_add);
         return $data;
+    }
+
+    private function format_string(string $text, ?array $values = []): string
+    {
+        return preg_replace_callback('/\{\{|\}\}|\{\}|\{[^}]+\}/', function ($matches) use ($values)
+        {
+            static $i = 0;
+            $match = $matches[0];
+            if ($match == '{{') {
+                return '{';
+            }
+            if ($match == '}}') {
+                return '}';
+            }
+            if ($match == '{}') {
+                if (array_key_exists($i, $values)) {
+                    return $values[$i++];
+                }
+            } else {
+                $key = substr($match, 1, -1);
+                if (array_key_exists($key, $values)) {
+                    return $values[$key];
+                }
+            }
+            return $match;
+        }, $text);
     }
 }

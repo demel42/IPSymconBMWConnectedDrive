@@ -16,7 +16,7 @@ class BMWConnectedDriveConfig extends IPSModule
     {
         parent::__construct($InstanceID);
 
-        $this->CommonContruct(__DIR__);
+        $this->CommonConstruct(__DIR__);
     }
 
     public function __destruct()
@@ -127,6 +127,7 @@ class BMWConnectedDriveConfig extends IPSModule
                     case 'COMBUSTION':
                         $driveType = self::$BMW_DRIVE_TYPE_COMBUSTION;
                         break;
+                    case 'PLUGIN_HYBRID':
                     case 'HYBRID':
                         $driveType = self::$BMW_DRIVE_TYPE_HYBRID;
                         break;
@@ -230,12 +231,13 @@ class BMWConnectedDriveConfig extends IPSModule
 
         $entries = $this->getConfiguratorValues();
         $formElements[] = [
-            'name'     => 'BMW configuration',
-            'type'     => 'Configurator',
-            'rowCount' => count($entries),
-            'add'      => false,
-            'delete'   => false,
-            'columns'  => [
+            'name'        => 'vehicles',
+            'caption'     => 'Vehicles',
+            'type'        => 'Configurator',
+            'rowCount'    => count($entries),
+            'add'         => false,
+            'delete'      => false,
+            'columns'     => [
                 [
                     'caption' => 'Name',
                     'name'    => 'vehicleName',

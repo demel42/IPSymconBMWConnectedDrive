@@ -214,6 +214,10 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 4.0 @ 22.12.2024 18:26
+  - Fix: Login mit Captcha
+  - update submodule CommonStubs
+  
 - 3.11 @ 27.04.2024 16:19
   - Fix: API-Änderung für Lade-Historie nachgeführt
   - Änderung: Darstellung der Ladehistorie verbessert
