@@ -214,7 +214,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 4.0 @ 22.12.2024 18:26
+- 4.0 @ 23.12.2024 11:11
   - Fix: Login mit Captcha
   - update submodule CommonStubs
   

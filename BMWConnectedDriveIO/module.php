@@ -28,8 +28,17 @@ class BMWConnectedDriveIO extends IPSModule
         'RestOfWorld'  => 'NGYxYzg1YTMtNzU4Zi1hMzdkLWJiYjYtZjg3MDQ0OTRhY2Zh',
     ];
 
-    private static $x_user_agent_fmt = 'android(TQ2A.230405.003.B2);%s;3.9.0(27760);%s';
-    private static $user_agent = 'Dart/3.0 (dart:io)';
+    private static $app_version = [
+        'NorthAmerica' => '4.9.2(36892)',
+        'RestOfWorld'  => '4.9.2(36892)',
+    ];
+
+    private static $user_agent = [
+        'NorthAmerica' => 'Dart/3.3 (dart:io)',
+        'RestOfWorld'  => 'Dart/3.3 (dart:io)',
+    ];
+
+    private static $x_user_agent_fmt = 'android(AP2A.240605.024);{brand};{app_version};{region}';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
@@ -39,16 +48,17 @@ class BMWConnectedDriveIO extends IPSModule
     private static $vehicles_endpoint = '/eadrax-vcs/v4/vehicles';
     private static $vehicle_state_endpoint = '/eadrax-vcs/v4/vehicles/state';
 
-    private static $remoteService_endpoint = '/eadrax-vrccs/v3/presentation/remote-commands';
+    private static $remoteService_endpoint = '/eadrax-vrccs/v4/presentation/remote-commands';
     private static $remoteServiceHistory_endpoint = '/eadrax-vrccs/v3/presentation/remote-history';
 
     private static $vehicle_img_endpoint = '/eadrax-ics/v5/presentation/vehicles/images';
     private static $vehicle_poi_endpoint = '/eadrax-dcs/v1/send-to-car/send-to-car';
+    // VEHICLE_POI_URL = "/eadrax-dcs/v2/user/{gcid}/send-to-car"
 
-    private static $charging_statistics_endpoint = '/eadrax-chs/v1/charging-statistics';
+    private static $charging_statistics_endpoint = '/eadrax-chs/v2/charging-statistics';
     private static $charging_sessions_endpoint = '/eadrax-chs/v2/charging-sessions';
 
-    private static $charging_endpoint = '/eadrax-crccs/v1/vehicles';
+    private static $charging_endpoint = '/eadrax-crccs/v1/vehicles/{vin}';
 
     private static $semaphoreTM = 5 * 1000;
     private static $activity_size = 100;
@@ -521,13 +531,20 @@ class BMWConnectedDriveIO extends IPSModule
 
         $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_config_endpoint) . '"  => ';
 
+        $x_user_agent_params = [
+            'brand'       => $this->GetBrand(),
+            'app_version' => self::$app_version[$region],
+            'region'      => self::$region_map[$region],
+        ];
+        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
+
         $session_id = $this->uuid_v4();
         $correlation_id = $this->uuid_v4();
         $config_header_values = [
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
-            'user-agent'                => self::$user_agent,
-            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'user-agent'                => self::$user_agent[$region],
+            'x-user-agent'              => $x_user_agent,
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
             'x-identity-provider'       => 'gcdm',
@@ -643,8 +660,8 @@ class BMWConnectedDriveIO extends IPSModule
         $auth_header_values = [
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
-            'user-agent'                => self::$user_agent,
-            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'user-agent'                => self::$user_agent[$region],
+            'x-user-agent'              => $x_user_agent,
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
             'x-identity-provider'       => 'gcdm',
@@ -809,8 +826,8 @@ class BMWConnectedDriveIO extends IPSModule
         $auth_header_values = [
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
-            'user-agent'                => self::$user_agent,
-            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'user-agent'                => self::$user_agent[$region],
+            'x-user-agent'              => $x_user_agent,
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
             'x-identity-provider'       => 'gcdm',
@@ -929,8 +946,8 @@ class BMWConnectedDriveIO extends IPSModule
         $token_header_values = [
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
-            'user-agent'                => self::$user_agent,
-            'x-user-agent'              => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'user-agent'                => self::$user_agent[$region],
+            'x-user-agent'              => $x_user_agent,
             'authorization'             => 'Basic ' . $oauth_authorization,
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
@@ -1103,14 +1120,21 @@ class BMWConnectedDriveIO extends IPSModule
 
         $callerMSG = 'endpoint "' . $this->extract_endpoint($token_url) . '" => ';
 
+        $x_user_agent_params = [
+            'brand'       => $this->GetBrand(),
+            'app_version' => self::$app_version[$region],
+            'region'      => self::$region_map[$region],
+        ];
+        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
+
         $session_id = $this->uuid_v4();
         $correlation_id = $this->uuid_v4();
         $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
         $token_header_values = [
             'accept'              => 'application/json',
             'accept-language'     => $this->GetLang(),
-            'user-agent'          => self::$user_agent,
-            'x-user-agent'        => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'user-agent'          => self::$user_agent[$region],
+            'x-user-agent'        => $x_user_agent,
             'authorization'       => 'Basic ' . $oauth_authorization,
             'bmw-session-id'      => $session_id,
             'x-identity-provider' => 'gcdm',
@@ -1444,12 +1468,19 @@ class BMWConnectedDriveIO extends IPSModule
         }
         $this->SetBuffer('LastApiCall', time());
 
+        $x_user_agent_params = [
+            'brand'       => $this->GetBrand(),
+            'app_version' => self::$app_version[$region],
+            'region'      => self::$region_map[$region],
+        ];
+        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
+
         $correlation_id = $this->uuid_v4();
         $header_base = [
             'accept'                => 'application/json',
             'accept-language'       => $this->GetLang(),
-            'user-agent'            => self::$user_agent,
-            'x-user-agent'          => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'user-agent'            => self::$user_agent[$region],
+            'x-user-agent'          => $x_user_agent,
             'authorization'         => 'Bearer ' . $access_token,
             'x-identity-provider'   => 'gcdm',
             'x-correlation-id'      => $correlation_id,
@@ -1774,7 +1805,11 @@ class BMWConnectedDriveIO extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action, 0);
 
-        $endpoint = self::$remoteService_endpoint . '/' . $vin . '/' . strtolower(preg_replace('/_/', '-', $service));
+        $endpoint = self::$remoteService_endpoint . '/' . strtolower(preg_replace('/_/', '-', $service));
+
+        $header_add = [
+            'bmw-vin' => $vin,
+        ];
 
         $postfields = [];
         if ($action != false) {
@@ -1788,7 +1823,7 @@ class BMWConnectedDriveIO extends IPSModule
             'dlon'       => $pos['longitude'],
         ];
 
-        $data = $this->CallAPI($endpoint, $postfields, $params, '');
+        $data = $this->CallAPI($endpoint, $postfields, $params, $header_add);
         return $data;
     }
 
@@ -1903,7 +1938,7 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$charging_endpoint . '/' . $vin . '/charging-settings';
+        $endpoint = $this->format_string(self::$charging_endpoint, ['vin' => $vin]) . '/charging-settings';
 
         $jsettings = json_decode($settings, true);
 
