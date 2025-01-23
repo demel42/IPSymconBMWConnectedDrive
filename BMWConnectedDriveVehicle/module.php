@@ -1151,12 +1151,12 @@ class BMWConnectedDriveVehicle extends IPSModule
 
             $departureTimes = $this->GetArrayElem($chargingProfile, 'departureTimes', '');
             $this->SendDebug(__FUNCTION__, 'departureTimes=' . print_r($departureTimes, true), 0);
-            $action = $this->GetArrayElem($departureTimes[3], 'action', '');
-            if ($action == 'activate') {
+            $action = $this->GetArrayElem($departureTimes, '3.action', '');
+            if (strtoupper($action) == 'ACTIVATE') {
                 $title = $this->Translate('Upcoming departure');
 
-                $h = $this->GetArrayElem($departureTimes[3], 'timeStamp.hour', 0);
-                $m = $this->GetArrayElem($departureTimes[3], 'timeStamp.minute', 0);
+                $h = $this->GetArrayElem($departureTimes, '3.timeStamp.hour', 0);
+                $m = $this->GetArrayElem($departureTimes, '3.timeStamp.minute', 0);
                 $time = sprintf('%02d:%02d', $h, $m);
 
                 $ref = date('H', time()) * 60 + date('i', time());
@@ -1174,23 +1174,30 @@ class BMWConnectedDriveVehicle extends IPSModule
                 $html .= '</tr>' . PHP_EOL;
             } else {
                 $title = $this->Translate('Weekly departure');
-                for ($i = 0; $i < 4; $i++) {
-                    $action = $this->GetArrayElem($departureTimes[$i], 'action', '');
-                    if ($action != 'activate') {
+                for ($i = 0; $i < 3; $i++) {
+                    $action = $this->GetArrayElem($departureTimes, $i . '.action', '');
+                    if (strtoupper($action) != 'ACTIVATE') {
                         continue;
                     }
 
-                    $h = $this->GetArrayElem($departureTimes[$i], 'timeStamp.hour', 0);
-                    $m = $this->GetArrayElem($departureTimes[$i], 'timeStamp.minute', 0);
+                    $h = $this->GetArrayElem($departureTimes, $i . '.timeStamp.hour', 0);
+                    $m = $this->GetArrayElem($departureTimes, $i . '.timeStamp.minute', 0);
                     $time = sprintf('%02d:%02d', $h, $m);
 
                     $wdays = [];
-                    $timerWeekDays = $this->GetArrayElem($departureTimes[$i], 'timerWeekDays', '');
+                    $timerWeekDays = $this->GetArrayElem($departureTimes, $i . '.timerWeekDays', '');
                     foreach ($timerWeekDays as $timerWeekDay) {
-                        $wdays[] = $this->Translate($timerWeekDay);
+                        $wdays[] = $this->Translate(strtolower($timerWeekDay));
+                    }
+                    if (count($wdays) == 0) {
+                        $wdays = $this->Translate('tomorrow');
+                    } elseif (count($wdays) == 7) {
+                        $wdays = $this->Translate('daily');
+                    } else {
+                        $wdays = implode(', ', $wdays);
                     }
 
-                    $spec = $time . ' ' . $this->Translate('on') . ' ' . implode(', ', $wdays);
+                    $spec = $time . ' ' . $wdays;
 
                     $html .= '<tr>' . PHP_EOL;
                     $html .= '<td>' . $title . '</td>' . PHP_EOL;

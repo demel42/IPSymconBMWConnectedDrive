@@ -214,6 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 4.1 @ 23.01.2025 15:35
+  - Fix: Auswertung der Klimatisierungs-Timer
+
 - 4.0 @ 23.12.2024 11:11
   - Fix: Login mit Captcha
   - update submodule CommonStubs
