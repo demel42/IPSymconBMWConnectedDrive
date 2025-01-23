@@ -1854,8 +1854,9 @@ class BMWConnectedDriveVehicle extends IPSModule
                 if ($jdata == false) {
                     continue;
                 }
+                $this->SendDebug(__FUNCTION__, 'jdata=' . print_r($data, true), 0);
 
-                $event['eventStatus'] = $jdata['eventStatus'];
+                $event['eventStatus'] = $jdata['status'];
                 $event['modstamp'] = time();
 
                 if ($event['eventStatus'] == 'PENDING' && $event['creationTime'] + $time2failed < time()) {
