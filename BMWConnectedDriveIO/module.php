@@ -48,7 +48,17 @@ class BMWConnectedDriveIO extends IPSModule
     private static $vehicles_endpoint = '/eadrax-vcs/v4/vehicles';
     private static $vehicle_state_endpoint = '/eadrax-vcs/v4/vehicles/state';
 
-    private static $remoteService_endpoint = '/eadrax-vrccs/v4/presentation/remote-commands';
+    /*
+    REMOTE_SERVICE_V3_BASE_URL = "/eadrax-vrccs/v3/presentation/remote-commands"
+    REMOTE_SERVICE_V4_BASE_URL = "/eadrax-vrccs/v4/presentation/remote-commands"
+    REMOTE_SERVICE_URL = REMOTE_SERVICE_V4_BASE_URL + "/{service_type}"
+    REMOTE_SERVICE_STATUS_URL = REMOTE_SERVICE_V3_BASE_URL + "/eventStatus?eventId={event_id}"
+    REMOTE_SERVICE_POSITION_URL = REMOTE_SERVICE_V4_BASE_URL + "/eventPosition?eventId={event_id}"
+     */
+
+    private static $remoteService_fmt = '/eadrax-vrccs/v4/presentation/remote-commands/{service_type}';
+    private static $remoteService_status_fmt = '/eadrax-vrccs/v3/presentation/remote-commands/eventStatus?eventId={event_id}';
+    private static $remoteService_position_fmt = '/eadrax-vrccs/v4/presentation/remote-commands/eventPosition?eventId={event_id}';
     private static $remoteServiceHistory_endpoint = '/eadrax-vrccs/v3/presentation/remote-history';
 
     private static $vehicle_img_endpoint = '/eadrax-ics/v5/presentation/vehicles/images';
@@ -1805,7 +1815,10 @@ class BMWConnectedDriveIO extends IPSModule
 
         $this->SendDebug(__FUNCTION__, 'service=' . $service . ', action=' . $action, 0);
 
-        $endpoint = self::$remoteService_endpoint . '/' . strtolower(preg_replace('/_/', '-', $service));
+        $params = [
+            'service_type' => strtolower(preg_replace('/_/', '-', $service)),
+        ];
+        $endpoint = $this->format_string(self::$remoteService_fmt, $params);
 
         $header_add = [
             'bmw-vin' => $vin,
@@ -1898,11 +1911,10 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$remoteService_endpoint . '/eventStatus';
-
         $params = [
-            'eventId' => $eventId,
+            'event_id' => $eventId,
         ];
+        $endpoint = $this->format_string(self::$remoteService_status_fmt, $params);
 
         $data = $this->CallAPI($endpoint, [], $params, '');
         return $data;
@@ -1915,11 +1927,10 @@ class BMWConnectedDriveIO extends IPSModule
             return;
         }
 
-        $endpoint = self::$remoteService_endpoint . '/eventPosition';
-
         $params = [
-            'eventId' => $eventId,
+            'event_id' => $eventId,
         ];
+        $endpoint = $this->format_string(self::$remoteService_position_fmt, $params);
 
         $pos = $this->GetHomePosition();
         $header_add = [

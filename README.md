@@ -214,7 +214,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 4.1 @ 23.01.2025 18:04
+- 4.1 @ 24.01.2025 08:17
   - Fix: Auswertung der Klimatisierungs-Timer
   - Fix: Auswertung der RemoteService-History bei der Ausfürhrung eines Kommandos
 
