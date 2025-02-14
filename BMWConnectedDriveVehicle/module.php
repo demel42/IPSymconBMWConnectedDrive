@@ -1046,7 +1046,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         }
 
         $val = $this->GetArrayElem($state, 'lastUpdatedAt', '');
-        $this->SaveValue('LastUpdateFromVehicle', strtotime($val), $isChanged);
+        $this->SaveValue('LastUpdateFromVehicle', $this->str2tstamp($val), $isChanged);
 
         $model = $this->ReadPropertyInteger('model');
         $hasCombustion = $model != self::$BMW_DRIVE_TYPE_ELECTRIC;
@@ -1278,7 +1278,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                     $this->SetGoogleMap($maptype, $zoom);
                 }
                 $val = $this->GetArrayElem($state, 'lastUpdatedAt', '');
-                $this->SaveValue('LastPositionMessage', strtotime($val), $isChanged);
+                $this->SaveValue('LastPositionMessage', $this->str2tstamp($val), $isChanged);
             }
         }
 
@@ -1295,7 +1295,8 @@ class BMWConnectedDriveVehicle extends IPSModule
                 foreach ($requiredServices as $requiredService) {
                     $description = $this->GetArrayElem($requiredService, 'description', '');
                     $dateTime = $this->GetArrayElem($requiredService, 'dateTime', '');
-                    $tstamp = $dateTime != '' ? date('m/Y', strtotime($dateTime)) : '';
+                    $ts = $this->str2tstamp($tstamp);
+                    $tstamp = $ts > 0 ? date('m/Y', $ts) : '';
                     $type = $this->GetArrayElem($requiredService, 'type', '');
                     switch ($type) {
                         case 'OIL':
@@ -1494,8 +1495,8 @@ class BMWConnectedDriveVehicle extends IPSModule
             foreach ($sessions as $session) {
                 $r = explode('_', $session['id']);
                 if (isset($r[0])) {
-                    $ts = strtotime($r[0]);
-                    $tstamp = date('d.m. H:i:s', $ts);
+                    $ts = $this->str2tstamp($r[0]);
+                    $tstamp = $ts > 0 ? date('d.m. H:i:s', $ts) : '';
                 } else {
                     $tstamp = $session['title'];
                 }
@@ -1604,7 +1605,7 @@ class BMWConnectedDriveVehicle extends IPSModule
                 'action'       => $action,
                 'eventStatus'  => 'PENDING',
                 'eventId'      => $jdata['eventId'],
-                'creationTime' => strtotime($jdata['creationTime']),
+                'creationTime' => $this->str2tstamp($jdata['creationTime']),
                 'modstamp'     => time(),
             ];
         }
@@ -1990,7 +1991,7 @@ class BMWConnectedDriveVehicle extends IPSModule
 
         $tbl = '';
         foreach ($jdata as $e) {
-            $ts = strtotime($e['dateTime']);
+            $ts = $this->str2tstamp($e['dateTime']);
 
             switch ($e['type']) {
                 case 'CLIMATIZE_LATER':
@@ -2370,5 +2371,19 @@ class BMWConnectedDriveVehicle extends IPSModule
         $data = $this->GetMultiBuffer($name);
         $this->SendDebug(__FUNCTION__, 'name=' . $name . ', size=' . strlen($data), 0);
         return $data;
+    }
+
+    private function str2tstamp($s)
+    {
+        if ($s == '') {
+            $ts = 0;
+        } else {
+            $ts = strtotime($s);
+            if ($ts === false || $ts < 0) {
+                $this->SendDebug(__FUNCTION__, 'invalid tstamp "' . $s . '" => (' . $ts . ')', 0);
+                $ts = 0;
+            }
+        }
+        return $ts;
     }
 }

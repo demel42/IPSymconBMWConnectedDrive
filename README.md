@@ -214,6 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
+- 4.2 @ 14.02.2025 15:35
+  - Fix: Absicherung der Umwandlung von Zeitstempel in UNIX-Timestamp bei Zeitstempel vor dem 1.1.1970
+
 - 4.1 @ 24.01.2025 08:17
   - Fix: Auswertung der Klimatisierungs-Timer
   - Fix: Auswertung der RemoteService-History bei der Ausfürhrung eines Kommandos
