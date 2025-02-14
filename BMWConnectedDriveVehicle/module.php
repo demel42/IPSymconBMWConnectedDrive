@@ -2378,7 +2378,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         if ($s == '') {
             $ts = 0;
         } else {
-            $ts = strtotime($s);
+            @$ts = strtotime($s);
             if ($ts === false || $ts < 0) {
                 $this->SendDebug(__FUNCTION__, 'invalid tstamp "' . $s . '" => (' . $ts . ')', 0);
                 $ts = 0;
