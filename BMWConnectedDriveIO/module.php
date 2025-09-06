@@ -38,7 +38,7 @@ class BMWConnectedDriveIO extends IPSModule
         'RestOfWorld'  => 'Dart/3.3 (dart:io)',
     ];
 
-    private static $x_user_agent_fmt = 'android(AP2A.240605.024);{brand};{app_version};{region}';
+    private static $x_user_agent_fmt = '{build};{brand};{app_version};{region}';
 
     private static $oauth_config_endpoint = '/eadrax-ucs/v1/presentation/oauth/config';
     private static $oauth_authenticate_endpoint = '/gcdm/oauth/authenticate';
@@ -74,6 +74,25 @@ class BMWConnectedDriveIO extends IPSModule
     private static $activity_size = 100;
 
     private $SemaphoreID;
+
+    private function get_x_user_agent()
+    {
+        $hash = hash('sha256', IPS_GetLicensee());
+        $digits = preg_replace('/[^0-9]/', '', $hash);
+        $build = str_pad(substr($digits, 0, 6), 6, '0') . '.' . str_pad(substr($digits, -3, 3), 3, '0');
+
+        $region = $this->GetRegion();
+
+        $x_user_agent_params = [
+            'build'       => 'android(AP2A. ' . $build . ')',
+            'brand'       => $this->GetBrand(),
+            'app_version' => self::$app_version[$region],
+            'region'      => self::$region_map[$region],
+        ];
+        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
+
+        return $x_user_agent;
+    }
 
     public function __construct(string $InstanceID)
     {
@@ -541,20 +560,13 @@ class BMWConnectedDriveIO extends IPSModule
 
         $callerMSG = 'endpoint "' . $this->extract_endpoint(self::$oauth_config_endpoint) . '"  => ';
 
-        $x_user_agent_params = [
-            'brand'       => $this->GetBrand(),
-            'app_version' => self::$app_version[$region],
-            'region'      => self::$region_map[$region],
-        ];
-        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
-
         $session_id = $this->uuid_v4();
         $correlation_id = $this->uuid_v4();
         $config_header_values = [
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
             'user-agent'                => self::$user_agent[$region],
-            'x-user-agent'              => $x_user_agent,
+            'x-user-agent'              => $this->get_x_user_agent(),
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
             'x-identity-provider'       => 'gcdm',
@@ -671,7 +683,7 @@ class BMWConnectedDriveIO extends IPSModule
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
             'user-agent'                => self::$user_agent[$region],
-            'x-user-agent'              => $x_user_agent,
+            'x-user-agent'              => $this->get_x_user_agent(),
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
             'x-identity-provider'       => 'gcdm',
@@ -823,7 +835,7 @@ class BMWConnectedDriveIO extends IPSModule
 
         $params = [
             'interaction-id' => $this->uuid_v4(),
-            'client-version' => sprintf(self::$x_user_agent_fmt, $this->GetBrand(), self::$region_map[$region]),
+            'client-version' => $this->get_x_user_agent(),
         ];
         $n = 0;
         foreach ($params as $param => $value) {
@@ -837,7 +849,7 @@ class BMWConnectedDriveIO extends IPSModule
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
             'user-agent'                => self::$user_agent[$region],
-            'x-user-agent'              => $x_user_agent,
+            'x-user-agent'              => $this->get_x_user_agent(),
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
             'x-identity-provider'       => 'gcdm',
@@ -957,7 +969,7 @@ class BMWConnectedDriveIO extends IPSModule
             'accept'                    => 'application/json',
             'accept-language'           => $this->GetLang(),
             'user-agent'                => self::$user_agent[$region],
-            'x-user-agent'              => $x_user_agent,
+            'x-user-agent'              => $this->get_x_user_agent(),
             'authorization'             => 'Basic ' . $oauth_authorization,
             'ocp-apim-subscription-key' => base64_decode(self::$ocp_apim_key[$region]),
             'bmw-session-id'            => $session_id,
@@ -1130,13 +1142,6 @@ class BMWConnectedDriveIO extends IPSModule
 
         $callerMSG = 'endpoint "' . $this->extract_endpoint($token_url) . '" => ';
 
-        $x_user_agent_params = [
-            'brand'       => $this->GetBrand(),
-            'app_version' => self::$app_version[$region],
-            'region'      => self::$region_map[$region],
-        ];
-        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
-
         $session_id = $this->uuid_v4();
         $correlation_id = $this->uuid_v4();
         $oauth_authorization = base64_encode($oauth_settings['clientId'] . ':' . $oauth_settings['clientSecret']);
@@ -1144,7 +1149,7 @@ class BMWConnectedDriveIO extends IPSModule
             'accept'              => 'application/json',
             'accept-language'     => $this->GetLang(),
             'user-agent'          => self::$user_agent[$region],
-            'x-user-agent'        => $x_user_agent,
+            'x-user-agent'        => $this->get_x_user_agent(),
             'authorization'       => 'Basic ' . $oauth_authorization,
             'bmw-session-id'      => $session_id,
             'x-identity-provider' => 'gcdm',
@@ -1297,24 +1302,24 @@ class BMWConnectedDriveIO extends IPSModule
         return sprintf(
             '%04x%04x-%04x-%04x-%04x-%04x%04x%04x',
 
-        // 32 bits for "time_low"
-        mt_rand(0, 0xffff),
+            // 32 bits for "time_low"
+            mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
 
-        // 16 bits for "time_mid"
-        mt_rand(0, 0xffff),
+            // 16 bits for "time_mid"
+            mt_rand(0, 0xffff),
 
-        // 16 bits for "time_hi_and_version",
-        // four most significant bits holds version number 4
-        mt_rand(0, 0x0fff) | 0x4000,
+            // 16 bits for "time_hi_and_version",
+            // four most significant bits holds version number 4
+            mt_rand(0, 0x0fff) | 0x4000,
 
-        // 16 bits, 8 bits for "clk_seq_hi_res",
-        // 8 bits for "clk_seq_low",
-        // two most significant bits holds zero and one for variant DCE1.1
-        mt_rand(0, 0x3fff) | 0x8000,
+            // 16 bits, 8 bits for "clk_seq_hi_res",
+            // 8 bits for "clk_seq_low",
+            // two most significant bits holds zero and one for variant DCE1.1
+            mt_rand(0, 0x3fff) | 0x8000,
 
-        // 48 bits for "node"
-        mt_rand(0, 0xffff),
+            // 48 bits for "node"
+            mt_rand(0, 0xffff),
             mt_rand(0, 0xffff),
             mt_rand(0, 0xffff)
         );
@@ -1478,19 +1483,12 @@ class BMWConnectedDriveIO extends IPSModule
         }
         $this->SetBuffer('LastApiCall', time());
 
-        $x_user_agent_params = [
-            'brand'       => $this->GetBrand(),
-            'app_version' => self::$app_version[$region],
-            'region'      => self::$region_map[$region],
-        ];
-        $x_user_agent = $this->format_string(self::$x_user_agent_fmt, $x_user_agent_params);
-
         $correlation_id = $this->uuid_v4();
         $header_base = [
             'accept'                => 'application/json',
             'accept-language'       => $this->GetLang(),
             'user-agent'            => self::$user_agent[$region],
-            'x-user-agent'          => $x_user_agent,
+            'x-user-agent'          => $this->get_x_user_agent(),
             'authorization'         => 'Bearer ' . $access_token,
             'x-identity-provider'   => 'gcdm',
             'x-correlation-id'      => $correlation_id,
