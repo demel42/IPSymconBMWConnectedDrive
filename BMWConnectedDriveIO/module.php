@@ -531,6 +531,8 @@ class BMWConnectedDriveIO extends IPSModule
         }
         $this->SendDebug(__FUNCTION__, 'captcha_token=' . $captcha_token, 0);
 
+        $this->UpdateFormField('captcha_token', 'value', '');
+
         $this->WriteAttributeString('ApiSettings', '');
         $this->WriteAttributeString('ApiRefreshToken', '');
         $this->SetBuffer('AccessToken', '');

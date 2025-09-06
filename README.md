@@ -214,8 +214,9 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 4.3 @ 05.09.2025 13:42
-  - Änderung: ein Teil des HTTP-Header (Feld "x-user-agent") wird wird nun Installations-bezogen generiert. Das scheint das "Out-of-quota"-Problem zu entschärfen.
+- 4.3 @ 06.09.2025 08:51
+  - Änderung: ein Teil des HTTP-Header (Feld "x-user-agent") wird wird nun Installations-bezogen generiert; das scheint das "Out-of-quota"-Problem zu entschärfen.
+  - Fix: nach dem Login wird das Feld "Kopierte Captcha" geleert
 
 - 4.2 @ 14.02.2025 18:16
   - Fix: Absicherung der Umwandlung von Zeitstempel in UNIX-Timestamp bei Zeitstempel vor dem 1.1.1970
