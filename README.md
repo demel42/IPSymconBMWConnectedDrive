@@ -214,7 +214,7 @@ Quellen / Referenzen
 
 ## 7. Versions-Historie
 
-- 4.3 @ 06.09.2025 08:51
+- 4.3 @ 07.09.2025 17:28
   - Änderung: ein Teil des HTTP-Header (Feld "x-user-agent") wird wird nun Installations-bezogen generiert; das scheint das "Out-of-quota"-Problem zu entschärfen.
   - Fix: nach dem Login wird das Feld "Kopierte Captcha" geleert
 

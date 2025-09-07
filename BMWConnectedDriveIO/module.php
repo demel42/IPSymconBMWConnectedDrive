@@ -1384,6 +1384,7 @@ class BMWConnectedDriveIO extends IPSModule
         if (isset($jbody['message'])) {
             $message = $jbody['message'];
             $this->SendDebug(__FUNCTION__, 'message=' . $message, 0);
+            // message=Out of call volume quota. Quota will be replenished in 08:08:26.
             if (preg_match('/quota/i', $message)) {
                 if (preg_match('/quota .* in ([0-9]{2}):([0-9]{2}):([0-9]{2}).*$/i', $message, $r)) {
                     $wait_time = $r[1] * 3600 + $r[2] * 60 + $r[3];
