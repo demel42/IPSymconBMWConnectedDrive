@@ -61,6 +61,7 @@ class BMWConnectedDriveVehicle extends IPSModule
         $this->RegisterPropertyInteger('vertical_mapsize', 400);
 
         $this->RegisterPropertyInteger('UpdateVehicleDataInterval', 10);
+        $this->RegisterPropertyInteger('UpdateVehicleDataChargingInterval', 5);
         $this->RegisterPropertyInteger('UpdateRemoteServiceHistoryInterval', 60);
         $this->RegisterPropertyInteger('UpdateChargingSessionsInterval', 6 * 60);
 
@@ -597,6 +598,14 @@ class BMWConnectedDriveVehicle extends IPSModule
                 'caption' => 'Update vehicle data interval'
             ],
             [
+                'name'    => 'UpdateVehicleDataChargingInterval',
+                'type'    => 'NumberSpinner',
+                'minimum' => 0,
+                'suffix'  => 'minutes',
+                'caption' => 'Update interval while charging'
+            ],
+
+            [
                 'name'    => 'UpdateRemoteServiceHistoryInterval',
                 'type'    => 'NumberSpinner',
                 'minimum' => 0,
@@ -812,7 +821,12 @@ class BMWConnectedDriveVehicle extends IPSModule
     public function SetUpdateVehicleDataInterval(int $min = null)
     {
         if (is_null($min)) {
-            $min = $this->ReadPropertyInteger('UpdateVehicleDataInterval');
+            $chargingStatus = $this->GetValue('ChargingStatus');
+            if ($chargingStatus == self::$BMW_CHARGING_STATE_ACTIVE) {
+                $min = $this->ReadPropertyInteger('UpdateVehicleDataChargingInterval');
+            } else {
+                $min = $this->ReadPropertyInteger('UpdateVehicleDataInterval');
+            }
         }
         $msec = $min * 60 * 1000;
         $this->MaintainTimer('UpdateVehicleData', $msec);
